@@ -2,560 +2,384 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>dreamer.ai</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ================= 1. 전역 변수 & 기본 초기화 ================= */
         :root {
-            --bg-main: #0a0a0a;         
-            --bg-surface: #151515;      
-            --bg-surface-light: #202020;
-            --accent-color: #d8b4fe;    
-            --text-primary: #ffffff;    
-            --text-secondary: #9ca3af;  
-            --border-color: #262626;    
-            --danger-color: #ff6b6b;    
+            --bg: #0f0f0f; --panel: #181818; --accent: #bb86fc;
+            --text: #e0e0e0; --dim: #9e9e9e; --border: #2a2a2a; --input: #242424;
+            --user-bubble: #4b0082; --ghost-bubble: #262626;
         }
-
-        * {
-            margin: 0; padding: 0; box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent; 
-        }
-
-        body { background-color: var(--bg-main); color: var(--text-primary); overflow-y: auto; }
-
-        .app-content {
-            min-height: 100vh; display: flex; flex-direction: column;
-            padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
-        }
-
-        /* ================= 2. 헤더 & 공지사항 ================= */
-        .app-header { display: flex; justify-content: center; align-items: center; padding: 20px; background-color: var(--bg-main); position: relative; }
-        .logo { color: var(--accent-color); font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-
-        .notice-bar { margin: 0 16px 20px 16px; padding: 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; }
-        .notice-tag { display: inline-block; color: var(--text-secondary); font-weight: 700; font-size: 14px; margin-bottom: 8px; }
-        .notice-text { color: var(--text-primary); font-size: 14px; line-height: 1.4; }
-        .edit-notice-btn { background: none; border: none; color: var(--accent-color); font-size: 13px; font-weight: 600; cursor: pointer; align-self: flex-end; }
-
-        /* ================= 3. 메인 탭 네비게이션 ================= */
-        .main-tabs { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding: 0 16px; flex-shrink: 0; }
-        .tab-btn { background: none; border: none; color: var(--text-secondary); padding: 12px 0; font-size: 14px; font-weight: 600; cursor: pointer; flex-grow: 1; position: relative; transition: color 0.2s; }
-        .tab-btn.active { color: var(--text-primary); }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 15%; width: 70%; height: 3px; background-color: var(--accent-color); border-radius: 3px 3px 0 0; }
-
-        /* ================= 4. 탭 콘텐츠 영역 ================= */
-        .tab-content-area { flex: 1; overflow-y: visible; padding: 24px 16px; }
-        .tab-pane { display: none; }
-        .tab-pane.active { display: block; animation: fadeIn 0.2s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .create-btn { width: 100%; background-color: var(--bg-surface); color: var(--accent-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 15px; }
-        .create-btn:hover { background-color: var(--bg-surface-light); }
-        .section-title { font-size: 18px; margin-bottom: 16px; font-weight: bold; }
-        .char-card { background: var(--bg-surface); padding: 16px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 12px; cursor: pointer; }
-
-        /* API & 설정 탭 */
-        .api-container { background-color: var(--bg-surface); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); }
-        .api-container .notice-tag { color: var(--accent-color); margin-bottom: 0; }
-        .api-container input { width: 100%; padding: 16px; margin: 16px 0; background-color: var(--bg-surface-light); border: none; border-radius: 12px; color: var(--text-primary); font-size: 14px; outline: none; }
-        .link-btn { background: none; border: none; color: var(--accent-color); font-size: 14px; cursor: pointer; font-weight: 500; }
-
-        .settings-profile { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-        .profile-img-placeholder { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--accent-color); display: flex; justify-content: center; align-items: center; font-size: 24px; color: #666; margin-bottom: 10px; background-color: var(--bg-surface-light); }
-        .sub-btn { width: 100%; padding: 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; color: var(--accent-color); font-size: 15px; cursor: pointer; font-weight: 500; }
-        .danger-text { color: var(--danger-color); }
-
-        /* ================= 5. 로그인 화면 ================= */
-        .screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-main); z-index: 5000; display: flex; justify-content: center; align-items: center; padding: 20px; transition: opacity 0.3s, visibility 0.3s; }
-        .screen-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .login-container { width: 100%; max-width: 400px; background-color: var(--bg-surface); padding: 50px 24px; border-radius: 20px; border: 1px solid var(--border-color); text-align: center; }
-        .login-container .logo { margin-bottom: 15px; display: inline-block; }
-        .login-container .subtitle { color: var(--text-secondary); font-size: 15px; margin-bottom: 30px; }
-        .input-group input { width: 100%; padding: 16px; margin-bottom: 16px; background-color: var(--bg-surface-light); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-primary); font-size: 15px; outline: none; }
-        .input-group input:focus { border-color: var(--accent-color); }
-        .primary-btn { width: 100%; padding: 16px; background-color: var(--text-primary); color: #000000; border: none; border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 24px; }
-        .login-links { font-size: 14px; color: var(--text-secondary); text-align: center; }
-        .login-links .link { cursor: pointer; }
-
-        /* ================= 6. 모달 & 에디터 ================= */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 6000; display: none; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--bg-surface); width: 100%; max-width: 400px; padding: 30px 24px; border-radius: 24px; border: 1px solid var(--border-color); }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        button { cursor: pointer; border: none; background: none; color: white; transition: 0.2s; }
+        .hidden { display: none !important; }
         
-        #editor-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); z-index: 7000; overflow-y: auto; display: flex; flex-direction: column; }
-        .editor-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-main); z-index: 10; }
-        .editor-body { padding: 24px 20px; flex: 1; }
-        .form-group { margin-bottom: 24px; }
-        .form-group label { display: block; color: var(--accent-color); font-size: 13px; font-weight: 700; margin-bottom: 8px; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; color: white; font-size: 15px; outline: none; }
-        .form-group input:focus, .form-group textarea:focus { border-color: var(--accent-color); }
-        .char-count { font-size: 11px; color: var(--text-secondary); text-align: right; margin-top: 4px; }
+        /* 사이드바 (날개형) */
+        #sidebar { width: 260px; background: #121212; border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: 0.3s; z-index: 100; }
+        @media (max-width: 768px) { #sidebar { position: fixed; left: -260px; height: 100%; } #sidebar.open { left: 0; } }
+        .sidebar-item { padding: 12px 20px; font-size: 0.9rem; color: var(--dim); display: flex; align-items: center; gap: 10px; }
+        .sidebar-item:hover { background: var(--panel); color: white; }
+        .sidebar-active { background: #222; color: white; border-left: 3px solid var(--accent); }
 
-        /* ================= 7. 채팅 화면 ================= */
-        #chat-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); z-index: 3000; display: flex; flex-direction: column; }
-        .chat-sidebar { position: fixed; top: 0; right: -320px; width: 300px; height: 100%; background-color: var(--bg-surface); z-index: 4500; transition: right 0.3s; padding: 40px 20px; padding-top: env(safe-area-inset-top); overflow-y: auto; }
-        .chat-sidebar.open { right: 0; }
-        .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color); }
-        .chat-body { flex: 1; overflow-y: auto; padding: 20px; scroll-behavior: smooth; }
-        .chat-input-area { padding: 15px 20px; padding-bottom: calc(15px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border-color); display: flex; gap: 10px; }
-        .chat-input-area input { flex: 1; background: var(--bg-surface-light); border: none; padding: 14px 18px; border-radius: 25px; color: white; font-size: 15px; outline: none; }
-        .chat-input-area input:focus { border: 1px solid var(--accent-color); }
-        .menu-btn { background: none; border: none; color: var(--text-primary); font-size: 20px; cursor: pointer; }
+        /* 메인 콘텐츠 */
+        #content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .view { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        
+        /* 탭 및 폴더 */
+        .tab-bar { display: flex; gap: 20px; padding: 15px 25px; border-bottom: 1px solid var(--border); }
+        .folder-chip { background: #222; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; border: 1px solid #333; }
+
+        /* 채팅 UI */
+        #chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 25px; }
+        .msg-wrapper { max-width: 90%; }
+        .msg-content { font-size: 0.95rem; line-height: 1.6; }
+        /* 지문 스타일: 별표(*) 사이의 글자는 회색+이테릭 */
+        .msg-content em { color: #888; font-style: italic; }
+        
+        /* 입력 폼 스타일 */
+        .cai-form { max-width: 600px; margin: 0 auto; padding: 20px; width: 100%; box-sizing: border-box; }
+        .field-group { margin-bottom: 20px; }
+        .field-label { font-size: 0.8rem; color: var(--accent); margin-bottom: 5px; display: block; }
+        .cai-input { width: 100%; background: var(--input); border: 1px solid #333; border-radius: 10px; color: white; padding: 12px; box-sizing: border-box; }
+        .cai-select { width: 100%; background: var(--input); color: white; padding: 10px; border-radius: 10px; border: 1px solid #333; }
+
+        /* 부유형 버튼 */
+        .fab { position: fixed; bottom: 80px; right: 20px; background: var(--accent); color: black; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        /* 장면 보관함용 */
+        .scene-card { background: var(--panel); border: 1px solid var(--border); padding: 15px; border-radius: 10px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- [1] 로그인 & 회원가입 화면 -->
-    <div id="login-screen" class="screen-overlay">
-        <div class="login-container">
-            <h1 class="logo">dreamer.ai</h1>
-            <p class="subtitle">로그인이 필요합니다.</p>
-            <div class="input-group">
-                <input type="text" id="login-id" placeholder="핸들명(아이디)">
-                <input type="password" id="login-pw" placeholder="비밀번호">
+<nav id="sidebar">
+    <div style="padding: 25px; font-weight: bold; font-size: 1.2rem; color: var(--accent);">dreamer.ai</div>
+    <div class="sidebar-item" onclick="showView('main')">🏠 Home</div>
+    <div class="sidebar-item" onclick="showView('scenes')">🎬 Scenes</div>
+    <div class="sidebar-item" onclick="showView('bugs')">🐞 Bug Report</div>
+    <div class="sidebar-item" onclick="showView('settings')">⚙️ Settings</div>
+    <div style="margin-top:20px; padding: 10px 20px; font-size: 0.7rem; color: #444;">RECENT CHATS</div>
+    <div id="sidebar-sessions"></div>
+</nav>
+
+<main id="content">
+    <!-- 메인 뷰 -->
+    <div id="view-main" class="view">
+        <div class="section">
+            <div id="admin-manual" class="info-box" style="background:#1a1a1a; padding:15px; margin:20px; border-radius:10px; border-left:4px solid var(--accent);">
+                <div style="display:flex; justify-content:space-between;">
+                    <b>📖 User Manual</b>
+                    <button onclick="editManual()" id="manual-edit-btn" style="font-size:0.7rem; color:var(--dim);">Edit</button>
+                </div>
+                <div id="manual-text" style="font-size:0.85rem; margin-top:10px; white-space:pre-wrap;">환영합니다! 좌측 메뉴에서 캐릭터를 생성하고 API 키를 설정하세요.</div>
             </div>
-            <button class="primary-btn" id="btn-login">로그인</button>
-            <div class="login-links">
-                <span class="link" onclick="alert('가입 기능 준비 중')">계정이 없으신가요? 가입하기</span>
+            
+            <div class="tab-bar">
+                <h3>Characters</h3>
+                <button onclick="showView('create-char')" style="color:var(--accent)">+ New</button>
             </div>
+            <div id="folder-container" style="padding:0 25px; display:flex; gap:10px;"></div>
+            <div id="char-list" style="padding:25px; display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap:20px;"></div>
         </div>
     </div>
 
-    <!-- [2] 메인 앱 인터페이스 -->
-    <div id="app-content" class="app-content hidden">
-        <header class="app-header">
-            <h1 class="logo">dreamer.ai</h1>
-        </header>
-
-        <div class="notice-bar">
+    <!-- 캐릭터 생성 뷰 -->
+    <div id="view-create-char" class="view hidden">
+        <div class="cai-form">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="notice-tag">User Manual</span>
-                <button class="edit-notice-btn" id="btn-edit-notice">Edit</button>
-            </div>
-            <span class="notice-text" id="notice-text">dreamer.ai에 오신 것을 환영합니다!</span>
-        </div>
-
-        <!-- 스크린샷과 동일한 탭 구성 -->
-        <nav class="main-tabs">
-            <button class="tab-btn active" data-tab="character">캐릭터</button>
-            <button class="tab-btn" data-tab="chat">대화</button>
-            <button class="tab-btn" data-tab="persona">페르소나</button>
-            <button class="tab-btn" data-tab="api">API</button>
-            <button class="tab-btn" data-tab="settings">설정</button>
-        </nav>
-
-        <main class="tab-content-area">
-            <!-- 캐릭터 탭 -->
-            <div id="tab-character" class="tab-pane active">
-                <button class="create-btn" onclick="ui.openEditor(false)">+ 새 캐릭터 만들기</button>
-                <div class="content-list" id="character-list-container"></div>
-            </div>
-
-            <!-- 대화 탭 (스크린샷 반영) -->
-            <div id="tab-chat" class="tab-pane">
-                <h3 class="section-title">Recent Chats</h3>
-                <div id="chat-list-container">
-                    <!-- 최근 대화 목록이 들어갈 자리 -->
-                </div>
-            </div>
-
-            <!-- 페르소나 탭 -->
-            <div id="tab-persona" class="tab-pane">
-                <button class="create-btn" onclick="alert('페르소나 생성 기능 준비 중')">+ 새 페르소나 만들기</button>
-                <div id="persona-list-container"></div>
-            </div>
-
-            <!-- API 탭 -->
-            <div id="tab-api" class="tab-pane">
-                <div class="api-container">
-                    <span class="notice-tag">Infermatic API Key</span>
-                    <input type="password" id="api-key-input" placeholder="sk-...">
-                    <button class="link-btn" id="btn-check-api" onclick="alert('API 연동 상태가 정상입니다.')">연동 상태 확인</button>
-                </div>
-            </div>
-
-            <!-- 유저 설정 탭 -->
-            <div id="tab-settings" class="tab-pane">
-                <div class="settings-profile">
-                    <div class="profile-img-placeholder"><i class="fas fa-question" style="font-size: 30px; color:#555;"></i></div>
-                    <button class="sub-btn" style="color:white;">ReschaRiley</button>
-                    <button class="sub-btn" onclick="alert('클립보드에 복사되었습니다.')">데이터 백업 코드 복사</button>
-                    <button class="sub-btn danger-text" id="btn-settings-logout">로그아웃</button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- [3] 캐릭터 상세 정보 모달 -->
-    <div id="char-info-modal" class="modal">
-        <div class="modal-content">
-            <div style="text-align:center; margin-bottom:20px;">
-                <div id="info-img" style="width:100px; height:100px; background:#333; border-radius:20px; margin:0 auto 15px; border:2px solid var(--accent-color);"></div>
-                <h2 id="info-name" style="font-size:22px;"></h2>
-                <p id="info-sub" style="color:var(--text-secondary); font-size:14px;"></p>
+                <button onclick="showView('main')">← Back</button>
+                <h2>Create Character</h2>
+                <div id="save-status" style="font-size:0.7rem; color:var(--dim)">Auto-save: ON</div>
             </div>
             
-            <div style="background:var(--bg-surface-light); padding:15px; border-radius:15px; margin-bottom:20px;">
-                <p style="font-size:12px; color:var(--accent-color); font-weight:bold;">관계 설정</p>
-                <p id="info-relation" style="font-size:15px; margin-top:5px;"></p>
-                <p style="font-size:12px; color:var(--accent-color); font-weight:bold; margin-top:10px;">언어 설정</p>
-                <p id="info-lang" style="font-size:15px; margin-top:5px;"></p>
+            <div class="field-group" style="text-align:center;">
+                <div onclick="document.getElementById('c-file').click()">
+                    <img id="c-prev" src="https://via.placeholder.com/100" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid #333;">
+                    <input type="file" id="c-file" hidden onchange="handleImg(this, 'c-prev')">
+                </div>
             </div>
 
-            <div style="display:flex; gap:10px;">
-                <button class="primary-btn" style="flex:2; margin-bottom:0;" onclick="logic.startChat()">대화 시작</button>
-                <button class="primary-btn" style="flex:1; margin-bottom:0; background:var(--bg-surface-light); color:white;" onclick="ui.openEditor(true)">수정</button>
+            <div class="field-group">
+                <label class="field-label">Name (Required)</label>
+                <input id="c-name" class="cai-input" maxlength="25" placeholder="Name">
             </div>
-            <button style="width:100%; margin-top:15px; background:none; border:none; color:var(--text-secondary); cursor:pointer;" onclick="ui.closeModal('char-info-modal')">닫기</button>
-        </div>
-    </div>
-
-    <!-- [4] 에디터 화면 -->
-    <div id="editor-screen" class="hidden">
-        <header class="editor-header">
-            <button style="background:none; border:none; color:white; font-size:20px; cursor:pointer;" onclick="ui.closeEditor()"><i class="fas fa-times"></i></button>
-            <strong id="editor-title">캐릭터 생성</strong>
-            <button style="background:none; border:none; color:var(--accent-color); font-weight:bold; font-size:16px; cursor:pointer;" onclick="logic.saveCharacter()">저장</button>
-        </header>
-        <div class="editor-body">
-            <div id="auto-save-status" style="font-size:11px; color:var(--text-secondary); margin-bottom:10px; text-align:right;">자동 저장 준비 중...</div>
-            
-            <div class="form-group">
-                <label>이름 (필수)</label>
-                <input type="text" id="edit-name" maxlength="25" placeholder="캐릭터의 이름을 입력하세요.">
-                <div class="char-count">0 / 25</div>
+            <div class="field-group">
+                <label class="field-label">One-liner (Max 40)</label>
+                <input id="c-tagline" class="cai-input" maxlength="40" placeholder="A short motto...">
             </div>
-            <div class="form-group">
-                <label>한마디 (Slogan)</label>
-                <input type="text" id="edit-sub" maxlength="40" placeholder="캐릭터를 한 문장으로 표현하세요.">
-                <div class="char-count">0 / 40</div>
-            </div>
-            <div class="form-group">
-                <label>관계 정의 (필수)</label>
-                <select id="edit-relation">
-                    <option value="친구">친구</option>
-                    <option value="절친">절친</option>
-                    <option value="동료">동료</option>
-                    <option value="상관부하">상관/부하</option>
-                    <option value="연인">연인</option>
-                    <option value="부부">부부</option>
-                    <option value="짝사랑(캐릭터)">짝사랑 (캐릭터가 유저를)</option>
-                    <option value="짝사랑(유저)">짝사랑 (유저가 캐릭터를)</option>
-                    <option value="혐관">혐오 관계</option>
-                    <option value="부모자식">부모/자식</option>
-                    <option value="형제자매">형제/자매/쌍둥이</option>
-                    <option value="유사가족">유사가족</option>
-                    <option value="사제">사제 관계</option>
-                    <option value="기타">기타</option>
+            <div class="field-group">
+                <label class="field-label">Relationship (Required)</label>
+                <select id="c-rel" class="cai-select">
+                    <option value="Friend">친구</option>
+                    <option value="Best Friend">절친</option>
+                    <option value="Colleague">동료</option>
+                    <option value="Subordinate">상급자-하급자</option>
+                    <option value="Lover">연인</option>
+                    <option value="Spouse">부부</option>
+                    <option value="Unrequited(Char)">짝사랑 (캐릭터가 유저를)</option>
+                    <option value="Unrequited(User)">짝사랑 (유저가 캐릭터를)</option>
+                    <option value="Hatred">혐관</option>
+                    <option value="Found Family">유사가족</option>
+                    <option value="Other">기타 (직접 서술)</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>언어 설정 (필수)</label>
-                <select id="edit-lang">
-                    <option value="English" selected>English</option>
-                    <option value="Korean">Korean</option>
+            <div class="field-group">
+                <label class="field-label">Personality & Profile (Required)</label>
+                <textarea id="c-personality" class="cai-input" rows="4"></textarea>
+            </div>
+            <div class="field-group">
+                <label class="field-label">Appearance (Optional)</label>
+                <textarea id="c-appearance" class="cai-input" rows="2"></textarea>
+            </div>
+            <div class="field-group">
+                <label class="field-label">Background / Lore (Optional)</label>
+                <textarea id="c-background" class="cai-input" rows="3"></textarea>
+            </div>
+            <div class="field-group">
+                <label class="field-label">Character's Knowledge of User (Optional)</label>
+                <textarea id="c-userinfo" class="cai-input" rows="2" placeholder="캐릭터가 유저에 대해 알고 있는 정보"></textarea>
+            </div>
+            <div class="field-group">
+                <label class="field-label">Greeting Message (Optional)</label>
+                <textarea id="c-greet" class="cai-input" rows="3"></textarea>
+            </div>
+            <div class="field-group">
+                <label class="field-label">Folder (Optional)</label>
+                <input id="c-folder" class="cai-input" placeholder="분류할 폴더 이름">
+            </div>
+
+            <button onclick="saveCharacter()" style="background:white; color:black; width:100%; padding:15px; border-radius:30px; font-weight:bold;">Create</button>
+        </div>
+    </div>
+
+    <!-- 채팅 뷰 -->
+    <div id="view-chat" class="view hidden">
+        <header style="padding:10px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border);">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button onclick="showView('main')">←</button>
+                <img id="chat-avatar" src="" style="width:35px; height:35px; border-radius:50%;">
+                <b id="chat-name">Ghost</b>
+            </div>
+            <div style="display:flex; gap:15px;">
+                <button onclick="exportChat()">💾 Export</button>
+                <button onclick="toggleChatMenu()">•••</button>
+            </div>
+        </header>
+        <div id="chat-messages"></div>
+        <div id="chat-input-area" style="padding:15px; border-top:1px solid var(--border);">
+            <div style="display:flex; gap:10px; background:var(--input); border-radius:25px; padding:5px 15px;">
+                <input id="chat-input" style="flex:1; background:none; border:none; color:white; padding:10px;" placeholder="Message...">
+                <button onclick="sendMessage()" style="color:var(--accent)">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 설정 뷰 -->
+    <div id="view-settings" class="view hidden">
+        <div class="cai-form">
+            <h2>Settings</h2>
+            <div class="field-group">
+                <label class="field-label">Infermatic API Key</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="password" id="api-key" class="cai-input" onchange="saveApp()" placeholder="sk-...">
+                    <button onclick="checkAPI()" style="background:#333; padding:10px; border-radius:10px;">Check</button>
+                </div>
+            </div>
+            <div class="field-group">
+                <label class="field-label">Default Model</label>
+                <select id="model-select" class="cai-select" onchange="saveApp()">
+                    <option value="midnight-miqu-70b-v1.5">Midnight Miqu 70B</option>
+                    <option value="llama-3.1-70b-instruct">Llama 3.1 70B</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>인사말 (첫 메시지)</label>
-                <textarea id="edit-greeting" maxlength="4096" rows="4" placeholder="대화가 시작될 때 캐릭터가 건넬 첫 마디입니다."></textarea>
-                <div class="char-count">0 / 4096</div>
-            </div>
-            <div class="form-group">
-                <label>기본 프로필 (상세 설정)</label>
-                <textarea id="edit-profile" rows="4" placeholder="캐릭터의 핵심 배경을 입력하세요. (글자 수 무제한)"></textarea>
-            </div>
-            <div class="form-group">
-                <label>성격</label>
-                <textarea id="edit-personality" rows="4" placeholder="캐릭터의 성격적 결함이나 특징을 입력하세요."></textarea>
-            </div>
-            <div class="form-group">
-                <label>외관</label>
-                <textarea id="edit-appearance" rows="3" placeholder="눈색, 머리색, 옷차림 등"></textarea>
-            </div>
-            <div class="form-group">
-                <label>유저 정보</label>
-                <textarea id="edit-userinfo" rows="3" placeholder="캐릭터가 유저에 대해 알고 있는 정보입니다."></textarea>
-            </div>
+            <hr style="border:0.5px solid #222; margin:30px 0;">
+            <button onclick="exportAllData()" style="color:var(--dim)">전체 데이터 백업(JSON)</button>
         </div>
     </div>
+</main>
 
-    <!-- [5] 채팅 화면 & 사이드바 -->
-    <div id="chat-screen" class="hidden">
-        <header class="chat-header">
-            <button class="menu-btn" onclick="ui.closeChat()"><i class="fas fa-chevron-left"></i></button>
-            <div style="text-align:center">
-                <strong id="chat-title">이름</strong>
-                <p style="font-size:11px; color:var(--text-secondary)" id="chat-subtitle">대화 중</p>
-            </div>
-            <button class="menu-btn" onclick="ui.toggleChatSidebar(true)"><i class="fas fa-ellipsis-v"></i></button>
-        </header>
-        <div class="chat-body" id="chat-messages">
-            <p style="text-align:center; color:var(--text-secondary); font-size:12px; margin-bottom: 15px;">대화가 시작되었습니다.</p>
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="메시지를 입력하세요...">
-            <button class="menu-btn" id="btn-send-chat" style="color:var(--accent-color)"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
+<script>
+    // --- 데이터 엔진 ---
+    let db = JSON.parse(localStorage.getItem('dreamer_db')) || {
+        chars: [], personas: [], sessions: [], folders: ["기본"], manual: "환영합니다! dreamer.ai 입니다.",
+        bugs: [], apiKey: "", model: "midnight-miqu-70b-v1.5", draft: {}
+    };
 
-    <div id="chat-sidebar" class="chat-sidebar">
-        <h3 style="margin-bottom:20px; color:var(--accent-color);">Quick Settings</h3>
-        <p class="notice-tag">현재 캐릭터 설정</p>
-        <p style="font-size:14px; margin-bottom:15px;">관계: <span id="side-rel">친구</span></p>
-        <button class="primary-btn" style="margin-bottom:10px; background:var(--bg-surface-light); color:white;" onclick="ui.openEditor(true)">캐릭터 설정 수정</button>
-        <button class="primary-btn" style="color:var(--danger-color); background:var(--bg-surface-light);" onclick="ui.closeChat()">대화 종료</button>
-    </div>
+    function saveApp() {
+        db.apiKey = document.getElementById('api-key').value;
+        db.model = document.getElementById('model-select').value;
+        localStorage.setItem('dreamer_db', JSON.stringify(db));
+    }
 
-    <script>
-        const ui = {
-            toggleChatSidebar(show) {
-                const sidebar = document.getElementById('chat-sidebar');
-                if(show) sidebar.classList.add('open');
-                else sidebar.classList.remove('open');
-            },
-            switchTab(tabId) {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-                const targetBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-                const targetPane = document.getElementById('tab-' + tabId);
-                if(targetBtn) targetBtn.classList.add('active');
-                if(targetPane) targetPane.classList.add('active');
-            },
-            openEditor(isEdit = false) {
-                if(!isEdit) logic.currentChar = null; 
-                
-                document.getElementById('editor-screen').classList.remove('hidden');
-                document.getElementById('editor-title').innerText = isEdit ? "캐릭터 수정" : "새 캐릭터 만들기";
-                
-                if(isEdit) {
-                    logic.fillEditor();
-                } else {
-                    const temp = localStorage.getItem('dreamer_temp_save');
-                    // '새 캐릭터 만들기' 버튼을 눌렀을 때만 임시저장 데이터를 물어봄
-                    if(temp && confirm("작성 중이던 임시 저장 데이터가 있습니다. 이어서 작성하시겠습니까?")) {
-                        logic.fillTempData(JSON.parse(temp));
-                    } else {
-                        localStorage.removeItem('dreamer_temp_save');
-                        this.resetEditor();
-                    }
-                }
-                
-                this.closeModal('char-info-modal');
-                this.toggleChatSidebar(false);
-            },
-            resetEditor() {
-                document.querySelectorAll('#editor-screen input, #editor-screen textarea').forEach(el => el.value = "");
-                document.getElementById('edit-lang').value = "English";
-                document.getElementById('edit-relation').value = "친구";
-                this.updateCharCounts();
-            },
-            closeEditor() { document.getElementById('editor-screen').classList.add('hidden'); },
-            openInfoModal(charData) {
-                logic.currentChar = charData;
-                document.getElementById('info-name').innerText = charData.name;
-                document.getElementById('info-sub').innerText = charData.sub || "설명이 없습니다.";
-                document.getElementById('info-relation').innerText = charData.relation;
-                document.getElementById('info-lang').innerText = charData.lang || "English";
-                document.getElementById('char-info-modal').style.display = 'flex';
-            },
-            closeModal(id) { document.getElementById(id).style.display = 'none'; },
-            openChat() { document.getElementById('chat-screen').classList.remove('hidden'); },
-            closeChat() { document.getElementById('chat-screen').classList.add('hidden'); this.toggleChatSidebar(false); },
-            updateCharCounts() {
-                document.querySelectorAll('.form-group input, .form-group textarea').forEach(el => {
-                    const cnt = el.parentElement.querySelector('.char-count');
-                    if(cnt && el.hasAttribute('maxlength')) {
-                        cnt.innerText = `${el.value.length} / ${el.getAttribute('maxlength')}`;
-                    }
-                });
-            }
+    // --- 5초 자동 저장 엔진 ---
+    setInterval(() => {
+        const currentView = document.querySelector('.view:not(.hidden)').id;
+        if(currentView === 'view-create-char') {
+            db.draft = {
+                name: document.getElementById('c-name').value,
+                personality: document.getElementById('c-personality').value,
+                greet: document.getElementById('c-greet').value
+            };
+            localStorage.setItem('dreamer_db', JSON.stringify(db));
+            document.getElementById('save-status').innerText = "Auto-saved at " + new Date().toLocaleTimeString();
+        }
+    }, 5000);
+
+    // --- 내비게이션 ---
+    function showView(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.getElementById('view-' + viewId).classList.remove('hidden');
+        if(viewId === 'main') renderMain();
+        if(viewId === 'settings') renderSettings();
+    }
+
+    // --- 이미지 처리 ---
+    function handleImg(input, prevId) {
+        const reader = new FileReader();
+        reader.onload = (e) => document.getElementById(prevId).src = e.target.result;
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    // --- 캐릭터 저장 (정밀 필드) ---
+    function saveCharacter() {
+        const c = {
+            id: Date.now(),
+            name: document.getElementById('c-name').value,
+            tagline: document.getElementById('c-tagline').value,
+            rel: document.getElementById('c-rel').value,
+            personality: document.getElementById('c-personality').value,
+            appearance: document.getElementById('c-appearance').value,
+            background: document.getElementById('c-background').value,
+            userinfo: document.getElementById('c-userinfo').value,
+            greet: document.getElementById('c-greet').value,
+            folder: document.getElementById('c-folder').value || "기본",
+            avatar: document.getElementById('c-prev').src
         };
+        db.chars.push(c);
+        if(!db.folders.includes(c.folder)) db.folders.push(c.folder);
+        db.draft = {}; localStorage.setItem('dreamer_db', JSON.stringify(db));
+        showView('main');
+    }
 
-        const logic = {
-            currentChar: null,
-            characters: [],
-            
-            init() {
-                // 로그인 처리 로직 (로그인 성공 시 바로 메인 화면 진입)
-                const performLogin = () => {
-                    const id = document.getElementById('login-id').value;
-                    const pw = document.getElementById('login-pw').value;
-                    if(id && pw) {
-                        document.getElementById('login-screen').classList.add('hidden');
-                        document.getElementById('app-content').classList.remove('hidden');
-                        localStorage.setItem('dreamer_session', 'active');
-                        this.renderList();
-                    } else {
-                        alert("아이디와 비밀번호를 모두 입력하세요.");
-                    }
-                };
-                document.getElementById('btn-login').addEventListener('click', performLogin);
-                document.getElementById('login-pw').addEventListener('keypress', (e) => { if(e.key === 'Enter') performLogin(); });
+    // --- 마크다운 포맷팅 (지문/대사 처리) ---
+    function formatMsg(text) {
+        // *지문* -> 이테릭+회색 처리 (em 태그 활용)
+        let formatted = text.replace(/\*(.*?)\*/g, "<em>*$1*</em>");
+        // "대사" -> 볼드 처리 (선택 사항)
+        return formatted;
+    }
 
-                document.querySelectorAll('.tab-btn').forEach(btn => {
-                    btn.addEventListener('click', () => ui.switchTab(btn.dataset.tab));
-                });
+    // --- 채팅 엔진 ---
+    let activeSid = null;
 
-                document.getElementById('btn-edit-notice').onclick = () => {
-                    const pw = prompt("관리자 암호:");
-                    if(pw === "dreamer") {
-                        const txt = prompt("새 공지내용:");
-                        if(txt) document.getElementById('notice-text').innerText = txt;
-                    } else if(pw !== null) {
-                        alert("비밀번호가 일치하지 않습니다."); 
-                    }
-                };
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if(!text || !db.apiKey) return;
 
-                const logoutAction = () => {
-                    localStorage.removeItem('dreamer_session');
-                    location.reload();
-                };
-                document.getElementById('btn-settings-logout').onclick = logoutAction;
-
-                if(localStorage.getItem('dreamer_session')) {
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('app-content').classList.remove('hidden');
-                }
-
-                const saved = localStorage.getItem('dreamer_chars');
-                if(saved) this.characters = JSON.parse(saved);
-                this.renderList();
-
-                setInterval(() => this.autoSave(), 5000);
-
-                document.querySelectorAll('.form-group input, .form-group textarea').forEach(el => {
-                    el.addEventListener('input', () => {
-                        const cnt = el.parentElement.querySelector('.char-count');
-                        if(cnt && el.hasAttribute('maxlength')) {
-                            cnt.innerText = `${el.value.length} / ${el.getAttribute('maxlength')}`;
-                        }
-                    });
-                });
-
-                const sendChat = () => {
-                    const input = document.getElementById('chat-input');
-                    const msg = input.value.trim();
-                    if(msg) {
-                        const box = document.getElementById('chat-messages');
-                        const div = document.createElement('div');
-                        div.style.margin = "12px 0"; div.style.textAlign = "right";
-                        div.innerHTML = `<span style="background:var(--accent-color); color:#000; padding:10px 14px; border-radius:18px 18px 0 18px; display:inline-block; max-width:80%; text-align:left; word-break:break-word; font-size:15px;">${msg}</span>`;
-                        box.appendChild(div);
-                        input.value = "";
-                        box.scrollTop = box.scrollHeight; 
-                    }
-                };
-                document.getElementById('btn-send-chat').addEventListener('click', sendChat);
-                document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendChat(); });
-            },
-
-            fillTempData(data) {
-                document.getElementById('edit-name').value = data.name || "";
-                document.getElementById('edit-sub').value = data.sub || "";
-                document.getElementById('edit-relation').value = data.relation || "친구";
-                document.getElementById('edit-lang').value = data.lang || "English";
-                document.getElementById('edit-greeting').value = data.greeting || "";
-                document.getElementById('edit-profile').value = data.profile || "";
-                document.getElementById('edit-personality').value = data.personality || "";
-                document.getElementById('edit-appearance').value = data.appearance || "";
-                document.getElementById('edit-userinfo').value = data.userinfo || "";
-                ui.updateCharCounts();
-            },
-
-            saveCharacter() {
-                const char = {
-                    id: this.currentChar ? this.currentChar.id : Date.now(),
-                    name: document.getElementById('edit-name').value,
-                    sub: document.getElementById('edit-sub').value,
-                    relation: document.getElementById('edit-relation').value,
-                    lang: document.getElementById('edit-lang').value,
-                    greeting: document.getElementById('edit-greeting').value,
-                    profile: document.getElementById('edit-profile').value,
-                    personality: document.getElementById('edit-personality').value,
-                    appearance: document.getElementById('edit-appearance').value,
-                    userinfo: document.getElementById('edit-userinfo').value
-                };
-
-                if(!char.name) return alert("이름은 필수입니다.");
-
-                if(this.currentChar) {
-                    const idx = this.characters.findIndex(c => c.id === this.currentChar.id);
-                    if(idx > -1) this.characters[idx] = char;
-                    else this.characters.push(char);
-                } else {
-                    this.characters.push(char);
-                }
-
-                localStorage.setItem('dreamer_chars', JSON.stringify(this.characters));
-                localStorage.removeItem('dreamer_temp_save'); 
-                
-                ui.closeEditor();
-                this.renderList();
-            },
-
-            autoSave() {
-                if(!document.getElementById('editor-screen').classList.contains('hidden')) {
-                    const temp = {
-                        name: document.getElementById('edit-name').value,
-                        sub: document.getElementById('edit-sub').value,
-                        relation: document.getElementById('edit-relation').value,
-                        lang: document.getElementById('edit-lang').value,
-                        greeting: document.getElementById('edit-greeting').value,
-                        profile: document.getElementById('edit-profile').value,
-                        personality: document.getElementById('edit-personality').value,
-                        appearance: document.getElementById('edit-appearance').value,
-                        userinfo: document.getElementById('edit-userinfo').value
-                    };
-                    localStorage.setItem('dreamer_temp_save', JSON.stringify(temp));
-                    document.getElementById('auto-save-status').innerText = "자동 저장됨 (" + new Date().toLocaleTimeString() + ")";
-                }
-            },
-
-            fillEditor() {
-                const c = this.currentChar;
-                document.getElementById('edit-name').value = c.name || "";
-                document.getElementById('edit-sub').value = c.sub || "";
-                document.getElementById('edit-relation').value = c.relation || "친구";
-                document.getElementById('edit-lang').value = c.lang || "English";
-                document.getElementById('edit-greeting').value = c.greeting || "";
-                document.getElementById('edit-profile').value = c.profile || "";
-                document.getElementById('edit-personality').value = c.personality || "";
-                document.getElementById('edit-appearance').value = c.appearance || "";
-                document.getElementById('edit-userinfo').value = c.userinfo || "";
-                ui.updateCharCounts();
-            },
-
-            renderList() {
-                const container = document.getElementById('character-list-container');
-                if(this.characters.length === 0) {
-                    container.innerHTML = "<p style='color:var(--text-secondary); font-size:14px; text-align:center; margin-top:20px;'>생성된 캐릭터가 없습니다.</p>";
-                    return;
-                }
-                container.innerHTML = "";
-                this.characters.forEach(char => {
-                    const card = document.createElement('div');
-                    card.className = "char-card";
-                    card.innerHTML = `<strong style="font-size:16px;">${char.name}</strong><br><span style="font-size:13px; color:var(--text-secondary); margin-top:4px; display:inline-block;">${char.sub || "설명이 없습니다."}</span>`;
-                    card.onclick = () => ui.openInfoModal(char);
-                    container.appendChild(card);
-                });
-            },
-
-            startChat() {
-                ui.closeModal('char-info-modal');
-                ui.openChat();
-                document.getElementById('chat-title').innerText = this.currentChar.name;
-                document.getElementById('side-rel').innerText = this.currentChar.relation;
-                document.getElementById('chat-messages').innerHTML = `<p style="text-align:center; color:var(--text-secondary); font-size:12px; margin-bottom: 15px;">대화가 시작되었습니다.</p>`;
+        const session = db.sessions.find(s => s.id === activeSid);
+        const char = db.chars.find(c => c.id === session.charId);
+        
+        // 시스템 프롬프트 구성 (요청하신 관계 정의 포함)
+        if(session.history.length === 0) {
+            let relLogic = `Your relationship with User is '${char.rel}'.`;
+            if(["Friend", "Colleague", "Subordinate"].includes(char.rel)) {
+                relLogic += " This is a strictly NON-ROMANTIC relationship. You must refuse sexual advances and stay professional.";
             }
-        };
+            const systemPrompt = `[CHAR_INFO] Name: ${char.name}. Personality: ${char.personality}. Profile: ${char.background}. Appearance: ${char.appearance}. [RELATIONSHIP] ${relLogic} [USER_INFO] Character knows about User: ${char.userinfo}. [RULES] No Godmoding. Max 200 words. Use *actions* for narration.`;
+            session.history.push({ role: "system", content: systemPrompt });
+        }
 
-        window.onload = () => logic.init();
-    </script>
+        session.history.push({ role: "user", content: text });
+        input.value = ""; renderChat();
+
+        // API 호출
+        try {
+            const res = await fetch("https://api.infermatic.ai/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${db.apiKey}` },
+                body: JSON.stringify({ model: db.model, messages: session.history, temperature: 0.7 })
+            });
+            const data = await res.json();
+            session.history.push({ role: "assistant", content: data.choices[0].message.content });
+            localStorage.setItem('dreamer_db', JSON.stringify(db));
+            renderChat();
+        } catch(e) { alert("API Error."); }
+    }
+
+    function renderChat() {
+        const session = db.sessions.find(s => s.id === activeSid);
+        const char = db.chars.find(c => c.id === session.charId);
+        const container = document.getElementById('chat-messages');
+        container.innerHTML = session.history.filter(m => m.role !== 'system').map((m, i) => `
+            <div class="msg-wrapper" style="align-self: ${m.role==='user'?'flex-end':'flex-start'}">
+                <div style="font-size:0.7rem; color:var(--dim); margin-bottom:5px;">${m.role==='user'?'User':char.name}</div>
+                <div class="msg-content" style="background:${m.role==='user'? 'var(--user-bubble)':'var(--ghost-bubble)'}; padding:12px; border-radius:15px;">${formatMsg(m.content)}</div>
+                <button onclick="editMsg(${i})" style="font-size:0.6rem; color:#444;">Edit</button>
+            </div>
+        `).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // --- 유틸리티 ---
+    function renderMain() {
+        // 폴더 렌더링
+        document.getElementById('folder-container').innerHTML = db.folders.map(f => `<div class="folder-chip">${f}</div>`).join('');
+        // 캐릭터 렌더링
+        document.getElementById('char-list').innerHTML = db.chars.map(c => `
+            <div class="card" onclick="startChat(${c.id})" style="background:var(--panel); padding:15px; border-radius:15px; text-align:center; border:1px solid var(--border);">
+                <img src="${c.avatar}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; margin-bottom:10px;">
+                <div style="font-weight:bold; font-size:0.85rem;">${c.name}</div>
+                <div style="font-size:0.65rem; color:var(--dim); margin-top:5px;">${c.tagline}</div>
+            </div>
+        `).join('');
+        // 사이드바 최근 기록
+        document.getElementById('sidebar-sessions').innerHTML = db.sessions.slice(-5).map(s => `
+            <div class="sidebar-item" onclick="startChat(${s.charId}, ${s.id})">💬 ${db.chars.find(c=>c.id==s.charId)?.name}</div>
+        `).join('');
+        // 설명서
+        document.getElementById('manual-text').innerText = db.manual;
+    }
+
+    function startChat(charId, sid = null) {
+        if(!sid) {
+            const char = db.chars.find(c => c.id === charId);
+            const newSession = { id: Date.now(), charId, history: char.greet ? [{role:"assistant", content: char.greet}] : [] };
+            db.sessions.push(newSession);
+            activeSid = newSession.id;
+        } else {
+            activeSid = sid;
+        }
+        const char = db.chars.find(c => c.id === charId);
+        document.getElementById('chat-name').innerText = char.name;
+        document.getElementById('chat-avatar').src = char.avatar;
+        showView('chat');
+        renderChat();
+    }
+
+    function checkAPI() {
+        if(!db.apiKey) return alert("키를 입력하세요.");
+        fetch("https://api.infermatic.ai/v1/models", { headers: { "Authorization": `Bearer ${db.apiKey}` }})
+        .then(r => r.ok ? alert("✅ 연동 성공!") : alert("❌ 키가 올바르지 않습니다."));
+    }
+
+    function editManual() {
+        const pw = prompt("Admin Password:");
+        if(pw === "dreamer") { // 기본 비번: dreamer
+            const newManual = prompt("Edit Manual:", db.manual);
+            if(newManual) { db.manual = newManual; localStorage.setItem('dreamer_db', JSON.stringify(db)); renderMain(); }
+        } else { alert("권한이 없습니다."); }
+    }
+
+    function exportChat() {
+        const session = db.sessions.find(s => s.id === activeSid);
+        const blob = new Blob([JSON.stringify(session.history, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = "chat_backup.json"; a.click();
+    }
+
+    renderMain();
+    document.getElementById('api-key').value = db.apiKey;
+</script>
 </body>
 </html>
