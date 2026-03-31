@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
+    <!-- [추가 7] 로그인 화면 깜빡임 완벽 방지 코드 (반드시 head 안에 위치) -->
+    <script>
+        // 브라우저가 화면을 그리기 전에 로그인 상태를 먼저 확인하고, 
+        // 로그인 되어있으면 로그인 창을 아예 안 보이게 CSS를 강제로 먼저 덮어씌웁니다.
+        if (localStorage.getItem('dreamer_logged_in') === 'true') {
+            const hideStyle = document.createElement('style');
+            hideStyle.innerHTML = '#login-screen { display: none !important; opacity: 0 !important; visibility: hidden !important
 <head>
     <meta charset="UTF-8">
     <!-- 모바일 기기(아이폰 등) 최적화: 확대 방지 및 Safe Area 적용 -->
