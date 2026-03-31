@@ -14,6 +14,58 @@
 
     <!-- [1] 로그인 & 회원가입 화면 (별도 레이어) -->
     <div id="login-screen" class="screen-overlay">
+        <!-- [1-1] 회원가입 화면 (기본 숨김) -->
+    <div id="register-screen" class="screen-overlay hidden">
+        <div class="login-container">
+            <h1 class="logo">dreamer.ai</h1>
+            <p class="subtitle">새 계정 만들기</p>
+            <div class="input-group">
+                <input type="email" id="reg-email" placeholder="이메일 주소 (@gmail.com만 허용)">
+            </div>
+            <div class="input-group">
+                <input type="text" id="reg-id" placeholder="사용할 핸들명 (아이디)">
+            </div>
+            <div class="input-group">
+                <input type="password" id="reg-pw" placeholder="비밀번호 설정">
+            </div>
+            <button class="primary-btn" id="btn-do-register">가입 완료</button>
+            <div class="login-links" style="justify-content: center;">
+                <span class="link" id="link-back-to-login1">이미 계정이 있으신가요? 로그인</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- [1-2] 비밀번호 찾기 화면 (기본 숨김) -->
+    <div id="findpw-screen" class="screen-overlay hidden">
+        <div class="login-container">
+            <h1 class="logo">dreamer.ai</h1>
+            <p class="subtitle">비밀번호 재설정</p>
+            
+            <!-- 인증 코드 발송 단계 -->
+            <div id="findpw-step1">
+                <div class="input-group">
+                    <input type="email" id="find-email" placeholder="가입한 이메일 주소">
+                </div>
+                <button class="primary-btn" id="btn-send-code">인증 코드 발송</button>
+            </div>
+
+            <!-- 코드 입력 및 새 비밀번호 설정 단계 (처음엔 숨김) -->
+            <div id="findpw-step2" style="display: none;">
+                <p style="color: var(--accent-color); font-size: 13px; margin-bottom: 15px;">이메일로 6자리 인증 코드가 발송되었습니다. (시뮬레이션)</p>
+                <div class="input-group">
+                    <input type="text" id="find-code" placeholder="6자리 인증 코드" maxlength="6">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="new-pw" placeholder="새로운 비밀번호">
+                </div>
+                <button class="primary-btn" id="btn-reset-pw">비밀번호 변경 및 자동 로그아웃</button>
+            </div>
+
+            <div class="login-links" style="justify-content: center; margin-top: 20px;">
+                <span class="link" id="link-back-to-login2">로그인 화면으로 돌아가기</span>
+            </div>
+        </div>
+    </div>
         <div class="login-container">
             <h1 class="logo">dreamer.ai</h1>
             <p class="subtitle">로그인이 필요합니다.</p>
