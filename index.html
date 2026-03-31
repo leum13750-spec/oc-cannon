@@ -494,7 +494,7 @@
 
     <!-- [3] 메인 앱 인터페이스 -->
     <div id="app-content" class="app-content hidden">
-        <!-- 상단 헤더 (버그수정: 햄버거 메뉴 onClick 연결) -->
+        <!-- 상단 헤더 -->
         <header class="app-header">
             <button class="menu-btn" onclick="ui.toggleSidebar(true)"><i class="fas fa-bars"></i></button>
             <h1 class="logo header-logo">dreamer.ai</h1>
@@ -744,7 +744,6 @@
                 
                 this.closeAllSidebars();
             },
-            /* 버그수정 1: ID 덮어쓰기 충돌 방지를 위해 isEdit이 아닐 때 currentChar 초기화 */
             openEditor(isEdit = false) {
                 if(!isEdit) {
                     logic.currentChar = null; 
@@ -812,7 +811,7 @@
                         localStorage.setItem('dreamer_session', 'active');
                         this.renderList();
                     } else {
-                        alert("정보를 입력하세요.");
+                        alert("핸들명과 비밀번호를 모두 입력하세요.");
                     }
                 });
 
@@ -865,7 +864,7 @@
                 // 9. 5초 자동 저장 엔진
                 setInterval(() => this.autoSave(), 5000);
 
-                // 버그수정 3: 임시 저장 복구 로직 추가
+                // 10. 임시 저장 복구 로직
                 const temp = localStorage.getItem('dreamer_temp_save');
                 if(temp) {
                     if(confirm("작성 중이던 임시 저장 데이터가 있습니다. 불러오시겠습니까?")) {
@@ -904,7 +903,7 @@
 
                 if(!char.name) return alert("이름은 필수입니다.");
 
-                // 버그수정 4: 13종 관계 로직 (비로맨틱 시 강제 금지 명령 주입)
+                // 비로맨틱 관계 시 강제 금지 명령 주입
                 const romantic = ["연인", "부부", "짝사랑(캐릭터)", "짝사랑(유저)"];
                 if(!romantic.includes(char.relation)) {
                     char.systemPrompt = "Strictly platonic. No sexual content.";
@@ -951,7 +950,6 @@
                 ui.updateCharCounts();
             },
 
-            /* 버그수정 2: 캐릭터 리스트 클릭 시 ui.openChat 대신 ui.openInfoModal 연결 */
             renderList() {
                 const container = document.getElementById('character-list-container');
                 if(this.characters.length === 0) {
@@ -965,7 +963,7 @@
                     card.className = "char-card";
                     card.innerHTML = `<strong>${char.name}</strong><br><span style="font-size:12px; color:var(--text-secondary);">${char.sub || "설명이 없습니다."}</span>`;
                     
-                    // 핵심 수정: 클릭 시 모달창 열기
+                    // 리스트 클릭 시 모달창 열기
                     card.onclick = () => ui.openInfoModal(char);
                     
                     container.appendChild(card);
