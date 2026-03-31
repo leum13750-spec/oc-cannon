@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>dreamer.ai</title>
-    <!-- 외부 CSS 파일 연결 -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -21,45 +20,24 @@
         }
 
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            margin: 0; padding: 0; box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent; 
         }
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-            overflow-y: auto; 
-        }
+        body { background-color: var(--bg-main); color: var(--text-primary); overflow-y: auto; }
 
         .app-content {
-            min-height: 100vh; 
-            display: flex;
-            flex-direction: column;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
+            min-height: 100vh; display: flex; flex-direction: column;
+            padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
         }
 
         /* ================= 2. 헤더 & 공지사항 ================= */
-        .app-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            background-color: var(--bg-main);
-        }
+        .app-header { display: flex; justify-content: center; align-items: center; padding: 20px; background-color: var(--bg-main); position: relative; }
+        .logo { color: var(--accent-color); font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
 
-        .logo { color: var(--accent-color); font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-        .menu-btn { background: none; border: none; color: var(--text-primary); font-size: 20px; cursor: pointer; }
-
-        .notice-bar {
-            margin: 0 16px 16px 16px; padding: 16px; background-color: var(--bg-surface);
-            border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column;
-        }
+        .notice-bar { margin: 0 16px 20px 16px; padding: 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; }
         .notice-tag { display: inline-block; color: var(--text-secondary); font-weight: 700; font-size: 14px; margin-bottom: 8px; }
         .notice-text { color: var(--text-primary); font-size: 14px; line-height: 1.4; }
         .edit-notice-btn { background: none; border: none; color: var(--accent-color); font-size: 13px; font-weight: 600; cursor: pointer; align-self: flex-end; }
@@ -74,52 +52,37 @@
         .tab-content-area { flex: 1; overflow-y: visible; padding: 24px 16px; }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; animation: fadeIn 0.2s ease-in-out; }
-        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .create-btn { width: 100%; background-color: var(--bg-surface); color: var(--accent-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 15px; }
         .create-btn:hover { background-color: var(--bg-surface-light); }
-        .section-title { font-size: 18px; margin-bottom: 16px; }
-        .empty-text { color: var(--text-secondary); font-size: 14px; text-align: center; margin-top: 20px; }
+        .section-title { font-size: 18px; margin-bottom: 16px; font-weight: bold; }
         .char-card { background: var(--bg-surface); padding: 16px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 12px; cursor: pointer; }
 
+        /* API & 설정 탭 */
         .api-container { background-color: var(--bg-surface); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); }
-        .api-container input { width: 100%; padding: 14px; margin: 12px 0; background-color: var(--bg-surface-light); border: none; border-radius: 12px; color: var(--text-primary); font-size: 14px; }
-        .link-btn { background: none; border: none; color: var(--accent-color); font-size: 13px; cursor: pointer; }
+        .api-container .notice-tag { color: var(--accent-color); margin-bottom: 0; }
+        .api-container input { width: 100%; padding: 16px; margin: 16px 0; background-color: var(--bg-surface-light); border: none; border-radius: 12px; color: var(--text-primary); font-size: 14px; outline: none; }
+        .link-btn { background: none; border: none; color: var(--accent-color); font-size: 14px; cursor: pointer; font-weight: 500; }
 
         .settings-profile { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-        .profile-img-placeholder { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--accent-color); display: flex; justify-content: center; align-items: center; font-size: 24px; color: var(--accent-color); margin-bottom: 10px; }
-        .sub-btn { width: 100%; padding: 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-primary); font-size: 14px; cursor: pointer; }
-        .danger-text { color: var(--danger-color); border-color: rgba(255, 107, 107, 0.3); }
+        .profile-img-placeholder { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--accent-color); display: flex; justify-content: center; align-items: center; font-size: 24px; color: #666; margin-bottom: 10px; background-color: var(--bg-surface-light); }
+        .sub-btn { width: 100%; padding: 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; color: var(--accent-color); font-size: 15px; cursor: pointer; font-weight: 500; }
+        .danger-text { color: var(--danger-color); }
 
-        /* ================= 5. 사이드바 ================= */
-        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background-color: var(--bg-surface); z-index: 4000; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
-        .sidebar.open { left: 0; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); }
-        .sidebar-header h2 { font-size: 18px; color: var(--text-primary); }
-        .close-btn { background: none; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; }
-        .sidebar-menu { list-style: none; padding: 10px 0; overflow-y: auto; }
-        .sidebar-menu li { padding: 16px 20px; font-size: 15px; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 16px; }
-        .sidebar-menu li:hover { background-color: var(--bg-surface-light); }
-        .sidebar-menu i { width: 20px; text-align: center; color: var(--text-secondary); }
-        .sidebar-menu .logout-menu { color: var(--danger-color); margin-top: 20px; }
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 3999; opacity: 0; visibility: hidden; transition: all 0.3s; }
-        .sidebar-overlay.show { opacity: 1; visibility: visible; }
-
-        /* ================= 6. 버그 제보 ================= */
-        .bug-report-btn { position: fixed; bottom: calc(30px + env(safe-area-inset-bottom)); right: 20px; width: 52px; height: 52px; border-radius: 50%; background-color: var(--bg-surface); color: var(--accent-color); border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.6); font-size: 20px; cursor: pointer; z-index: 100; display: flex; justify-content: center; align-items: center; }
-
-        /* ================= 7. 로그인 화면 ================= */
+        /* ================= 5. 로그인 화면 ================= */
         .screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-main); z-index: 5000; display: flex; justify-content: center; align-items: center; padding: 20px; transition: opacity 0.3s, visibility 0.3s; }
         .screen-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .login-container { width: 100%; max-width: 400px; background-color: var(--bg-surface); padding: 40px 24px; border-radius: 20px; border: 1px solid var(--border-color); text-align: center; }
-        .login-container .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
-        .input-group input { width: 100%; padding: 16px; margin-bottom: 16px; background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-primary); font-size: 15px; }
-        .primary-btn { width: 100%; padding: 16px; background-color: var(--text-primary); color: #000000; border: none; border-radius: 30px; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 24px; }
-        .login-links { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); }
+        .login-container { width: 100%; max-width: 400px; background-color: var(--bg-surface); padding: 50px 24px; border-radius: 20px; border: 1px solid var(--border-color); text-align: center; }
+        .login-container .logo { margin-bottom: 15px; display: inline-block; }
+        .login-container .subtitle { color: var(--text-secondary); font-size: 15px; margin-bottom: 30px; }
+        .input-group input { width: 100%; padding: 16px; margin-bottom: 16px; background-color: var(--bg-surface-light); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-primary); font-size: 15px; outline: none; }
+        .input-group input:focus { border-color: var(--accent-color); }
+        .primary-btn { width: 100%; padding: 16px; background-color: var(--text-primary); color: #000000; border: none; border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 24px; }
+        .login-links { font-size: 14px; color: var(--text-secondary); text-align: center; }
         .login-links .link { cursor: pointer; }
 
-        /* ================= 8. 모달 & 에디터 ================= */
+        /* ================= 6. 모달 & 에디터 ================= */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 6000; display: none; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--bg-surface); width: 100%; max-width: 400px; padding: 30px 24px; border-radius: 24px; border: 1px solid var(--border-color); }
         
@@ -132,7 +95,7 @@
         .form-group input:focus, .form-group textarea:focus { border-color: var(--accent-color); }
         .char-count { font-size: 11px; color: var(--text-secondary); text-align: right; margin-top: 4px; }
 
-        /* ================= 9. 채팅 화면 ================= */
+        /* ================= 7. 채팅 화면 ================= */
         #chat-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); z-index: 3000; display: flex; flex-direction: column; }
         .chat-sidebar { position: fixed; top: 0; right: -320px; width: 300px; height: 100%; background-color: var(--bg-surface); z-index: 4500; transition: right 0.3s; padding: 40px 20px; padding-top: env(safe-area-inset-top); overflow-y: auto; }
         .chat-sidebar.open { right: 0; }
@@ -141,6 +104,7 @@
         .chat-input-area { padding: 15px 20px; padding-bottom: calc(15px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border-color); display: flex; gap: 10px; }
         .chat-input-area input { flex: 1; background: var(--bg-surface-light); border: none; padding: 14px 18px; border-radius: 25px; color: white; font-size: 15px; outline: none; }
         .chat-input-area input:focus { border: 1px solid var(--accent-color); }
+        .menu-btn { background: none; border: none; color: var(--text-primary); font-size: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -149,42 +113,22 @@
     <div id="login-screen" class="screen-overlay">
         <div class="login-container">
             <h1 class="logo">dreamer.ai</h1>
-            <p class="subtitle">Welcome to dreamer.ai</p>
+            <p class="subtitle">로그인이 필요합니다.</p>
             <div class="input-group">
-                <input type="text" id="login-id" placeholder="핸들명 또는 이메일">
+                <input type="text" id="login-id" placeholder="핸들명(아이디)">
                 <input type="password" id="login-pw" placeholder="비밀번호">
             </div>
             <button class="primary-btn" id="btn-login">로그인</button>
             <div class="login-links">
-                <span class="link" onclick="alert('가입 화면으로 이동합니다.')">가입하기</span>
-                <span class="link" onclick="alert('비밀번호 찾기 화면으로 이동합니다.')">비밀번호 찾기</span>
+                <span class="link" onclick="alert('가입 기능 준비 중')">계정이 없으신가요? 가입하기</span>
             </div>
         </div>
     </div>
 
-    <!-- [2] 전역 사이드바 -->
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h2>메뉴</h2>
-            <button class="close-btn" id="btn-close-sidebar"><i class="fas fa-times"></i></button>
-        </div>
-        <ul class="sidebar-menu">
-            <li data-target="character"><i class="fas fa-users"></i> 캐릭터 리스트</li>
-            <li data-target="chat-history"><i class="fas fa-comments"></i> 최근 대화 목록</li>
-            <li data-target="persona"><i class="fas fa-id-badge"></i> 페르소나</li>
-            <li data-target="api"><i class="fas fa-key"></i> API 설정</li>
-            <li data-target="settings"><i class="fas fa-cog"></i> 유저 설정</li>
-            <li class="logout-menu" id="btn-logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</li>
-        </ul>
-    </div>
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
-
-    <!-- [3] 메인 앱 인터페이스 -->
+    <!-- [2] 메인 앱 인터페이스 -->
     <div id="app-content" class="app-content hidden">
         <header class="app-header">
-            <button class="menu-btn" onclick="ui.toggleSidebar(true)"><i class="fas fa-bars"></i></button>
-            <h1 class="logo header-logo">dreamer.ai</h1>
-            <div style="width: 24px;"></div> 
+            <h1 class="logo">dreamer.ai</h1>
         </header>
 
         <div class="notice-bar">
@@ -195,9 +139,10 @@
             <span class="notice-text" id="notice-text">dreamer.ai에 오신 것을 환영합니다!</span>
         </div>
 
+        <!-- 스크린샷과 동일한 탭 구성 -->
         <nav class="main-tabs">
             <button class="tab-btn active" data-tab="character">캐릭터</button>
-            <button class="tab-btn" data-tab="scene">장면</button>
+            <button class="tab-btn" data-tab="chat">대화</button>
             <button class="tab-btn" data-tab="persona">페르소나</button>
             <button class="tab-btn" data-tab="api">API</button>
             <button class="tab-btn" data-tab="settings">설정</button>
@@ -210,11 +155,11 @@
                 <div class="content-list" id="character-list-container"></div>
             </div>
 
-            <!-- 장면 탭 -->
-            <div id="tab-scene" class="tab-pane">
-                <h3 class="section-title">저장된 장면(Scene)</h3>
-                <div id="scene-list-container">
-                    <p class="empty-text">저장된 장면이 없습니다.</p>
+            <!-- 대화 탭 (스크린샷 반영) -->
+            <div id="tab-chat" class="tab-pane">
+                <h3 class="section-title">Recent Chats</h3>
+                <div id="chat-list-container">
+                    <!-- 최근 대화 목록이 들어갈 자리 -->
                 </div>
             </div>
 
@@ -236,7 +181,8 @@
             <!-- 유저 설정 탭 -->
             <div id="tab-settings" class="tab-pane">
                 <div class="settings-profile">
-                    <div class="profile-img-placeholder"><i class="fas fa-user"></i></div>
+                    <div class="profile-img-placeholder"><i class="fas fa-question" style="font-size: 30px; color:#555;"></i></div>
+                    <button class="sub-btn" style="color:white;">ReschaRiley</button>
                     <button class="sub-btn" onclick="alert('클립보드에 복사되었습니다.')">데이터 백업 코드 복사</button>
                     <button class="sub-btn danger-text" id="btn-settings-logout">로그아웃</button>
                 </div>
@@ -244,7 +190,7 @@
         </main>
     </div>
 
-    <!-- [4] 캐릭터 상세 정보 모달 -->
+    <!-- [3] 캐릭터 상세 정보 모달 -->
     <div id="char-info-modal" class="modal">
         <div class="modal-content">
             <div style="text-align:center; margin-bottom:20px;">
@@ -261,14 +207,14 @@
             </div>
 
             <div style="display:flex; gap:10px;">
-                <button class="primary-btn" style="flex:2;" onclick="logic.startChat()">대화 시작</button>
-                <button class="primary-btn" style="flex:1; background:var(--bg-surface-light); color:white;" onclick="ui.openEditor(true)">수정</button>
+                <button class="primary-btn" style="flex:2; margin-bottom:0;" onclick="logic.startChat()">대화 시작</button>
+                <button class="primary-btn" style="flex:1; margin-bottom:0; background:var(--bg-surface-light); color:white;" onclick="ui.openEditor(true)">수정</button>
             </div>
             <button style="width:100%; margin-top:15px; background:none; border:none; color:var(--text-secondary); cursor:pointer;" onclick="ui.closeModal('char-info-modal')">닫기</button>
         </div>
     </div>
 
-    <!-- [5] 에디터 화면 -->
+    <!-- [4] 에디터 화면 -->
     <div id="editor-screen" class="hidden">
         <header class="editor-header">
             <button style="background:none; border:none; color:white; font-size:20px; cursor:pointer;" onclick="ui.closeEditor()"><i class="fas fa-times"></i></button>
@@ -338,7 +284,7 @@
         </div>
     </div>
 
-    <!-- [6] 채팅 화면 -->
+    <!-- [5] 채팅 화면 & 사이드바 -->
     <div id="chat-screen" class="hidden">
         <header class="chat-header">
             <button class="menu-btn" onclick="ui.closeChat()"><i class="fas fa-chevron-left"></i></button>
@@ -357,34 +303,21 @@
         </div>
     </div>
 
-    <!-- [7] 채팅 설정 사이드바 -->
     <div id="chat-sidebar" class="chat-sidebar">
         <h3 style="margin-bottom:20px; color:var(--accent-color);">Quick Settings</h3>
         <p class="notice-tag">현재 캐릭터 설정</p>
         <p style="font-size:14px; margin-bottom:15px;">관계: <span id="side-rel">친구</span></p>
-        
         <button class="primary-btn" style="margin-bottom:10px; background:var(--bg-surface-light); color:white;" onclick="ui.openEditor(true)">캐릭터 설정 수정</button>
-        <button class="primary-btn" style="margin-bottom:20px; background:var(--bg-surface-light); color:white;" onclick="alert('페르소나 변경 창 열림')">페르소나 변경</button>
         <button class="primary-btn" style="color:var(--danger-color); background:var(--bg-surface-light);" onclick="ui.closeChat()">대화 종료</button>
     </div>
 
-    <button class="bug-report-btn" onclick="alert('버그가 제보되었습니다. 감사합니다!')"><i class="fas fa-bug"></i></button>
-
     <script>
         const ui = {
-            toggleSidebar(show) {
-                const sidebar = document.getElementById('sidebar');
-                const overlay = document.getElementById('sidebar-overlay');
-                if(show) { sidebar.classList.add('open'); overlay.classList.add('show'); } 
-                else { sidebar.classList.remove('open'); overlay.classList.remove('show'); }
-            },
             toggleChatSidebar(show) {
                 const sidebar = document.getElementById('chat-sidebar');
-                const overlay = document.getElementById('sidebar-overlay');
-                if(show) { sidebar.classList.add('open'); overlay.classList.add('show'); } 
-                else { sidebar.classList.remove('open'); overlay.classList.remove('show'); }
+                if(show) sidebar.classList.add('open');
+                else sidebar.classList.remove('open');
             },
-            closeAllSidebars() { this.toggleSidebar(false); this.toggleChatSidebar(false); },
             switchTab(tabId) {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
@@ -392,10 +325,7 @@
                 const targetPane = document.getElementById('tab-' + tabId);
                 if(targetBtn) targetBtn.classList.add('active');
                 if(targetPane) targetPane.classList.add('active');
-                this.closeAllSidebars();
             },
-            
-            // [변경점] 에디터 진입 시(버튼 클릭 시) 임시 저장 데이터 확인 로직 추가
             openEditor(isEdit = false) {
                 if(!isEdit) logic.currentChar = null; 
                 
@@ -406,6 +336,7 @@
                     logic.fillEditor();
                 } else {
                     const temp = localStorage.getItem('dreamer_temp_save');
+                    // '새 캐릭터 만들기' 버튼을 눌렀을 때만 임시저장 데이터를 물어봄
                     if(temp && confirm("작성 중이던 임시 저장 데이터가 있습니다. 이어서 작성하시겠습니까?")) {
                         logic.fillTempData(JSON.parse(temp));
                     } else {
@@ -417,7 +348,6 @@
                 this.closeModal('char-info-modal');
                 this.toggleChatSidebar(false);
             },
-            
             resetEditor() {
                 document.querySelectorAll('#editor-screen input, #editor-screen textarea').forEach(el => el.value = "");
                 document.getElementById('edit-lang').value = "English";
@@ -451,7 +381,7 @@
             characters: [],
             
             init() {
-                // 로그인 처리 (이제 로그인 시 알림창을 띄우지 않고 바로 메인 화면으로 감)
+                // 로그인 처리 로직 (로그인 성공 시 바로 메인 화면 진입)
                 const performLogin = () => {
                     const id = document.getElementById('login-id').value;
                     const pw = document.getElementById('login-pw').value;
@@ -461,7 +391,7 @@
                         localStorage.setItem('dreamer_session', 'active');
                         this.renderList();
                     } else {
-                        alert("핸들명과 비밀번호를 모두 입력하세요.");
+                        alert("아이디와 비밀번호를 모두 입력하세요.");
                     }
                 };
                 document.getElementById('btn-login').addEventListener('click', performLogin);
@@ -469,17 +399,6 @@
 
                 document.querySelectorAll('.tab-btn').forEach(btn => {
                     btn.addEventListener('click', () => ui.switchTab(btn.dataset.tab));
-                });
-
-                document.getElementById('btn-close-sidebar').onclick = () => ui.toggleSidebar(false);
-                document.getElementById('sidebar-overlay').onclick = () => ui.closeAllSidebars();
-
-                document.querySelectorAll('.sidebar-menu li[data-target]').forEach(item => {
-                    item.onclick = () => {
-                        const target = item.dataset.target;
-                        if(target !== 'chat-history') ui.switchTab(target);
-                        ui.toggleSidebar(false);
-                    };
                 });
 
                 document.getElementById('btn-edit-notice').onclick = () => {
@@ -496,10 +415,8 @@
                     localStorage.removeItem('dreamer_session');
                     location.reload();
                 };
-                document.getElementById('btn-logout').onclick = logoutAction;
                 document.getElementById('btn-settings-logout').onclick = logoutAction;
 
-                // 세션 있을 때 로그인 스킵 (알림창 띄우지 않음)
                 if(localStorage.getItem('dreamer_session')) {
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-content').classList.remove('hidden');
@@ -537,7 +454,6 @@
                 document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendChat(); });
             },
 
-            // [추가점] 임시 저장 데이터를 폼에 채워주는 전용 함수
             fillTempData(data) {
                 document.getElementById('edit-name').value = data.name || "";
                 document.getElementById('edit-sub').value = data.sub || "";
@@ -567,13 +483,79 @@
 
                 if(!char.name) return alert("이름은 필수입니다.");
 
-                const romantic = ["연인", "부부", "짝사랑(캐릭터)", "짝사랑(유저)"];
-                if(!romantic.includes(char.relation)) {
-                    char.systemPrompt = "Strictly platonic. No sexual content.";
-                } else { char.systemPrompt = ""; }
-
                 if(this.currentChar) {
                     const idx = this.characters.findIndex(c => c.id === this.currentChar.id);
                     if(idx > -1) this.characters[idx] = char;
                     else this.characters.push(char);
                 } else {
+                    this.characters.push(char);
+                }
+
+                localStorage.setItem('dreamer_chars', JSON.stringify(this.characters));
+                localStorage.removeItem('dreamer_temp_save'); 
+                
+                ui.closeEditor();
+                this.renderList();
+            },
+
+            autoSave() {
+                if(!document.getElementById('editor-screen').classList.contains('hidden')) {
+                    const temp = {
+                        name: document.getElementById('edit-name').value,
+                        sub: document.getElementById('edit-sub').value,
+                        relation: document.getElementById('edit-relation').value,
+                        lang: document.getElementById('edit-lang').value,
+                        greeting: document.getElementById('edit-greeting').value,
+                        profile: document.getElementById('edit-profile').value,
+                        personality: document.getElementById('edit-personality').value,
+                        appearance: document.getElementById('edit-appearance').value,
+                        userinfo: document.getElementById('edit-userinfo').value
+                    };
+                    localStorage.setItem('dreamer_temp_save', JSON.stringify(temp));
+                    document.getElementById('auto-save-status').innerText = "자동 저장됨 (" + new Date().toLocaleTimeString() + ")";
+                }
+            },
+
+            fillEditor() {
+                const c = this.currentChar;
+                document.getElementById('edit-name').value = c.name || "";
+                document.getElementById('edit-sub').value = c.sub || "";
+                document.getElementById('edit-relation').value = c.relation || "친구";
+                document.getElementById('edit-lang').value = c.lang || "English";
+                document.getElementById('edit-greeting').value = c.greeting || "";
+                document.getElementById('edit-profile').value = c.profile || "";
+                document.getElementById('edit-personality').value = c.personality || "";
+                document.getElementById('edit-appearance').value = c.appearance || "";
+                document.getElementById('edit-userinfo').value = c.userinfo || "";
+                ui.updateCharCounts();
+            },
+
+            renderList() {
+                const container = document.getElementById('character-list-container');
+                if(this.characters.length === 0) {
+                    container.innerHTML = "<p style='color:var(--text-secondary); font-size:14px; text-align:center; margin-top:20px;'>생성된 캐릭터가 없습니다.</p>";
+                    return;
+                }
+                container.innerHTML = "";
+                this.characters.forEach(char => {
+                    const card = document.createElement('div');
+                    card.className = "char-card";
+                    card.innerHTML = `<strong style="font-size:16px;">${char.name}</strong><br><span style="font-size:13px; color:var(--text-secondary); margin-top:4px; display:inline-block;">${char.sub || "설명이 없습니다."}</span>`;
+                    card.onclick = () => ui.openInfoModal(char);
+                    container.appendChild(card);
+                });
+            },
+
+            startChat() {
+                ui.closeModal('char-info-modal');
+                ui.openChat();
+                document.getElementById('chat-title').innerText = this.currentChar.name;
+                document.getElementById('side-rel').innerText = this.currentChar.relation;
+                document.getElementById('chat-messages').innerHTML = `<p style="text-align:center; color:var(--text-secondary); font-size:12px; margin-bottom: 15px;">대화가 시작되었습니다.</p>`;
+            }
+        };
+
+        window.onload = () => logic.init();
+    </script>
+</body>
+</html>
