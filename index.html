@@ -35,12 +35,12 @@
         body {
             background-color: var(--bg-main);
             color: var(--text-primary);
-            overflow: hidden; /* 모바일에서 전체 화면 밀림 방지 */
+            overflow-y: auto; /* 수정: 전체 화면 스크롤 허용 */
         }
 
         /* 아이폰 Safe Area 적용 (노치 및 하단 바 침범 방지) */
         .app-content {
-            height: 100vh;
+            min-height: 100vh; /* 수정: 고정 높이에서 최소 높이로 변경 */
             display: flex;
             flex-direction: column;
             padding-top: env(safe-area-inset-top);
@@ -147,7 +147,7 @@
         /* ================= 4. 탭 콘텐츠 영역 (스크롤) ================= */
         .tab-content-area {
             flex: 1;
-            overflow-y: auto;
+            overflow-y: visible; /* 수정: 부모 스크롤을 따르도록 변경 */
             padding: 24px 16px;
         }
 
