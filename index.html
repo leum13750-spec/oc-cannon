@@ -14,7 +14,7 @@
         /* 헤더 & 브랜드 */
         #top-brand { padding: 40px 20px 10px; text-align: center; }
         #site-logo { font-size: 2.2rem; font-weight: 900; color: var(--accent); letter-spacing: -1.5px; }
-        #site-guide { background: rgba(187, 134, 252, 0.05); border: 1px solid rgba(187, 134, 252, 0.2); margin: 15px auto; padding: 15px; border-radius: 12px; font-size: 0.85rem; color: var(--dim); max-width: 500px; line-height: 1.5; text-align: left; position: relative; }
+        #site-guide { background: rgba(187, 134, 252, 0.05); border: 1px solid rgba(187, 134, 252, 0.2); margin: 15px auto; padding: 15px; border-radius: 12px; font-size: 0.85rem; color: var(--dim); max-width: 500px; line-height: 1.5; text-align: left; }
 
         /* 네비게이션 */
         #nav-bar { display: flex; background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
@@ -27,56 +27,63 @@
         
         /* 리스트 스타일 */
         .item-card { background: var(--panel); border: 1px solid var(--border); padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
-        .item-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #222; }
+        .item-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #222; flex-shrink: 0; }
 
-        /* 채팅 화면 */
+        /* 채팅 화면 (C.ai 최적화) */
         #chat-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; }
         #chat-header { padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-        #chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        #chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 25px; }
         .msg-wrapper { max-width: 100%; display: flex; flex-direction: column; }
-        .msg-content { font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap; }
-        .msg-content em { color: var(--dim); font-style: italic; }
-        .swipe-control { display: flex; align-items: center; gap: 10px; margin-top: 5px; color: var(--dim); font-size: 0.8rem; }
+        .msg-header { font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .msg-content { font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+        .msg-content em { color: #888; font-style: italic; } /* 지문 스타일링 */
+        .swipe-control { display: flex; align-items: center; gap: 15px; margin-top: 10px; color: var(--dim); font-size: 0.8rem; }
 
-        /* 모달 및 입력란 */
+        /* 하단 입력창 */
+        #chat-input-wrap { padding: 15px; border-top: 1px solid var(--border); padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
+        .input-container { background: var(--input); display: flex; align-items: center; gap: 10px; padding: 5px 15px; border-radius: 25px; }
+        #chat-input { flex: 1; background: none; border: none; color: white; padding: 10px; outline: none; font-size: 1rem; }
+
+        /* 모달 및 폼 */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 5000; padding: 20px; overflow-y: auto; }
-        .input-field { width: 100%; background: var(--input); border: 1px solid #333; border-radius: 12px; color: white; padding: 14px; font-size: 0.95rem; outline: none; margin-bottom: 15px; }
-        .cai-textarea { width: 100%; background: var(--input); border: 1px solid #333; border-radius: 12px; color: white; padding: 15px; min-height: 100px; resize: none; margin-bottom: 15px; }
+        .field-label { font-size: 0.8rem; color: var(--accent); margin: 15px 0 5px; display: block; font-weight: bold; }
+        .input-field { width: 100%; background: var(--input); border: 1px solid #333; border-radius: 12px; color: white; padding: 14px; font-size: 0.95rem; outline: none; }
+        .cai-textarea { width: 100%; background: var(--input); border: 1px solid #333; border-radius: 12px; color: white; padding: 15px; min-height: 100px; resize: none; outline: none; }
 
-        /* 로그인 */
-        #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .auth-box { background: var(--panel); padding: 30px; border-radius: 25px; width: 90%; max-width: 380px; text-align: center; border: 1px solid var(--border); }
+        /* 드롭다운 메뉴 */
+        #chat-menu { position: absolute; top: 50px; right: 20px; background: #222; border: 1px solid #444; border-radius: 10px; z-index: 3000; display: none; width: 180px; }
+        .menu-btn { width: 100%; text-align: left; padding: 12px 15px; border-bottom: 1px solid #333; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-<!-- [A] 로그인 화면 -->
+<!-- [로그인 화면] -->
 <div id="auth-overlay">
-    <div class="auth-box">
+    <div class="auth-box" style="background:var(--panel); padding:35px; border-radius:25px; text-align:center; width:90%; max-width:380px; border:1px solid var(--border);">
         <h1 style="color:var(--accent)">dreamer.ai</h1>
         <div id="login-form">
-            <input id="login-handle" class="input-field" placeholder="핸들명 (ID)">
+            <input id="login-handle" class="input-field" placeholder="아이디(핸들명)">
             <input type="password" id="login-pw" class="input-field" placeholder="비밀번호">
-            <button onclick="handleLogin()" style="background:white; color:black; width:100%; padding:15px; border-radius:30px; font-weight:bold;">로그인</button>
-            <button onclick="showAuth('signup')" style="margin-top:20px; font-size:0.8rem; color:var(--dim)">새 계정 만들기</button>
+            <button onclick="handleLogin()" style="background:white; color:black; width:100%; padding:15px; border-radius:30px; font-weight:bold; margin-top:10px;">로그인</button>
+            <button onclick="showAuth('signup')" style="margin-top:20px; font-size:0.8rem; color:var(--dim)">새 계정 만들기 (지메일 전용)</button>
         </div>
         <div id="signup-form" class="hidden">
             <input id="sign-email" class="input-field" placeholder="지메일 (@gmail.com)">
-            <input id="sign-handle" class="input-field" placeholder="사용할 핸들명 (ID)">
-            <input type="password" id="sign-pw" class="input-field" placeholder="비밀번호">
-            <button onclick="handleSignup()" style="background:white; color:black; width:100%; padding:15px; border-radius:30px; font-weight:bold;">가입하기</button>
+            <input id="sign-handle" class="input-field" placeholder="사용할 아이디">
+            <input type="password" id="sign-pw" class="input-field" placeholder="비밀번호 설정">
+            <button onclick="handleSignup()" style="background:white; color:black; width:100%; padding:15px; border-radius:30px; font-weight:bold; margin-top:10px;">가입하기</button>
             <button onclick="showAuth('login')" style="margin-top:20px; font-size:0.8rem; color:var(--dim)">로그인으로 돌아가기</button>
         </div>
     </div>
 </div>
 
-<!-- [B] 메인 UI -->
+<!-- [메인 UI] -->
 <div id="main-content">
     <div id="top-brand">
         <div id="site-logo">dreamer.ai</div>
         <div id="site-guide">
             <div style="display:flex; justify-content:space-between;"><b>User Manual</b> <button onclick="editManual()" style="font-size:0.7rem; color:var(--accent)">Edit</button></div>
-            <div id="manual-text" style="margin-top:8px;">캐릭터를 생성하고 API 키를 등록해 대화를 시작하세요.</div>
+            <div id="manual-text" style="margin-top:8px;"></div>
         </div>
     </div>
 
@@ -99,96 +106,130 @@
             <div id="persona-list"></div>
         </div>
         <div id="view-api" class="view hidden">
-            <div class="profile-card" style="text-align:left;">
-                <label style="font-size:0.8rem; color:var(--accent)">API Key</label>
+            <div class="profile-card" style="background:var(--panel); padding:20px; border-radius:15px;">
+                <label class="field-label">API Key</label>
                 <input type="password" id="api-key" class="input-field" placeholder="sk-..." onchange="saveData()">
-                <label style="font-size:0.8rem; color:var(--accent)">Model</label>
-                <select id="model-select" class="input-field" onchange="saveData()" style="background:var(--input)">
-                    <option value="midnight-miqu-70b-v1.5">Midnight Miqu 70B</option>
-                    <option value="llama-3.1-70b-instruct">Llama 3.1 70B</option>
-                </select>
+                <button onclick="checkAPI()" style="color:var(--accent); font-size:0.8rem; font-weight:bold;">키 적용 확인</button>
             </div>
         </div>
         <div id="view-user" class="view hidden">
-            <div class="profile-card">
-                <div onclick="document.getElementById('u-file').click()">
-                    <img id="u-avatar" src="https://via.placeholder.com/100" class="item-avatar" style="width:80px; height:80px; border:2px solid var(--accent)">
-                    <input type="file" id="u-file" hidden onchange="handleImg(this, 'u-avatar')">
-                </div>
+            <div class="profile-card" style="text-align:center; background:var(--panel); padding:25px; border-radius:20px;">
+                <img id="u-avatar" src="https://via.placeholder.com/100" class="item-avatar" style="width:80px; height:80px; border:2px solid var(--accent); margin:0 auto 15px;">
                 <input id="u-display-name" class="input-field" placeholder="표시 이름" onchange="saveData()">
-                <button class="btn-add" style="color:white" onclick="openPwModal()">비밀번호 변경</button>
-                <button class="btn-add" style="color:#ff6b6b; border-color:#3d0a0a" onclick="handleLogout()">로그아웃</button>
-                <hr style="border:0.5px solid #222; margin:20px 0;">
-                <button class="btn-add" style="font-size:0.7rem;" onclick="exportData()">백업 코드 복사</button>
-                <input id="import-input" class="input-field" placeholder="백업 코드 붙여넣기">
-                <button class="btn-add" style="font-size:0.7rem;" onclick="importData()">데이터 복구하기</button>
+                <button class="btn-add" onclick="exportData()">백업 코드 복사</button>
+                <button class="btn-add" style="color:#ff6b6b;" onclick="handleLogout()">로그아웃</button>
             </div>
         </div>
     </main>
 </div>
 
-<!-- [C] 각종 모달들 -->
-<!-- 캐릭터 생성 모달 -->
+<!-- [모달: 캐릭터 생성/수정] -->
 <div id="char-modal" class="modal hidden">
-    <button onclick="closeModal()">✕ Close</button>
-    <h2>Create Character</h2>
-    <div onclick="document.getElementById('c-file').click()" style="text-align:center; margin-bottom:20px;">
-        <img id="c-prev" src="https://via.placeholder.com/100" class="item-avatar" style="width:100px; height:100px;">
-        <input type="file" id="c-file" hidden onchange="handleImg(this, 'c-prev')">
+    <div style="max-width:500px; margin:0 auto; padding-bottom:50px;">
+        <button onclick="closeModal()" style="font-size:1.5rem; margin-bottom:20px;">✕ Close</button>
+        <h2 id="char-modal-title">캐릭터 설정</h2>
+        
+        <div onclick="document.getElementById('c-file').click()" style="text-align:center; margin-bottom:20px;">
+            <img id="c-prev" src="https://via.placeholder.com/100" class="item-avatar" style="width:100px; height:100px;">
+            <input type="file" id="c-file" hidden onchange="handleImg(this, 'c-prev')">
+        </div>
+
+        <label class="field-label">이름 (필수, 25자)</label>
+        <input id="c-name" class="input-field" maxlength="25">
+
+        <label class="field-label">한마디 (필수아님, 40자)</label>
+        <input id="c-tagline" class="input-field" maxlength="40">
+
+        <label class="field-label">관계 정의 (필수)</label>
+        <select id="c-rel" class="input-field" style="background:var(--input)">
+            <option value="Friend">친구</option><option value="Best Friend">절친</option>
+            <option value="Colleague">동료</option><option value="Subordinate">상급자-하급자</option>
+            <option value="Lover">연인</option><option value="Spouse">부부</option>
+            <option value="Unrequited-Char">짝사랑(캐릭터가 유저를)</option>
+            <option value="Unrequited-User">짝사랑(유저가 캐릭터를)</option>
+            <option value="Hatred">혐관</option><option value="Found Family">유사가족</option>
+            <option value="Priest">사제</option><option value="Other">기타 (직접 작성)</option>
+        </select>
+
+        <label class="field-label">기본 프로필 (필수)</label>
+        <textarea id="c-base" class="cai-textarea"></textarea>
+
+        <label class="field-label">성격 (필수)</label>
+        <textarea id="c-personality" class="cai-textarea"></textarea>
+
+        <label class="field-label">외관 (필수아님)</label>
+        <textarea id="c-appearance" class="cai-textarea"></textarea>
+
+        <label class="field-label">백그라운드/서사 (필수아님)</label>
+        <textarea id="c-background" class="cai-textarea"></textarea>
+
+        <label class="field-label">캐릭터가 가진 유저의 정보 (필수아님)</label>
+        <textarea id="c-userinfo" class="cai-textarea"></textarea>
+
+        <label class="field-label">인사말 (필수아님, 4096자)</label>
+        <textarea id="c-greet" class="cai-textarea" style="min-height:150px;"></textarea>
+
+        <button onclick="saveChar()" style="background:white; color:black; width:100%; padding:18px; border-radius:35px; font-weight:bold; font-size:1rem;">캐릭터 저장</button>
     </div>
-    <input id="c-name" class="input-field" placeholder="이름 (필수, 25자)" maxlength="25">
-    <input id="c-tagline" class="input-field" placeholder="한마디 (50자)" maxlength="50">
-    <textarea id="c-desc" class="cai-textarea" placeholder="캐릭터 설정 / 프롬프트 (500자)" maxlength="500"></textarea>
-    <textarea id="c-greet" class="cai-textarea" style="min-height:150px;" placeholder="인사말 (4096자)" maxlength="4096"></textarea>
-    <button onclick="saveChar()" style="background:white; color:black; width:100%; padding:15px; border-radius:30px; font-weight:bold;">저장하기</button>
 </div>
 
-<!-- 페르소나 생성 모달 -->
+<!-- [모달: 페르소나 생성/수정] -->
 <div id="persona-modal" class="modal hidden">
-    <button onclick="closeModal()">✕ Close</button>
-    <h2>Create Persona</h2>
-    <div onclick="document.getElementById('p-file').click()" style="text-align:center; margin-bottom:20px;">
-        <img id="p-prev" src="https://via.placeholder.com/100" class="item-avatar" style="width:80px; height:80px;">
-        <input type="file" id="p-file" hidden onchange="handleImg(this, 'p-prev')">
+    <div style="max-width:500px; margin:0 auto;">
+        <button onclick="closeModal()" style="font-size:1.5rem; margin-bottom:20px;">✕ Close</button>
+        <h2>Persona Setup</h2>
+        <div onclick="document.getElementById('p-file').click()" style="text-align:center; margin-bottom:20px;">
+            <img id="p-prev" src="https://via.placeholder.com/100" class="item-avatar" style="width:100px; height:100px;">
+            <input type="file" id="p-file" hidden onchange="handleImg(this, 'p-prev')">
+        </div>
+        <label class="field-label">Display Name (25자)</label>
+        <input id="p-name" class="input-field" maxlength="25">
+        <label class="field-label">Background Info (무제한)</label>
+        <textarea id="p-desc" class="cai-textarea" style="min-height:250px;"></textarea>
+        <div style="margin:15px 0;"><input type="checkbox" id="p-default"> <label>기본 페르소나로 설정</label></div>
+        <button onclick="savePersona()" style="background:white; color:black; width:100%; padding:18px; border-radius:35px; font-weight:bold;">페르소나 저장</button>
     </div>
-    <input id="p-name" class="input-field" placeholder="페르소나 이름 (25자)" maxlength="25">
-    <textarea id="p-desc" class="cai-textarea" style="min-height:200px;" placeholder="상세 배경 설명 (무제한)"></textarea>
-    <div style="margin-bottom:20px;"><input type="checkbox" id="p-default"> <label>기본값으로 설정</label></div>
-    <button onclick="savePersona()" style="background:white; color:black; width:100%; padding:15px; border-radius:30px; font-weight:bold;">저장하기</button>
 </div>
 
-<!-- 채팅 화면 -->
+<!-- [채팅 화면] -->
 <div id="chat-view" class="hidden">
     <header id="chat-header">
-        <button onclick="exitChat()">←</button>
-        <b id="chat-title">Ghost</b>
-        <button onclick="deleteActiveSession()" style="color:red; font-size:0.7rem;">Delete</button>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <button onclick="exitChat()" style="font-size:1.2rem;">←</button>
+            <b id="chat-title" style="font-size:1rem;">Ghost</b>
+        </div>
+        <button onclick="toggleChatMenu()" style="font-size:1.2rem;">•••</button>
+        <div id="chat-menu">
+            <button class="menu-btn" onclick="openEditChar()">캐릭터 설정 수정</button>
+            <button class="menu-btn" onclick="openEditPersona()">내 페르소나 수정</button>
+            <button class="menu-btn" style="color:red" onclick="deleteActiveSession()">대화 삭제</button>
+        </div>
     </header>
     <div id="chat-messages"></div>
-    <div style="padding:15px; border-top:1px solid var(--border);">
-        <div style="display:flex; gap:10px; background:var(--input); border-radius:25px; padding:5px 15px;">
-            <input id="chat-input" style="flex:1; background:none; border:none; color:white; padding:10px; outline:none;" placeholder="Message..." onkeypress="if(event.key=='Enter') sendMessage()">
+    <div id="chat-input-wrap">
+        <div class="input-container">
+            <input id="chat-input" placeholder="Message..." onkeypress="if(event.key=='Enter') sendMessage()">
             <button onclick="sendMessage()" style="color:var(--accent); font-weight:bold;">➤</button>
         </div>
     </div>
 </div>
 
 <script>
-    const DB_KEY = 'dreamer_v5_final';
+    const DB_KEY = 'dreamer_v6_master';
     let db = JSON.parse(localStorage.getItem(DB_KEY)) || {
-        users: {}, currentUser: null, chars: [], personas: [], sessions: [], manual: "환영합니다!"
+        users: {}, currentUser: null, chars: [], personas: [], sessions: [], apiKey: "", manual: "환영합니다!"
     };
 
     function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
 
-    // --- 기능 로직 ---
+    // --- 인증 및 초기화 ---
     function handleSignup() {
-        const email = document.getElementById('sign-email').value;
-        const handle = document.getElementById('sign-handle').value;
-        const pw = document.getElementById('sign-pw').value;
-        if(!email.endsWith('@gmail.com')) return alert("지메일만 가능");
-        if(db.users[handle]) return alert("중복 아이디");
-        db.users[handle] = { email, pw, name: handle, avatar: "" };
+        const e = document.getElementById('sign-email').value;
+        const h = document.getElementById('sign-handle').value;
+        const p = document.getElementById('sign-pw').value;
+        if(!e.endsWith('@gmail.com')) return alert("지메일 전용");
+        if(db.users[h]) return alert("중복 아이디");
+        db.users[h] = { email:e, pw:p, name:h, avatar:"" };
         save(); alert("가입 성공"); showAuth('login');
     }
 
@@ -199,30 +240,98 @@
         else alert("실패");
     }
 
+    // --- 캐릭터/페르소나 관리 ---
+    let editingCharId = null;
     function saveChar() {
-        const c = { id: Date.now(), name: document.getElementById('c-name').value, tagline: document.getElementById('c-tagline').value, prompt: document.getElementById('c-desc').value, greeting: document.getElementById('c-greet').value, avatar: document.getElementById('c-prev').src };
-        db.chars.push(c); save(); closeModal(); renderMain();
+        const cData = {
+            id: editingCharId || Date.now(),
+            name: document.getElementById('c-name').value,
+            tagline: document.getElementById('c-tagline').value,
+            rel: document.getElementById('c-rel').value,
+            base: document.getElementById('c-base').value,
+            personality: document.getElementById('c-personality').value,
+            appearance: document.getElementById('c-appearance').value,
+            background: document.getElementById('c-background').value,
+            userinfo: document.getElementById('c-userinfo').value,
+            greeting: document.getElementById('c-greet').value,
+            avatar: document.getElementById('c-prev').src
+        };
+        if(editingCharId) {
+            const idx = db.chars.findIndex(x => x.id === editingCharId);
+            db.chars[idx] = cData;
+        } else {
+            db.chars.push(cData);
+        }
+        editingCharId = null; save(); closeModal(); renderMain();
     }
 
+    function openEditChar() {
+        const sid = activeSid;
+        const cid = db.sessions.find(x => x.id === sid).charId;
+        const c = db.chars.find(x => x.id === cid);
+        editingCharId = c.id;
+        document.getElementById('c-name').value = c.name;
+        document.getElementById('c-tagline').value = c.tagline;
+        document.getElementById('c-rel').value = c.rel;
+        document.getElementById('c-base').value = c.base;
+        document.getElementById('c-personality').value = c.personality;
+        document.getElementById('c-appearance').value = c.appearance;
+        document.getElementById('c-background').value = c.background;
+        document.getElementById('c-userinfo').value = c.userinfo;
+        document.getElementById('c-greet').value = c.greeting;
+        document.getElementById('c-prev').src = c.avatar;
+        toggleChatMenu(); openModal('char-modal');
+    }
+
+    let editingPersoId = null;
     function savePersona() {
-        const p = { id: Date.now(), name: document.getElementById('p-name').value, desc: document.getElementById('p-desc').value, avatar: document.getElementById('p-prev').src, isDefault: document.getElementById('p-default').checked };
-        if(p.isDefault) db.personas.forEach(x => x.isDefault = false);
-        db.personas.push(p); save(); closeModal(); renderMain();
+        const pData = {
+            id: editingPersoId || Date.now(),
+            name: document.getElementById('p-name').value,
+            desc: document.getElementById('p-desc').value,
+            avatar: document.getElementById('p-prev').src,
+            isDefault: document.getElementById('p-default').checked
+        };
+        if(pData.isDefault) db.personas.forEach(x => x.isDefault = false);
+        if(editingPersoId) {
+            const idx = db.personas.findIndex(x => x.id === editingPersoId);
+            db.personas[idx] = pData;
+        } else {
+            db.personas.push(pData);
+        }
+        editingPersoId = null; save(); closeModal(); renderMain();
     }
 
-    // --- 채팅 엔진 ---
+    function openEditPersona() {
+        const p = db.personas.find(x => x.isDefault) || db.personas[0];
+        editingPersoId = p.id;
+        document.getElementById('p-name').value = p.name;
+        document.getElementById('p-desc').value = p.desc;
+        document.getElementById('p-prev').src = p.avatar;
+        document.getElementById('p-default').checked = p.isDefault;
+        toggleChatMenu(); openModal('persona-modal');
+    }
+
+    // --- 채팅 엔진 (메시지 전송 핵심) ---
     let activeSid = null;
 
     async function sendMessage() {
         const input = document.getElementById('chat-input');
-        const text = input.value.trim(); if(!text || !db.apiKey) return;
+        const text = input.value.trim();
+        if(!text || !db.apiKey) return;
+
         const s = db.sessions.find(x => x.id === activeSid);
         const char = db.chars.find(x => x.id === s.charId);
         const persona = db.personas.find(x => x.isDefault) || db.personas[0] || {name:"User", desc:""};
 
+        // 데이터 구조 보정 (variants 없으면 생성)
         if(s.history.length === 0) {
-            s.history.push({ role: "system", variants: [`${char.prompt}\n[USER_PERSONA]: ${persona.name} - ${persona.desc}`], cIdx: 0, id: 1 });
+            let relInstruction = `Your relationship with User is '${char.rel}'.`;
+            if(["Friend","Colleague","Subordinate"].includes(char.rel)) relInstruction += " NON-ROMANTIC. Stay professional.";
+            const systemContent = `[CHAR] Name:${char.name}. Profile:${char.base}. Personality:${char.personality}. Appearance:${char.appearance}. Background:${char.background}. RelWithUser:${relInstruction}. KnowledgeOfUser:${char.userinfo}. [RULES] Blunt sentences. No godmoding. Use *italics* for actions.`;
+            s.history.push({ role: "system", variants: [systemContent], cIdx: 0, id: 1 });
         }
+
         s.history.push({ role: "user", variants: [text], cIdx: 0, id: Date.now() });
         input.value = ""; 
         const aiId = Date.now()+1;
@@ -237,44 +346,37 @@
         const idx = s.history.indexOf(m);
         const context = s.history.slice(0, idx).map(x => ({ role: x.role, content: x.variants[x.cIdx] }));
 
-        const res = await fetch("https://api.infermatic.ai/v1/chat/completions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${db.apiKey}` },
-            body: JSON.stringify({ model: db.selectedModel || "midnight-miqu-70b-v1.5", messages: context, temperature: 0.7 })
-        });
-        const data = await res.json();
-        m.variants[m.cIdx] = data.choices[0].message.content;
-        save(); renderChat();
+        try {
+            const res = await fetch("https://api.infermatic.ai/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${db.apiKey}` },
+                body: JSON.stringify({ model: "midnight-miqu-70b-v1.5", messages: context, temperature: 0.8, max_tokens: 450 })
+            });
+            const data = await res.json();
+            const reply = data.choices[0].message.content;
+            if(m.variants[m.cIdx] === "...") m.variants[m.cIdx] = reply;
+            else { m.variants.push(reply); m.cIdx = m.variants.length-1; }
+            save(); renderChat();
+        } catch(e) { m.variants[m.cIdx] = "API 연동 실패. API 키와 모델을 확인하세요."; renderChat(); }
     }
 
-    // --- UI 관리 ---
+    // --- UI 유틸리티 ---
     function renderChat() {
         const s = db.sessions.find(x => x.id === activeSid);
         const char = db.chars.find(x => x.id === s.charId);
-        document.getElementById('chat-messages').innerHTML = s.history.filter(m => m.role !== 'system').map(m => `
+        const container = document.getElementById('chat-messages');
+        container.innerHTML = s.history.filter(m => m.role !== 'system').map(m => `
             <div class="msg-wrapper">
-                <div style="font-size:0.75rem; color:var(--dim); margin-bottom:5px;">${m.role==='user'?'Raven':char.name} <button onclick="editMsg(${m.id})" style="font-size:0.6rem; color:#444">✎</button></div>
+                <div class="msg-header">
+                    <span style="color:${m.role==='user'?'var(--dim)':'white'}">${m.role==='user'?'Raven':char.name}</span>
+                    <button onclick="editMsg(${m.id})" style="font-size:0.6rem; color:#444">✎</button>
+                </div>
                 <div class="msg-content">${m.variants[m.cIdx].replace(/\*(.*?)\*/g, "<em>*$1*</em>")}</div>
                 ${m.role==='assistant' ? `<div class="swipe-control"><button onclick="switchVariant(${m.id},-1)">〈</button><span>${m.cIdx+1}/${m.variants.length}</span><button onclick="switchVariant(${m.id},1)">〉</button><button onclick="regenerate(${m.id})">↻</button></div>` : ''}
             </div>`).join('');
-        document.getElementById('chat-messages').scrollTop = 99999;
+        container.scrollTop = 99999;
     }
 
-    function editMsg(mid) {
-        const s = db.sessions.find(x => x.id === activeSid);
-        const m = s.history.find(x => x.id === mid);
-        const t = prompt("Edit:", m.variants[m.cIdx]);
-        if(t!==null) { m.variants[m.cIdx] = t; save(); renderChat(); }
-    }
-
-    function switchVariant(mid, d) {
-        const s = db.sessions.find(x => x.id === activeSid);
-        const m = s.history.find(x => x.id === mid);
-        m.cIdx = Math.max(0, Math.min(m.variants.length-1, m.cIdx + d));
-        renderChat();
-    }
-
-    // --- 유틸리티 ---
     function switchTab(el, id) {
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
         document.getElementById('view-'+id).classList.remove('hidden');
@@ -282,29 +384,31 @@
         el.classList.add('active'); renderMain();
     }
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal() { document.querySelectorAll('.modal').forEach(m=>m.classList.add('hidden')); }
+    function closeModal() { document.querySelectorAll('.modal').forEach(m=>m.classList.add('hidden')); editingCharId=null; editingPersoId=null; }
     function handleImg(input, id) {
         const r = new FileReader(); r.onload = (e) => document.getElementById(id).src = e.target.result;
         r.readAsDataURL(input.files[0]);
     }
+    function toggleChatMenu() { const m = document.getElementById('chat-menu'); m.style.display = m.style.display==='block'?'none':'block'; }
+    function exitChat() { document.getElementById('chat-view').classList.add('hidden'); renderMain(); }
     function startChat(cid, sid=null) {
         if(!sid) {
             const char = db.chars.find(c => c.id === cid);
             sid = Date.now();
-            db.sessions.push({ id: sid, charId: cid, history: [{role:"assistant", variants:[char.greeting], cIdx:0, id:sid+1}] });
+            db.sessions.push({ id: sid, charId: cid, history: [{role:"assistant", variants:[char.greeting || "Hello."], cIdx:0, id:sid+1}] });
         }
         activeSid = sid; document.getElementById('chat-view').classList.remove('hidden');
         document.getElementById('chat-title').innerText = db.chars.find(c=>c.id===db.sessions.find(s=>s.id===sid).charId).name;
         renderChat();
     }
-    function exitChat() { document.getElementById('chat-view').classList.add('hidden'); renderMain(); }
     function renderMain() {
-        document.getElementById('char-list').innerHTML = db.chars.map(c => `<div class="item-card" onclick="startChat(${c.id})"><img src="${c.avatar}" class="item-avatar"><b>${c.name}</b></div>`).join('');
-        document.getElementById('persona-list').innerHTML = db.personas.map(p => `<div class="item-card"><img src="${p.avatar}" class="item-avatar"><b>${p.name} ${p.isDefault?'(Def)':''}</b></div>`).join('');
+        document.getElementById('char-list').innerHTML = db.chars.map(c => `<div class="item-card" onclick="startChat(${c.id})"><img src="${c.avatar}" class="item-avatar"><div><b>${c.name}</b><br><small style="color:var(--dim)">${c.tagline}</small></div></div>`).join('');
+        document.getElementById('persona-list').innerHTML = db.personas.map(p => `<div class="item-card"><img src="${p.avatar}" class="item-avatar"><b>${p.name} ${p.isDefault?'(Default)':''}</b></div>`).join('');
         document.getElementById('session-list').innerHTML = db.sessions.map(s => `<div class="item-card" onclick="startChat(${s.charId},${s.id})">Chat with ${db.chars.find(c=>c.id===s.charId)?.name}</div>`).join('');
         document.getElementById('manual-text').innerText = db.manual;
         document.getElementById('api-key').value = db.apiKey || "";
     }
+    function saveData() { db.apiKey = document.getElementById('api-key').value; save(); }
     function handleLogout() { db.currentUser = null; save(); location.reload(); }
     function showAuth(t) { document.getElementById('login-form').classList.toggle('hidden', t!=='login'); document.getElementById('signup-form').classList.toggle('hidden', t!=='signup'); }
     
