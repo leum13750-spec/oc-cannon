@@ -828,3 +828,27 @@
         });
     });
 </script>
+
+<!-- [추가 5] 모바일 스크롤 고정 버그(화면 갇힘 현상) 해결 코드 -->
+<style>
+    body {
+        /* 화면 밀림 방지로 묶어놨던 속성을 풀어서 기본 스크롤을 허용합니다 */
+        overflow-y: auto !important; 
+        overflow-x: hidden !important;
+    }
+
+    .app-content {
+        /* 100vh 고정 높이를 없애고, 내용물 길이에 맞춰 늘어나도록 수정 */
+        height: auto !important;
+        min-height: 100vh !important;
+        min-height: 100dvh !important; /* 모바일 주소창 높이에 맞게 자동 조절 (최신 사파리 지원) */
+        display: block !important;
+    }
+
+    .tab-content-area {
+        /* 자체 스크롤 대신 전체 화면 스크롤을 따르도록 해제 */
+        overflow-y: visible !important;
+        flex: none !important;
+        padding-bottom: 100px !important; /* 하단 여유 공간 확보 */
+    }
+</style>
