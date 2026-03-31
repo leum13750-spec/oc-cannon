@@ -810,6 +810,7 @@
                         document.getElementById('app-content').classList.remove('hidden');
                         localStorage.setItem('dreamer_session', 'active');
                         this.renderList();
+                        this.checkTempSave(); // 로그인 성공 시에만 임시 저장 체크
                     } else {
                         alert("핸들명과 비밀번호를 모두 입력하세요.");
                     }
@@ -854,6 +855,7 @@
                 if(localStorage.getItem('dreamer_session')) {
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-content').classList.remove('hidden');
+                    this.checkTempSave(); // 자동 로그인 시에만 임시 저장 체크
                 }
 
                 // 8. 캐릭터 데이터 로드
@@ -864,20 +866,6 @@
                 // 9. 5초 자동 저장 엔진
                 setInterval(() => this.autoSave(), 5000);
 
-                // 10. 임시 저장 복구 로직
-                const temp = localStorage.getItem('dreamer_temp_save');
-                if(temp) {
-                    if(confirm("작성 중이던 임시 저장 데이터가 있습니다. 불러오시겠습니까?")) {
-                        const data = JSON.parse(temp);
-                        ui.openEditor(false);
-                        document.getElementById('edit-name').value = data.name || "";
-                        document.getElementById('edit-sub').value = data.sub || "";
-                        ui.updateCharCounts();
-                    } else {
-                        localStorage.removeItem('dreamer_temp_save');
-                    }
-                }
-
                 // 글자수 카운터 이벤트 바인딩
                 document.querySelectorAll('.form-group input, .form-group textarea').forEach(el => {
                     el.addEventListener('input', () => {
@@ -885,6 +873,25 @@
                         if(cnt) cnt.innerText = `${el.value.length} / ${el.getAttribute('maxlength')}`;
                     });
                 });
+            },
+
+            // [수정점] 임시 저장 복구를 로그인 이후로 완전히 분리했습니다.
+            checkTempSave() {
+                const temp = localStorage.getItem('dreamer_temp_save');
+                if(temp) {
+                    // 로그인 화면이 완전히 사라진 뒤 알림창이 뜨도록 0.1초 지연
+                    setTimeout(() => {
+                        if(confirm("작성 중이던 임시 저장 데이터가 있습니다. 불러오시겠습니까?")) {
+                            const data = JSON.parse(temp);
+                            ui.openEditor(false);
+                            document.getElementById('edit-name').value = data.name || "";
+                            document.getElementById('edit-sub').value = data.sub || "";
+                            ui.updateCharCounts();
+                        } else {
+                            localStorage.removeItem('dreamer_temp_save');
+                        }
+                    }, 100);
+                }
             },
 
             saveCharacter() {
