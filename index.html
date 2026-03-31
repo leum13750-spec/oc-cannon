@@ -852,3 +852,42 @@
         padding-bottom: 100px !important; /* 하단 여유 공간 확보 */
     }
 </style>
+
+<!-- [추가 6] 로그인 상태 유지(자동 로그인) 및 로그아웃 연동 기능 -->
+<script>
+    // 1. 페이지 접속 시, 로그인했던 기록이 있는지 확인하고 바로 메인 화면 띄우기
+    if (localStorage.getItem('dreamer_logged_in') === 'true') {
+        const loginScreenEl = document.getElementById('login-screen');
+        if (loginScreenEl) {
+            loginScreenEl.classList.add('hidden'); // 로그인 창 숨김 (자동 로그인)
+        }
+    }
+
+    // 2. [로그인] 버튼 누를 때 로그인 상태를 브라우저에 저장하기
+    const executeLoginStorage = document.getElementById('btn-login');
+    if (executeLoginStorage) {
+        executeLoginStorage.addEventListener('click', function() {
+            const idInput = document.getElementById('login-id').value.trim();
+            const pwInput = document.getElementById('login-pw').value.trim();
+            
+            // 둘 다 정상적으로 입력하고 로그인했을 때만 저장
+            if(idInput !== '' && pwInput !== '') {
+                localStorage.setItem('dreamer_logged_in', 'true');
+            }
+        });
+    }
+
+    // 3. [로그아웃] 버튼 누를 때 브라우저에 저장된 로그인 상태 완전 삭제하기
+    const executeLogoutStorage = [
+        document.getElementById('btn-logout'), 
+        document.getElementById('btn-settings-logout')
+    ];
+    
+    executeLogoutStorage.forEach(function(btn) {
+        if (btn) {
+            btn.addEventListener('click', function() {
+                localStorage.removeItem('dreamer_logged_in'); // 로그인 기록 삭제
+            });
+        }
+    });
+</script>
