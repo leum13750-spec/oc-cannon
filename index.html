@@ -348,11 +348,9 @@
             </div>
             <button class="menu-btn" onclick="ui.toggleChatSidebar(true)"><i class="fas fa-ellipsis-v"></i></button>
         </header>
-        <!-- FIX: ID 'chat-messages' 타겟팅, 메시지 추가 영역 -->
         <div class="chat-body" id="chat-messages">
             <p style="text-align:center; color:var(--text-secondary); font-size:12px; margin-bottom: 15px;">대화가 시작되었습니다.</p>
         </div>
-        <!-- FIX: 입력란과 버튼에 ID 부여 -->
         <div class="chat-input-area">
             <input type="text" id="chat-input" placeholder="메시지를 입력하세요...">
             <button class="menu-btn" id="btn-send-chat" style="color:var(--accent-color)"><i class="fas fa-paper-plane"></i></button>
@@ -396,17 +394,30 @@
                 if(targetPane) targetPane.classList.add('active');
                 this.closeAllSidebars();
             },
+            
+            // [변경점] 에디터 진입 시(버튼 클릭 시) 임시 저장 데이터 확인 로직 추가
             openEditor(isEdit = false) {
                 if(!isEdit) logic.currentChar = null; 
+                
                 document.getElementById('editor-screen').classList.remove('hidden');
                 document.getElementById('editor-title').innerText = isEdit ? "캐릭터 수정" : "새 캐릭터 만들기";
                 
-                if(isEdit) logic.fillEditor();
-                else this.resetEditor();
+                if(isEdit) {
+                    logic.fillEditor();
+                } else {
+                    const temp = localStorage.getItem('dreamer_temp_save');
+                    if(temp && confirm("작성 중이던 임시 저장 데이터가 있습니다. 이어서 작성하시겠습니까?")) {
+                        logic.fillTempData(JSON.parse(temp));
+                    } else {
+                        localStorage.removeItem('dreamer_temp_save');
+                        this.resetEditor();
+                    }
+                }
                 
                 this.closeModal('char-info-modal');
                 this.toggleChatSidebar(false);
             },
+            
             resetEditor() {
                 document.querySelectorAll('#editor-screen input, #editor-screen textarea').forEach(el => el.value = "");
                 document.getElementById('edit-lang').value = "English";
@@ -428,7 +439,6 @@
             updateCharCounts() {
                 document.querySelectorAll('.form-group input, .form-group textarea').forEach(el => {
                     const cnt = el.parentElement.querySelector('.char-count');
-                    // FIX: maxlength 속성이 있는 필드만 안전하게 업데이트
                     if(cnt && el.hasAttribute('maxlength')) {
                         cnt.innerText = `${el.value.length} / ${el.getAttribute('maxlength')}`;
                     }
@@ -441,7 +451,7 @@
             characters: [],
             
             init() {
-                // 로그인 로직 분리 및 엔터키 지원 (UX 향상)
+                // 로그인 처리 (이제 로그인 시 알림창을 띄우지 않고 바로 메인 화면으로 감)
                 const performLogin = () => {
                     const id = document.getElementById('login-id').value;
                     const pw = document.getElementById('login-pw').value;
@@ -450,7 +460,6 @@
                         document.getElementById('app-content').classList.remove('hidden');
                         localStorage.setItem('dreamer_session', 'active');
                         this.renderList();
-                        this.checkTempSave(); 
                     } else {
                         alert("핸들명과 비밀번호를 모두 입력하세요.");
                     }
@@ -479,7 +488,7 @@
                         const txt = prompt("새 공지내용:");
                         if(txt) document.getElementById('notice-text').innerText = txt;
                     } else if(pw !== null) {
-                        alert("비밀번호가 일치하지 않습니다."); // UX: 오답 피드백 추가
+                        alert("비밀번호가 일치하지 않습니다."); 
                     }
                 };
 
@@ -490,10 +499,10 @@
                 document.getElementById('btn-logout').onclick = logoutAction;
                 document.getElementById('btn-settings-logout').onclick = logoutAction;
 
+                // 세션 있을 때 로그인 스킵 (알림창 띄우지 않음)
                 if(localStorage.getItem('dreamer_session')) {
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-content').classList.remove('hidden');
-                    this.checkTempSave(); 
                 }
 
                 const saved = localStorage.getItem('dreamer_chars');
@@ -511,7 +520,6 @@
                     });
                 });
 
-                // FIX: 누락되었던 채팅 전송 UI 로직 추가 (사용자 체감 완성도 향상)
                 const sendChat = () => {
                     const input = document.getElementById('chat-input');
                     const msg = input.value.trim();
@@ -522,38 +530,25 @@
                         div.innerHTML = `<span style="background:var(--accent-color); color:#000; padding:10px 14px; border-radius:18px 18px 0 18px; display:inline-block; max-width:80%; text-align:left; word-break:break-word; font-size:15px;">${msg}</span>`;
                         box.appendChild(div);
                         input.value = "";
-                        box.scrollTop = box.scrollHeight; // 스크롤 하단 이동
+                        box.scrollTop = box.scrollHeight; 
                     }
                 };
                 document.getElementById('btn-send-chat').addEventListener('click', sendChat);
                 document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendChat(); });
             },
 
-            // FIX: 임시저장 불러오기 시 누락되던 전체 데이터 복구되도록 매핑 수정
-            checkTempSave() {
-                const temp = localStorage.getItem('dreamer_temp_save');
-                if(temp) {
-                    setTimeout(() => {
-                        if(confirm("작성 중이던 임시 저장 데이터가 있습니다. 불러오시겠습니까?")) {
-                            const data = JSON.parse(temp);
-                            ui.openEditor(false); // 기존 수정 시에도 새 파일로 열림(의도된 Temp Save 한계)
-                            
-                            document.getElementById('edit-name').value = data.name || "";
-                            document.getElementById('edit-sub').value = data.sub || "";
-                            document.getElementById('edit-relation').value = data.relation || "친구";
-                            document.getElementById('edit-lang').value = data.lang || "English";
-                            document.getElementById('edit-greeting').value = data.greeting || "";
-                            document.getElementById('edit-profile').value = data.profile || "";
-                            document.getElementById('edit-personality').value = data.personality || "";
-                            document.getElementById('edit-appearance').value = data.appearance || "";
-                            document.getElementById('edit-userinfo').value = data.userinfo || "";
-                            
-                            ui.updateCharCounts();
-                        } else {
-                            localStorage.removeItem('dreamer_temp_save');
-                        }
-                    }, 100);
-                }
+            // [추가점] 임시 저장 데이터를 폼에 채워주는 전용 함수
+            fillTempData(data) {
+                document.getElementById('edit-name').value = data.name || "";
+                document.getElementById('edit-sub').value = data.sub || "";
+                document.getElementById('edit-relation').value = data.relation || "친구";
+                document.getElementById('edit-lang').value = data.lang || "English";
+                document.getElementById('edit-greeting').value = data.greeting || "";
+                document.getElementById('edit-profile').value = data.profile || "";
+                document.getElementById('edit-personality').value = data.personality || "";
+                document.getElementById('edit-appearance').value = data.appearance || "";
+                document.getElementById('edit-userinfo').value = data.userinfo || "";
+                ui.updateCharCounts();
             },
 
             saveCharacter() {
@@ -577,83 +572,8 @@
                     char.systemPrompt = "Strictly platonic. No sexual content.";
                 } else { char.systemPrompt = ""; }
 
-                // FIX: idx가 -1일 경우 배열이 꼬이는 잠재적 에러 방지
                 if(this.currentChar) {
                     const idx = this.characters.findIndex(c => c.id === this.currentChar.id);
                     if(idx > -1) this.characters[idx] = char;
                     else this.characters.push(char);
                 } else {
-                    this.characters.push(char);
-                }
-
-                localStorage.setItem('dreamer_chars', JSON.stringify(this.characters));
-                localStorage.removeItem('dreamer_temp_save'); 
-                
-                ui.closeEditor();
-                this.renderList();
-            },
-
-            // FIX: 데이터 유실 방지를 위해 기존 2개 필드 -> 9개 전체 필드 저장으로 변경
-            autoSave() {
-                if(!document.getElementById('editor-screen').classList.contains('hidden')) {
-                    const temp = {
-                        name: document.getElementById('edit-name').value,
-                        sub: document.getElementById('edit-sub').value,
-                        relation: document.getElementById('edit-relation').value,
-                        lang: document.getElementById('edit-lang').value,
-                        greeting: document.getElementById('edit-greeting').value,
-                        profile: document.getElementById('edit-profile').value,
-                        personality: document.getElementById('edit-personality').value,
-                        appearance: document.getElementById('edit-appearance').value,
-                        userinfo: document.getElementById('edit-userinfo').value
-                    };
-                    localStorage.setItem('dreamer_temp_save', JSON.stringify(temp));
-                    document.getElementById('auto-save-status').innerText = "자동 저장됨 (" + new Date().toLocaleTimeString() + ")";
-                }
-            },
-
-            fillEditor() {
-                const c = this.currentChar;
-                document.getElementById('edit-name').value = c.name || "";
-                document.getElementById('edit-sub').value = c.sub || "";
-                document.getElementById('edit-relation').value = c.relation || "친구";
-                document.getElementById('edit-lang').value = c.lang || "English";
-                document.getElementById('edit-greeting').value = c.greeting || "";
-                document.getElementById('edit-profile').value = c.profile || "";
-                document.getElementById('edit-personality').value = c.personality || "";
-                document.getElementById('edit-appearance').value = c.appearance || "";
-                document.getElementById('edit-userinfo').value = c.userinfo || "";
-                ui.updateCharCounts();
-            },
-
-            renderList() {
-                const container = document.getElementById('character-list-container');
-                if(this.characters.length === 0) {
-                    container.innerHTML = "<p class='empty-text'>생성된 캐릭터가 없습니다.</p>";
-                    return;
-                }
-                container.innerHTML = "";
-                this.characters.forEach(char => {
-                    const card = document.createElement('div');
-                    card.className = "char-card";
-                    card.innerHTML = `<strong>${char.name}</strong><br><span style="font-size:12px; color:var(--text-secondary);">${char.sub || "설명이 없습니다."}</span>`;
-                    card.onclick = () => ui.openInfoModal(char);
-                    container.appendChild(card);
-                });
-            },
-
-            startChat() {
-                ui.closeModal('char-info-modal');
-                ui.openChat();
-                document.getElementById('chat-title').innerText = this.currentChar.name;
-                document.getElementById('side-rel').innerText = this.currentChar.relation;
-                
-                // 대화창 입장 시 기본 시스템 문구 초기화 설정
-                document.getElementById('chat-messages').innerHTML = `<p style="text-align:center; color:var(--text-secondary); font-size:12px; margin-bottom: 15px;">대화가 시작되었습니다.</p>`;
-            }
-        };
-
-        window.onload = () => logic.init();
-    </script>
-</body>
-</html>
