@@ -498,3 +498,106 @@
     
     .login-links .link { cursor: pointer; }
 </style>
+<script>
+    // ================= [1] 로그인 화면 UI 제어 =================
+    const loginScreen = document.getElementById('login-screen');
+    const btnLogin = document.getElementById('btn-login');
+    const linkRegister = document.getElementById('link-register');
+    const linkFindPw = document.getElementById('link-find-pw');
+
+    // 1. 로그인 버튼 클릭 시
+    btnLogin.addEventListener('click', function() {
+        const idInput = document.getElementById('login-id').value.trim();
+        const pwInput = document.getElementById('login-pw').value.trim();
+
+        // 빈칸 검사
+        if(idInput === '' || pwInput === '') {
+            alert('핸들명(또는 이메일)과 비밀번호를 모두 입력해주세요.');
+            return;
+        }
+
+        // 로그인 성공 처리 (화면을 서서히 숨김)
+        loginScreen.classList.add('hidden');
+        
+        // (참고) 실제 로그인 정보를 저장하는 세션 로직은 추후 백엔드/스토리지 연동 시 추가됩니다.
+    });
+
+    // 2. 가입하기 버튼 클릭 시
+    linkRegister.addEventListener('click', function() {
+        alert('회원가입 창이 열립니다.\n(기획서 반영: @gmail.com 계정만 가입 가능하도록 연결됩니다.)');
+        // 향후 회원가입 모달창을 띄우는 함수로 교체됩니다.
+    });
+
+    // 3. 비밀번호 찾기 버튼 클릭 시
+    linkFindPw.addEventListener('click', function() {
+        alert('비밀번호 찾기 창이 열립니다.\n(기획서 반영: 가입된 이메일로 6자리 인증 코드가 발송됩니다.)');
+        // 향후 인증번호 입력 모달창을 띄우는 함수로 교체됩니다.
+    });
+
+    // ================= [2] 사이드바 및 메인 탭 작동 코드 =================
+    // 뼈대가 완벽하게 돌아가도록 네비게이션 기능도 함께 추가해 드립니다.
+
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const btnOpenSidebar = document.getElementById('btn-open-sidebar');
+    const btnCloseSidebar = document.getElementById('btn-close-sidebar');
+
+    // 사이드바 열기/닫기 함수
+    function toggleSidebar() {
+        sidebar.classList.toggle('open');
+        sidebarOverlay.classList.toggle('show');
+    }
+
+    btnOpenSidebar.addEventListener('click', toggleSidebar);
+    btnCloseSidebar.addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', toggleSidebar);
+
+    // 탭 전환 로직
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // 모든 탭 버튼 비활성화
+            tabBtns.forEach(b => b.classList.remove('active'));
+            // 모든 탭 내용 숨기기
+            tabPanes.forEach(p => p.classList.remove('active'));
+
+            // 클릭한 탭 활성화
+            this.classList.add('active');
+            const targetId = 'tab-' + this.getAttribute('data-tab');
+            document.getElementById(targetId).classList.add('active');
+        });
+    });
+
+    // 사이드바 메뉴 클릭 시 해당 탭으로 이동 및 사이드바 닫기
+    const sidebarMenuItems = document.querySelectorAll('.sidebar-menu li[data-target]');
+    sidebarMenuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const target = this.getAttribute('data-target');
+            
+            if(target === 'chat-history') {
+                alert("최근 대화 목록이 열립니다."); // 임시 대화 목록
+            } else {
+                // 상단 탭 버튼 클릭 효과 트리거
+                const targetTabBtn = document.querySelector(`.tab-btn[data-tab="${target}"]`);
+                if(targetTabBtn) targetTabBtn.click();
+            }
+            toggleSidebar(); // 사이드바 닫기
+        });
+    });
+
+    // 로그아웃 버튼 (사이드바 및 설정 탭)
+    const btnLogout = document.getElementById('btn-logout');
+    const btnSettingsLogout = document.getElementById('btn-settings-logout');
+
+    function executeLogout() {
+        alert("모든 기기에서 로그아웃 되었습니다. (세션 파기)");
+        loginScreen.classList.remove('hidden'); // 로그인 화면 다시 띄우기
+        if(sidebar.classList.contains('open')) toggleSidebar();
+    }
+
+    btnLogout.addEventListener('click', executeLogout);
+    if(btnSettingsLogout) btnSettingsLogout.addEventListener('click', executeLogout);
+
+</script>
