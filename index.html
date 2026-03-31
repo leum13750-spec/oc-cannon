@@ -13,7 +13,76 @@
 <body>
 
     <!-- [1] 로그인 & 회원가입 화면 (별도 레이어) -->
-    <div id="login-screen"
+    <div id="login-screen" class="screen-overlay">
+        <!-- [1-1] 회원가입 화면 (기본 숨김) -->
+    <div id="register-screen" class="screen-overlay hidden">
+        <div class="login-container">
+            <h1 class="logo">dreamer.ai</h1>
+            <p class="subtitle">새 계정 만들기</p>
+            <div class="input-group">
+                <input type="email" id="reg-email" placeholder="이메일 주소 (@gmail.com만 허용)">
+            </div>
+            <div class="input-group">
+                <input type="text" id="reg-id" placeholder="사용할 핸들명 (아이디)">
+            </div>
+            <div class="input-group">
+                <input type="password" id="reg-pw" placeholder="비밀번호 설정">
+            </div>
+            <button class="primary-btn" id="btn-do-register">가입 완료</button>
+            <div class="login-links" style="justify-content: center;">
+                <span class="link" id="link-back-to-login1">이미 계정이 있으신가요? 로그인</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- [1-2] 비밀번호 찾기 화면 (기본 숨김) -->
+    <div id="findpw-screen" class="screen-overlay hidden">
+        <div class="login-container">
+            <h1 class="logo">dreamer.ai</h1>
+            <p class="subtitle">비밀번호 재설정</p>
+            
+            <!-- 인증 코드 발송 단계 -->
+            <div id="findpw-step1">
+                <div class="input-group">
+                    <input type="email" id="find-email" placeholder="가입한 이메일 주소">
+                </div>
+                <button class="primary-btn" id="btn-send-code">인증 코드 발송</button>
+            </div>
+
+            <!-- 코드 입력 및 새 비밀번호 설정 단계 (처음엔 숨김) -->
+            <div id="findpw-step2" style="display: none;">
+                <p style="color: var(--accent-color); font-size: 13px; margin-bottom: 15px;">이메일로 6자리 인증 코드가 발송되었습니다. (시뮬레이션)</p>
+                <div class="input-group">
+                    <input type="text" id="find-code" placeholder="6자리 인증 코드" maxlength="6">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="new-pw" placeholder="새로운 비밀번호">
+                </div>
+                <button class="primary-btn" id="btn-reset-pw">비밀번호 변경 및 자동 로그아웃</button>
+            </div>
+
+            <div class="login-links" style="justify-content: center; margin-top: 20px;">
+                <span class="link" id="link-back-to-login2">로그인 화면으로 돌아가기</span>
+            </div>
+        </div>
+    </div>
+        <div class="login-container">
+            <h1 class="logo">dreamer.ai</h1>
+            <p class="subtitle">로그인이 필요합니다.</p>
+            <div class="input-group">
+                <input type="text" id="login-id" placeholder="핸들명(아이디) 또는 이메일">
+            </div>
+            <div class="input-group">
+                <input type="password" id="login-pw" placeholder="비밀번호">
+            </div>
+            <button class="primary-btn" id="btn-login">로그인</button>
+            <div class="login-links">
+                <span class="link" id="link-register">계정이 없으신가요? 가입하기</span>
+                <span class="link" id="link-find-pw">비밀번호 찾기</span>
+            </div>
+        </div>
+    </div>
+
     <!-- [2] 전역 사이드바 (메뉴 네비게이션) -->
     <div id="sidebar" class="sidebar">
         <div class="sidebar-header">
@@ -582,178 +651,5 @@
 
     btnLogout.addEventListener('click', executeLogout);
     if(btnSettingsLogout) btnSettingsLogout.addEventListener('click', executeLogout);
-    <!-- [메인 앱 컨테이너] - 기존 main-app 자리에 덮어씌우세요 -->
-    <div id="main-app" class="app-container hidden">
-        <header>
-            <button class="menu-btn" onclick="ui.toggleSidebar(true)"><i class="fas fa-bars"></i></button>
-            <h1 class="logo">dreamer.ai</h1>
-            <div style="width:24px;"></div>
-        </header>
-
-        <!-- 공지사항 -->
-        <div class="notice-bar">
-            <div style="display:flex; justify-content:space-between;">
-                <span style="font-size:12px; color:var(--text-secondary); font-weight:bold;">User Manual</span>
-                <span class="sub-link" style="margin:0; font-size:12px;" onclick="logic.editNotice()">Edit</span>
-            </div>
-            <p id="notice-text" style="font-size:14px; margin-top:5px;">dreamer.ai에 오신 것을 환영합니다!</p>
-        </div>
-
-        <!-- 메인 탭 -->
-        <nav class="nav-tabs">
-            <button class="tab-btn active" onclick="ui.switchTab('character', this)">캐릭터</button>
-            <button class="tab-btn" onclick="ui.switchTab('scene', this)">장면</button>
-            <button class="tab-btn" onclick="ui.switchTab('persona', this)">페르소나</button>
-            <button class="tab-btn" onclick="ui.switchTab('api', this)">API</button>
-            <button class="tab-btn" onclick="ui.switchTab('settings', this)">설정</button>
-        </nav>
-
-        <!-- 탭별 본문 영역 -->
-        <main class="scrollable" style="padding: 20px;">
-            <!-- 캐릭터 리스트 탭 -->
-            <div id="tab-character" class="tab-content">
-                <button class="create-btn" onclick="ui.openCreateModal()">+ 새 캐릭터 만들기</button>
-                <div id="char-list-container" style="margin-top:20px;">
-                    <!-- 캐릭터 카드가 여기에 생성됨 -->
-                    <p class="empty-text" style="text-align:center; color:var(--text-secondary); margin-top:50px;">생성된 캐릭터가 없습니다.</p>
-                </div>
-            </div>
-
-            <!-- 나머지 탭들 (추후 3단계에서 상세 구현) -->
-            <div id="tab-scene" class="tab-content hidden"><p>저장된 장면이 없습니다.</p></div>
-            <div id="tab-persona" class="tab-content hidden"><p>페르소나 설정</p></div>
-            <div id="tab-api" class="tab-content hidden"><p>API 설정</p></div>
-            <div id="tab-settings" class="tab-content hidden"><p>유저 설정</p></div>
-        </main>
-
-        <!-- 사이드바 (햄버거 메뉴) -->
-        <div id="sidebar-overlay" class="screen-overlay hidden" style="background:rgba(0,0,0,0.7); z-index:4000;" onclick="ui.toggleSidebar(false)">
-            <div id="sidebar" style="width:280px; height:100%; background:var(--bg-surface); position:absolute; left:0; padding:30px 20px;" onclick="event.stopPropagation()">
-                <h2 class="logo">Menu</h2>
-                <ul style="list-style:none; margin-top:30px;">
-                    <li style="padding:15px 0; border-bottom:1px solid var(--border-color); cursor:pointer;" onclick="ui.switchTab('character'); ui.toggleSidebar(false);"><i class="fas fa-users" style="margin-right:10px;"></i> 캐릭터 리스트</li>
-                    <li style="padding:15px 0; border-bottom:1px solid var(--border-color); cursor:pointer;" onclick="alert('준비 중');"><i class="fas fa-comments" style="margin-right:10px;"></i> 내 대화 목록</li>
-                    <li style="padding:15px 0; color:var(--danger-color); cursor:pointer; margin-top:20px;" onclick="logic.logout()"><i class="fas fa-sign-out-alt" style="margin-right:10px;"></i> 로그아웃</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <!-- [캐릭터 상세 정보 모달] - 클릭 시 나타남 -->
-    <div id="char-info-modal" class="modal" onclick="ui.closeModal('char-info-modal')">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div style="text-align:center; margin-bottom:20px;">
-                <div id="info-img" style="width:100px; height:100px; background:#333; border-radius:20px; margin:0 auto 15px; border:2px solid var(--accent-color);"></div>
-                <h2 id="info-name" style="font-size:22px;">캐릭터 이름</h2>
-                <p id="info-sub" style="color:var(--text-secondary); font-size:14px;">한마디 설명</p>
-            </div>
-            
-            <div style="background:var(--bg-surface-light); padding:15px; border-radius:15px; margin-bottom:20px;">
-                <p style="font-size:12px; color:var(--accent-color); font-weight:bold;">관계 설정</p>
-                <p id="info-relation" style="font-size:15px; margin-top:5px;">친구</p>
-                <p style="font-size:12px; color:var(--accent-color); font-weight:bold; margin-top:10px;">언어 설정</p>
-                <p id="info-lang" style="font-size:15px; margin-top:5px;">English</p>
-            </div>
-
-            <div style="display:flex; gap:10px;">
-                <button class="primary-btn" style="flex:2;" onclick="logic.startChat()">대화 시작</button>
-                <button class="primary-btn" style="flex:1; background:var(--bg-surface-light); color:white;" onclick="ui.openEditModal()">수정</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        /* [Part 2 Logic] 모든 버튼 작동 및 캐릭터 시스템 */
-        
-        // 1. 버튼 작동을 방해하는 'hidden' 클래스 관리 최적화
-        const ui = {
-            // 스크린 전환 (로그인 -> 메인 등)
-            showScreen(scr) {
-                document.querySelectorAll('.screen-overlay').forEach(el => el.classList.add('hidden'));
-                const target = document.getElementById(scr + '-screen');
-                if(target) target.classList.remove('hidden');
-            },
-
-            showMainApp() {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-app').classList.remove('hidden');
-            },
-
-            // 탭 전환
-            switchTab(tabId, btn) {
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-                document.getElementById('tab-' + tabId).classList.remove('hidden');
-                
-                if(btn) {
-                    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-                    btn.classList.add('active');
-                }
-            },
-
-            // 사이드바 토글
-            toggleSidebar(show) {
-                const overlay = document.getElementById('sidebar-overlay');
-                if(show) overlay.classList.remove('hidden');
-                else overlay.classList.add('hidden');
-            },
-
-            // 모달 관리 (캐릭터 정보 등)
-            openInfoModal(charData) {
-                document.getElementById('info-name').innerText = charData.name;
-                document.getElementById('info-sub').innerText = charData.sub || "설명이 없습니다.";
-                document.getElementById('info-relation').innerText = charData.relation;
-                document.getElementById('info-lang').innerText = charData.lang || "English";
-                document.getElementById('char-info-modal').style.display = 'flex';
-            },
-
-            closeModal(id) {
-                document.getElementById(id).style.display = 'none';
-            }
-        };
-
-        const logic = {
-            // 로그인 유지 로직 (Part 1과 연동)
-            init() {
-                const session = localStorage.getItem('dreamer_session');
-                if (session) ui.showMainApp();
-                this.renderCharacters();
-            },
-
-            // 캐릭터 리스트 렌더링 (클릭 시 정보창 띄우기 연결)
-            renderCharacters() {
-                const container = document.getElementById('char-list-container');
-                // 샘플 데이터 (나중에 실제 저장 데이터로 교체)
-                const samples = [
-                    { name: "엘리나", sub: "조용한 숲의 안내자", relation: "절친", lang: "English" }
-                ];
-                
-                container.innerHTML = "";
-                samples.forEach(char => {
-                    const card = document.createElement('div');
-                    card.style = "background:var(--bg-surface); padding:15px; border-radius:18px; border:1px solid var(--border-color); margin-bottom:10px; cursor:pointer;";
-                    card.innerHTML = `<strong>${char.name}</strong><br><span style="font-size:12px; color:var(--text-secondary);">${char.sub}</span>`;
-                    card.onclick = () => ui.openInfoModal(char);
-                    container.appendChild(card);
-                });
-            },
-
-            logout() {
-                localStorage.removeItem('dreamer_session');
-                location.reload();
-            },
-
-            editNotice() {
-                const pw = prompt("관리자 비밀번호를 입력하세요.");
-                if(pw === "dreamer") {
-                    const newNotice = prompt("새 공지사항을 입력하세요.");
-                    if(newNotice) document.getElementById('notice-text').innerText = newNotice;
-                } else {
-                    alert("비밀번호가 틀렸습니다.");
-                }
-            }
-        };
-
-        window.onload = () => logic.init();
-    </script>
 
 </script>
