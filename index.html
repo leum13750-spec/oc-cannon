@@ -1,12 +1,5 @@
 <!DOCTYPE html>
 <html lang="ko">
-    <!-- [추가 7] 로그인 화면 깜빡임 완벽 방지 코드 (반드시 head 안에 위치) -->
-    <script>
-        // 브라우저가 화면을 그리기 전에 로그인 상태를 먼저 확인하고, 
-        // 로그인 되어있으면 로그인 창을 아예 안 보이게 CSS를 강제로 먼저 덮어씌웁니다.
-        if (localStorage.getItem('dreamer_logged_in') === 'true') {
-            const hideStyle = document.createElement('style');
-            hideStyle.innerHTML = '#login-screen { display: none !important; opacity: 0 !important; visibility: hidden !important
 <head>
     <meta charset="UTF-8">
     <!-- 모바일 기기(아이폰 등) 최적화: 확대 방지 및 Safe Area 적용 -->
@@ -16,6 +9,15 @@
     <link rel="stylesheet" href="style.css">
     <!-- 아이콘 사용을 위한 FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- [추가 7] 로그인 화면 깜빡임 완벽 방지 코드 (깨진 부분 복구됨) -->
+    <script>
+        if (localStorage.getItem('dreamer_logged_in') === 'true') {
+            const hideStyle = document.createElement('style');
+            hideStyle.innerHTML = '#login-screen { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }';
+            document.head.appendChild(hideStyle);
+        }
+    </script>
 </head>
 <body>
 
@@ -133,10 +135,10 @@
         <i class="fas fa-bug"></i>
     </button>
 
-    <!-- 외부 JS 파일 연결 (이후 단계에서 작성) -->
-    <script src="app.js"></script>
 </body>
 </html>
+
+<!-- 질문자님의 원래 CSS 코드 (건드리지 않음) -->
 <style>
     /* ================= 1. 전역 변수 & 기본 초기화 ================= */
     :root {
@@ -503,6 +505,8 @@
     
     .login-links .link { cursor: pointer; }
 </style>
+
+<!-- 질문자님의 원래 JS 코드 (건드리지 않음) -->
 <script>
     // ================= [1] 로그인 화면 UI 제어 =================
     const loginScreen = document.getElementById('login-screen');
@@ -608,7 +612,7 @@
 </script>
 
 <!-- ========================================================= -->
-<!-- ▼ 여기서부터 복사해서 기존 코드의 맨 밑에 붙여넣으세요 ▼ -->
+<!-- ▼ 여기서부터 추가된 기능들 (에디터, 스크롤, 저장 등) ▼ -->
 <!-- ========================================================= -->
 
 <!-- [추가 1] 캐릭터 생성 풀스크린 에디터 -->
@@ -692,9 +696,28 @@
     </div>
 </div>
 
-<!-- [추가 3] 디자인(CSS) 및 스크롤 기능 추가 -->
+<!-- [추가 3 & 5] 에디터 디자인 및 모바일 스크롤 버그 해결 CSS -->
 <style>
-    /* 에디터 화면 전체 영역 (스크롤이 가능하도록 설정) */
+    /* 화면 밀림 방지로 묶어놨던 속성을 풀어서 기본 스크롤을 허용합니다 */
+    body {
+        overflow-y: auto !important; 
+        overflow-x: hidden !important;
+    }
+
+    .app-content {
+        height: auto !important;
+        min-height: 100vh !important;
+        min-height: 100dvh !important; 
+        display: block !important;
+    }
+
+    .tab-content-area {
+        overflow-y: visible !important;
+        flex: none !important;
+        padding-bottom: 100px !important; 
+    }
+
+    /* 에디터 화면 전체 영역 */
     .editor-screen {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background-color: var(--bg-main);
@@ -704,28 +727,25 @@
     }
     .editor-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
     
-    /* 에디터 상단 헤더 */
     .editor-header {
         display: flex; align-items: center; justify-content: space-between;
         padding: 16px 20px;
         background-color: var(--bg-main);
         border-bottom: 1px solid var(--border-color);
         flex-shrink: 0;
-        padding-top: calc(16px + env(safe-area-inset-top)); /* 노치 대응 */
+        padding-top: calc(16px + env(safe-area-inset-top)); 
     }
     
     .close-editor-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
     .save-editor-btn { background: none; border: none; color: var(--accent-color); font-weight: bold; font-size: 16px; cursor: pointer; }
 
-    /* ★스크롤이 작동하는 핵심 컨텐츠 영역★ */
     .editor-body {
         flex: 1;
-        overflow-y: auto; /* 내용이 길면 스크롤 생성 */
+        overflow-y: auto; 
         padding: 24px 20px;
-        padding-bottom: calc(40px + env(safe-area-inset-bottom)); /* 하단 여백 */
+        padding-bottom: calc(40px + env(safe-area-inset-bottom)); 
     }
 
-    /* 폼 입력창 스타일 */
     .form-group { margin-bottom: 24px; }
     .form-group label { display: block; color: var(--accent-color); font-size: 13px; font-weight: 700; margin-bottom: 8px; }
     .form-group input, .form-group textarea, .form-group select {
@@ -736,27 +756,25 @@
     .char-count { font-size: 11px; color: var(--text-secondary); text-align: right; margin-top: 4px; }
 </style>
 
-<!-- [추가 4] 동작 스크립트 (이벤트 연결) -->
+<!-- [추가 4, 6, 8] 에디터 제어, 자동로그인, 데이터 영구보존 스크립트 (짤린 부분 복구됨) -->
 <script>
-    // 1. 버튼 찾아서 이벤트 연결하기 (기존 HTML 구조 탐색)
+    // 버튼 이벤트 연결
     const btnCreateCharacter = document.querySelector('#tab-character .create-btn');
     const btnCreatePersona = document.querySelector('#tab-persona .create-btn');
 
-    // 캐릭터 생성 버튼 클릭
     if(btnCreateCharacter) {
         btnCreateCharacter.addEventListener('click', function() {
             document.getElementById('character-editor-screen').classList.remove('hidden');
         });
     }
 
-    // 페르소나 생성 버튼 클릭
     if(btnCreatePersona) {
         btnCreatePersona.addEventListener('click', function() {
             document.getElementById('persona-editor-screen').classList.remove('hidden');
         });
     }
 
-    // 2. 에디터 닫기 기능
+    // 에디터 닫기
     function closeEditor(type) {
         if(type === 'character') {
             document.getElementById('character-editor-screen').classList.add('hidden');
@@ -765,66 +783,7 @@
         }
     }
 
-    // 3. 캐릭터 저장 후 리스트에 띄우기 기능
-    function saveCharacter() {
-        const nameInput = document.getElementById('edit-char-name').value.trim();
-        const subInput = document.getElementById('edit-char-sub').value.trim();
-
-        if(!nameInput) {
-            alert("캐릭터 이름은 필수 입력 사항입니다.");
-            return;
-        }
-
-        // 기존 비어있다는 텍스트 제거
-        const container = document.getElementById('character-list-container');
-        if(container.querySelector('.empty-text') || container.innerHTML.trim() === '') {
-            container.innerHTML = ''; 
-        }
-
-        // 새로운 카드 생성해서 추가
-        const card = document.createElement('div');
-        card.className = 'char-card';
-        card.innerHTML = `<strong style="font-size:16px;">${nameInput}</strong><br><span style="font-size:13px; color:var(--text-secondary); margin-top:4px; display:inline-block;">${subInput || "설명이 없습니다."}</span>`;
-        container.prepend(card);
-
-        // 값 초기화 및 창 닫기
-        document.getElementById('edit-char-name').value = '';
-        document.getElementById('edit-char-sub').value = '';
-        document.querySelectorAll('#character-editor-screen .char-count').forEach(el => el.innerText = '0 / ' + el.innerText.split('/')[1].trim());
-        
-        closeEditor('character');
-        alert("캐릭터가 저장되었습니다.");
-    }
-
-    // 4. 페르소나 저장 후 리스트에 띄우기 기능
-    function savePersona() {
-        const nameInput = document.getElementById('edit-persona-name').value.trim();
-        const infoInput = document.getElementById('edit-persona-info').value.trim();
-
-        if(!nameInput) {
-            alert("페르소나 이름은 필수 입력 사항입니다.");
-            return;
-        }
-
-        const container = document.getElementById('persona-list-container');
-        if(container.innerHTML.trim() === '') {
-            container.innerHTML = '';
-        }
-
-        const card = document.createElement('div');
-        card.className = 'char-card';
-        card.innerHTML = `<strong style="font-size:16px;">${nameInput}</strong><br><span style="font-size:13px; color:var(--text-secondary); margin-top:4px; display:inline-block;">${infoInput || "기본 페르소나"}</span>`;
-        container.prepend(card);
-
-        document.getElementById('edit-persona-name').value = '';
-        document.getElementById('edit-persona-info').value = '';
-        document.querySelectorAll('#persona-editor-screen .char-count').forEach(el => el.innerText = '0 / ' + el.innerText.split('/')[1].trim());
-
-        closeEditor('persona');
-        alert("페르소나가 저장되었습니다.");
-    }
-
-    // 5. 글자 수 실시간 카운팅 기능 (캐릭터, 페르소나 공통 적용)
+    // 글자 수 실시간 카운팅
     document.querySelectorAll('.editor-screen input[maxlength], .editor-screen textarea[maxlength]').forEach(el => {
         el.addEventListener('input', function() {
             const countDiv = this.parentElement.querySelector('.char-count');
@@ -834,67 +793,156 @@
             }
         });
     });
-</script>
 
-<!-- [추가 5] 모바일 스크롤 고정 버그(화면 갇힘 현상) 해결 코드 -->
-<style>
-    body {
-        /* 화면 밀림 방지로 묶어놨던 속성을 풀어서 기본 스크롤을 허용합니다 */
-        overflow-y: auto !important; 
-        overflow-x: hidden !important;
-    }
-
-    .app-content {
-        /* 100vh 고정 높이를 없애고, 내용물 길이에 맞춰 늘어나도록 수정 */
-        height: auto !important;
-        min-height: 100vh !important;
-        min-height: 100dvh !important; /* 모바일 주소창 높이에 맞게 자동 조절 (최신 사파리 지원) */
-        display: block !important;
-    }
-
-    .tab-content-area {
-        /* 자체 스크롤 대신 전체 화면 스크롤을 따르도록 해제 */
-        overflow-y: visible !important;
-        flex: none !important;
-        padding-bottom: 100px !important; /* 하단 여유 공간 확보 */
-    }
-</style>
-
-<!-- [추가 6] 로그인 상태 유지(자동 로그인) 및 로그아웃 연동 기능 -->
-<script>
-    // 1. 페이지 접속 시, 로그인했던 기록이 있는지 확인하고 바로 메인 화면 띄우기
-    if (localStorage.getItem('dreamer_logged_in') === 'true') {
-        const loginScreenEl = document.getElementById('login-screen');
-        if (loginScreenEl) {
-            loginScreenEl.classList.add('hidden'); // 로그인 창 숨김 (자동 로그인)
-        }
-    }
-
-    // 2. [로그인] 버튼 누를 때 로그인 상태를 브라우저에 저장하기
+    // 자동 로그인 설정 (로그인/로그아웃 버튼에 저장소 연결)
     const executeLoginStorage = document.getElementById('btn-login');
     if (executeLoginStorage) {
         executeLoginStorage.addEventListener('click', function() {
             const idInput = document.getElementById('login-id').value.trim();
             const pwInput = document.getElementById('login-pw').value.trim();
-            
-            // 둘 다 정상적으로 입력하고 로그인했을 때만 저장
             if(idInput !== '' && pwInput !== '') {
                 localStorage.setItem('dreamer_logged_in', 'true');
             }
         });
     }
 
-    // 3. [로그아웃] 버튼 누를 때 브라우저에 저장된 로그인 상태 완전 삭제하기
     const executeLogoutStorage = [
         document.getElementById('btn-logout'), 
         document.getElementById('btn-settings-logout')
     ];
-    
     executeLogoutStorage.forEach(function(btn) {
         if (btn) {
             btn.addEventListener('click', function() {
-                localStorage.removeItem('dreamer_logged_in'); // 로그인 기록 삭제
+                localStorage.removeItem('dreamer_logged_in'); 
             });
         }
     });
+
+    // 화면 켜질 때 데이터 불러오기
+    function loadSavedData() {
+        renderCharacters();
+        renderPersonas();
+        
+        const savedApiKey = localStorage.getItem('dreamer_api_key');
+        if (savedApiKey && document.getElementById('api-key-input')) {
+            document.getElementById('api-key-input').value = savedApiKey;
+        }
+    }
+
+    // 캐릭터 그리기
+    function renderCharacters() {
+        const container = document.getElementById('character-list-container');
+        const savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
+        
+        if (savedChars.length === 0) {
+            container.innerHTML = '<p class="empty-text" style="color:var(--text-secondary); font-size:14px; text-align:center; padding-top:20px;">생성된 캐릭터가 없습니다.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        savedChars.forEach(char => {
+            const card = document.createElement('div');
+            card.className = 'char-card';
+            card.innerHTML = `<strong style="font-size:16px;">${char.name}</strong><br><span style="font-size:13px; color:var(--text-secondary); margin-top:4px; display:inline-block;">${char.sub || "설명이 없습니다."}</span>`;
+            card.onclick = () => alert(`${char.name} 상세 정보/대화방으로 이동합니다.`);
+            container.appendChild(card);
+        });
+    }
+
+    // 페르소나 그리기 (이전에 짤렸던 함수 복구완료)
+    function renderPersonas() {
+        const container = document.getElementById('persona-list-container');
+        const savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+
+        if (savedPersonas.length === 0) {
+            container.innerHTML = '<p class="empty-text" style="color:var(--text-secondary); font-size:14px; text-align:center; padding-top:20px;">생성된 페르소나가 없습니다.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        savedPersonas.forEach(persona => {
+            const card = document.createElement('div');
+            card.className = 'char-card';
+            card.innerHTML = `<strong style="font-size:16px;">${persona.name}</strong><br><span style="font-size:13px; color:var(--text-secondary); margin-top:4px; display:inline-block;">${persona.info || "기본 페르소나"}</span>`;
+            container.appendChild(card);
+        });
+    }
+
+    // 캐릭터 저장 기능
+    function saveCharacter() {
+        const nameInput = document.getElementById('edit-char-name').value.trim();
+        const subInput = document.getElementById('edit-char-sub').value.trim();
+        const relationInput = document.getElementById('edit-char-relation').value;
+        const langInput = document.getElementById('edit-char-lang').value;
+
+        if(!nameInput) {
+            alert("캐릭터 이름은 필수 입력 사항입니다.");
+            return;
+        }
+
+        let savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
+        savedChars.unshift({
+            id: Date.now(), 
+            name: nameInput,
+            sub: subInput,
+            relation: relationInput,
+            lang: langInput
+        });
+
+        localStorage.setItem('dreamer_characters', JSON.stringify(savedChars));
+
+        document.getElementById('edit-char-name').value = '';
+        document.getElementById('edit-char-sub').value = '';
+        document.querySelectorAll('#character-editor-screen .char-count').forEach(el => el.innerText = '0 / ' + el.innerText.split('/')[1].trim());
+        
+        closeEditor('character');
+        renderCharacters(); 
+        alert("캐릭터가 안전하게 저장되었습니다.");
+    }
+
+    // 페르소나 저장 기능
+    function savePersona() {
+        const nameInput = document.getElementById('edit-persona-name').value.trim();
+        const infoInput = document.getElementById('edit-persona-info').value.trim();
+
+        if(!nameInput) {
+            alert("페르소나 이름은 필수 입력 사항입니다.");
+            return;
+        }
+
+        let savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+        savedPersonas.unshift({
+            id: Date.now(),
+            name: nameInput,
+            info: infoInput
+        });
+
+        localStorage.setItem('dreamer_personas', JSON.stringify(savedPersonas));
+
+        document.getElementById('edit-persona-name').value = '';
+        document.getElementById('edit-persona-info').value = '';
+        document.querySelectorAll('#persona-editor-screen .char-count').forEach(el => el.innerText = '0 / ' + el.innerText.split('/')[1].trim());
+
+        closeEditor('persona');
+        renderPersonas();
+        alert("페르소나가 안전하게 저장되었습니다.");
+    }
+
+    // API 키 저장 연동
+    const btnCheckApi = document.getElementById('btn-check-api');
+    if (btnCheckApi) {
+        btnCheckApi.onclick = function(e) {
+            e.preventDefault(); 
+            const apiKey = document.getElementById('api-key-input').value.trim();
+            if (apiKey) {
+                localStorage.setItem('dreamer_api_key', apiKey);
+                alert('API 키가 저장되었습니다. (새로고침해도 유지됩니다)');
+            } else {
+                alert('저장할 API 키를 입력해주세요.');
+            }
+        };
+    }
+
+    // 앱 실행 시 데이터 불러오기
+    window.addEventListener('DOMContentLoaded', loadSavedData);
 </script>
