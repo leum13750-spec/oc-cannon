@@ -78,14 +78,14 @@
                 <div class="content-list" id="persona-list-container"></div>
             </div>
             
-            <!-- 설정 탭 (API URL 입력란 추가됨) -->
+            <!-- 설정 탭 -->
             <div id="tab-settings" class="tab-pane">
                 <div class="settings-profile">
                     <!-- API URL -->
                     <div class="form-group" style="width: 100%; text-align: left;">
                         <label>API 주소 (URL) <span style="color:red">*</span></label>
-                        <input type="text" id="settings-api-url" placeholder="https://api.infermatic.ai/v1" style="width: 100%; padding: 14px; background: var(--bg-surface-light); border: none; border-radius: 12px; color: white; margin-top: 8px;">
-                        <div style="font-size:11px; color:gray; margin-top:4px;">사이트에서 제공한 Base URL을 입력하세요. (예: https://api.totalgpt.ai/v1)</div>
+                        <input type="text" id="settings-api-url" placeholder="https://api.totalgpt.ai/v1" style="width: 100%; padding: 14px; background: var(--bg-surface-light); border: none; border-radius: 12px; color: white; margin-top: 8px;">
+                        <div style="font-size:11px; color:gray; margin-top:4px;">사이트에서 복사한 API URL을 입력하세요. (예: https://api.totalgpt.ai/v1)</div>
                     </div>
                     <!-- API KEY -->
                     <div class="form-group" style="width: 100%; text-align: left;">
@@ -117,7 +117,6 @@
 <!-- ▼ 모달창 및 풀스크린 에디터 UI ▼ -->
 <!-- ========================================================= -->
 
-<!-- 1. 캐릭터 에디터 -->
 <div id="character-editor-screen" class="editor-screen hidden">
     <header class="editor-header">
         <button class="close-editor-btn" onclick="closeEditor('character')"><i class="fas fa-arrow-left"></i></button>
@@ -147,7 +146,6 @@
     </div>
 </div>
 
-<!-- 2. 페르소나 에디터 -->
 <div id="persona-editor-screen" class="editor-screen hidden">
     <header class="editor-header">
         <button class="close-editor-btn" onclick="closeEditor('persona')"><i class="fas fa-arrow-left"></i></button>
@@ -171,7 +169,6 @@
      </div>
 </div>
 
-<!-- 3. 상세 정보 화면 -->
 <div id="character-detail-screen" class="editor-screen hidden" style="z-index: 6000;">
     <header class="editor-header">
         <button class="close-editor-btn" onclick="document.getElementById('character-detail-screen').classList.add('hidden')"><i class="fas fa-arrow-left"></i></button>
@@ -191,7 +188,6 @@
     </div>
 </div>
 
-<!-- 4. 톡썰메이커 -->
 <div id="talk-maker-screen" class="editor-screen hidden">
     <header class="editor-header">
         <button class="close-editor-btn" onclick="document.getElementById('talk-maker-screen').classList.add('hidden')"><i class="fas fa-times"></i></button>
@@ -217,7 +213,6 @@
 <!-- ========================================================= -->
 <div id="real-chat-screen" class="editor-screen" style="display: none; flex-direction: column; background-color: #121212; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
     
-    <!-- 장면 범위 지정 시 나타나는 헤더 -->
     <div id="scene-selection-bar" style="display:none; position:absolute; top:0; left:0; width:100%; height:65px; background:var(--accent-color); color:black; z-index:10005; justify-content:space-between; align-items:center; padding: 0 16px; font-weight: bold;">
         <span>장면으로 저장할 메시지 선택 중...</span>
         <div style="display: flex; gap: 10px;">
@@ -265,12 +260,12 @@
         <button onclick="alert('캐릭터 설정 수정 기능으로 연결됩니다.')" style="margin-top: 12px; width: 100%; padding: 10px; background: #252525; border: 1px solid #444; color: #d8b4fe; border-radius: 8px; cursor: pointer;"><i class="fas fa-edit"></i> 캐릭터 설정 수정</button>
     </div>
     
-    <!-- AI 모델 변경 -->
+    <!-- 정품 API 모델 ID로 수정된 드롭다운 -->
     <div style="padding: 20px; border-bottom: 1px solid #222;">
         <h3 style="font-size: 14px; color: #999; margin-bottom: 12px;">AI 모델 변경</h3>
         <select id="chat-model-select" onchange="changeModel(this.value)" style="width: 100%; padding: 12px; background: #181818; color: white; border: 1px solid #333; border-radius: 8px; outline: none;">
-            <option value="midnight-miqu-70b-16k">Midnight Miqu v1.5 70B 16K</option>
-            <option value="llama-3.1-hanami-70b-32k">Llama3.1 Hanami x1 70B 32K</option>
+            <option value="Midnight-Miqu-70B-v1.5">Midnight Miqu v1.5 70B 16K</option>
+            <option value="Sao10K-L3.1-70B-Hanami-x1">Llama3.1 Hanami x1 70B 32K</option>
         </select>
     </div>
 
@@ -291,7 +286,7 @@
 <!-- 하단 액션 시트 -->
 <div id="action-sheet-overlay" onclick="closeActionSheet()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10002; opacity: 0; visibility: hidden; transition: 0.2s;"></div>
 <div id="action-sheet" style="position: fixed; bottom: -400px; left: 0; width: 100%; background: #181818; border-radius: 20px 20px 0 0; z-index: 10003; padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); transition: bottom 0.3s cubic-bezier(0.1, 0.8, 0.2, 1); display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #333;">
-    <button onclick="doTogglePinMessage()" style="background: #252525; border: 1px solid #333; color: white; padding: 16px; border-radius: 12px; font-size: 15px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px;"><i class="fas fa-thumbtack" style="color: #fcc419; width: 20px;"></i> 메시지 고정/해제 (우선순 기억)</button>
+    <button onclick="doTogglePinMessage()" style="background: #252525; border: 1px solid #333; color: white; padding: 16px; border-radius: 12px; font-size: 15px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px;"><i class="fas fa-thumbtack" style="color: #fcc419; width: 20px;"></i> 메시지 고정/해제 (우선순위 기억)</button>
     <button onclick="doEditMessage()" style="background: #252525; border: 1px solid #333; color: white; padding: 16px; border-radius: 12px; font-size: 15px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px;"><i class="fas fa-pencil-alt" style="color: #d8b4fe; width: 20px;"></i> 메시지 수정</button>
     <button onclick="doCopyMessage()" style="background: #252525; border: 1px solid #333; color: white; padding: 16px; border-radius: 12px; font-size: 15px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px;"><i class="fas fa-copy" style="color: #d8b4fe; width: 20px;"></i> 메시지 복사</button>
     <button onclick="doRewindMessage()" style="background: #252525; border: 1px solid #333; color: white; padding: 16px; border-radius: 12px; font-size: 15px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px;"><i class="fas fa-history" style="color: #ff6b6b; width: 20px;"></i> 여기로 되돌리기 (이후 대화 삭제)</button>
@@ -377,7 +372,6 @@
     .sidebar-overlay.show { opacity: 1; visibility: visible; }
     .bug-report-btn { position: fixed; bottom: 30px; right: 20px; width: 52px; height: 52px; border-radius: 50%; background: var(--bg-surface); color: var(--accent-color); border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.6); font-size: 20px; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 100; }
 
-    /* 추가됨: 필수 항목 * 표시, 메시지 블록 구분선 및 핀 스타일 */
     .required::after { content: " *"; color: red; }
     
     .msg-block { display: flex; flex-direction: column; width: 100%; cursor: pointer; padding: 12px 16px; border-radius: 12px; transition: background 0.2s, border 0.2s; margin-bottom: 8px; position: relative; }
@@ -385,14 +379,12 @@
     .msg-header { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     .msg-content { font-size: 14px; line-height: 1.6; color: #e0e0e0; word-break: break-word; }
     
-    /* 사용자/봇 구분 얇은 선 (마지막 요소에는 안 보임) */
     .msg-separator { border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-top: 16px; width: 100%; }
     .msg-block:last-child .msg-separator { display: none; }
     
     .pinned-msg { border-left: 3px solid #fcc419; background: rgba(252, 196, 25, 0.05); }
     .pinned-icon { color: #fcc419; font-size: 12px; }
 
-    /* 장면 선택 모드 스타일 */
     .msg-block.scene-selectable { cursor: pointer; }
     .msg-block.scene-selected { background: rgba(216, 180, 254, 0.15); border: 1px solid var(--accent-color); }
 
@@ -401,7 +393,7 @@
 </style>
 
 <!-- ========================================================= -->
-<!-- ▼ 자바스크립트 영역 (기본 시스템 & 챗봇 핵심 로직) ▼ -->
+<!-- ▼ 자바스크립트 영역 ▼ -->
 <!-- ========================================================= -->
 <script>
     window.editingCharId = null;
@@ -411,14 +403,12 @@
     window.selectedCharId = null;
     const defaultImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
 
-    // 로그인 제어
     document.getElementById('btn-login').addEventListener('click', function() {
         if(document.getElementById('login-id').value === '') return alert('아이디를 입력해주세요.');
         localStorage.setItem('dreamer_logged_in', 'true');
         document.getElementById('login-screen').classList.add('hidden');
     });
 
-    // 좌측 햄버거 사이드바
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     window.toggleSidebar = function() { 
@@ -433,12 +423,11 @@
         sidebarOverlay.classList.remove('show');
     };
 
-    // 홈 버튼
     document.getElementById('btn-go-home').onclick = () => {
         document.getElementById('real-chat-screen').style.display = 'none';
         document.getElementById('character-detail-screen').classList.add('hidden');
         document.getElementById('talk-maker-screen').classList.add('hidden');
-        localStorage.removeItem('current_screen'); // 홈으로 오면 상태 해제
+        localStorage.removeItem('current_screen'); 
         toggleSidebar();
     };
 
@@ -450,7 +439,6 @@
     document.getElementById('btn-logout').onclick = executeLogout;
     document.getElementById('btn-settings-logout').onclick = executeLogout;
 
-    // 탭 이동 로직
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -460,7 +448,6 @@
         });
     });
 
-    // 글자 수 카운팅
     document.querySelectorAll('.editor-screen input[maxlength], .editor-screen textarea[maxlength]').forEach(el => {
         el.addEventListener('input', function() {
             const countDiv = this.parentElement.querySelector('.char-count');
@@ -468,7 +455,6 @@
         });
     });
 
-    // 톡썰메이커 
     document.getElementById('btn-open-talk-maker').onclick = () => {
         document.getElementById('talk-maker-screen').classList.remove('hidden');
         toggleSidebar(); 
@@ -494,7 +480,6 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     };
 
-    // 사진 자동 압축
     function compressImage(file, callback) {
         const reader = new FileReader();
         reader.onload = e => {
@@ -515,7 +500,6 @@
     document.getElementById('edit-char-img-input').onchange = e => { if(e.target.files[0]) compressImage(e.target.files[0], b64 => { window.tempCharBase64 = b64; document.getElementById('edit-char-img-preview').innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;">`; }); };
     document.getElementById('edit-persona-img-input').onchange = e => { if(e.target.files[0]) compressImage(e.target.files[0], b64 => { window.tempPersonaBase64 = b64; document.getElementById('edit-persona-img-preview').innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;">`; }); };
 
-    // 에디터 열기
     window.openCharEditor = function(id = null, data = null) {
         window.editingCharId = id; window.tempCharBase64 = null;
         document.getElementById('char-editor-title').innerText = id ? "캐릭터 수정하기" : "새 캐릭터 만들기";
@@ -542,7 +526,6 @@
     };
     window.closeEditor = function(type) { document.getElementById(`${type}-editor-screen`).classList.add('hidden'); };
 
-    // 상세 프로필 창 띄우기
     window.openCharacterDetail = function(id, data) {
         window.selectedCharId = id;
         document.getElementById('detail-img').src = data.photoUrl || defaultImg;
@@ -552,7 +535,6 @@
         document.getElementById('character-detail-screen').classList.remove('hidden');
     };
 
-    // 저장 및 삭제
     window.executeDelete = function(id, name, type) {
         if(!confirm(`'${name}'을(를) 삭제하시겠습니까?`)) { renderData(); return; }
         let storageKey = type === 'characters' ? 'dreamer_characters' : 'dreamer_personas';
@@ -653,16 +635,12 @@
         });
     };
 
-    // =========================================================
-    // ▼ [API, 채팅방, 장면 선택 로직 (URL 입력 반영 완료)] ▼
-    // =========================================================
     let currentChatHistory = [];
     let selectedMsgIndex = null;
     let isReadOnlyMode = false;
     let isSceneSelectionMode = false;
     let selectedSceneIndices = new Set();
 
-    // 설정 탭 저장 시 API URL도 같이 저장
     document.getElementById('btn-save-profile').onclick = function() {
         const apiUrl = document.getElementById('settings-api-url').value.trim();
         const apiKey = document.getElementById('settings-api-key').value.trim();
@@ -721,7 +699,6 @@
         if(!isSceneSelectionMode) logBox.scrollTop = logBox.scrollHeight;
     }
 
-    // [API 연동 - 설정 탭에서 입력한 URL 사용]
     window.sendChatMessage = async function() {
         const input = document.getElementById('chat-input');
         const text = input.value.trim();
@@ -732,7 +709,6 @@
         renderChatLog();
         saveCurrentChatState();
 
-        // 저장된 API URL과 KEY 불러오기
         let rawApiUrl = localStorage.getItem('dreamer_api_url') || '';
         const apiKey = localStorage.getItem('dreamer_api_key') || '';
         
@@ -742,13 +718,13 @@
             return;
         }
 
-        // URL 보정 로직 (끝에 /chat/completions 이 안붙어있으면 자동으로 붙여줌)
         let apiUrl = rawApiUrl;
         if (!apiUrl.endsWith('/chat/completions')) {
             apiUrl = apiUrl.replace(/\/$/, '') + '/chat/completions';
         }
 
-        const model = localStorage.getItem('dreamer_model') || 'midnight-miqu-70b-16k';
+        // 기본값을 'Midnight-Miqu-70B-v1.5' 로 변경 (올바른 모델 ID)
+        const model = localStorage.getItem('dreamer_model') || 'Midnight-Miqu-70B-v1.5';
         const charName = document.getElementById('chat-header-name').innerText;
         
         let sysPrompt = `You are ${charName}. `;
@@ -782,7 +758,6 @@
         renderChatLog();
 
         try {
-            // 하드코딩된 주소가 아니라 유저가 입력한 apiUrl로 쏩니다.
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 
@@ -799,7 +774,8 @@
 
             if(!response.ok) {
                 if(response.status === 401) throw new Error("API 키가 올바르지 않습니다. (401 Unauthorized)");
-                if(response.status === 404) throw new Error("API 주소(URL)가 잘못되었거나 해당 모델을 찾을 수 없습니다. (404 Not Found)");
+                if(response.status === 404) throw new Error("API 주소가 잘못되었거나 해당 모델(" + model + ")을 찾을 수 없습니다. (404 Not Found)");
+                if(response.status === 400) throw new Error("잘못된 요청 파라미터입니다. 모델명(" + model + ")이 올바른지 확인하세요. (400 Bad Request)");
                 if(response.status === 429) throw new Error("요청 한도 초과 (잔액 부족). (429 Too Many Requests)");
                 throw new Error(`서버 오류 발생 (상태 코드: ${response.status})`);
             }
@@ -816,7 +792,6 @@
         } catch(err) {
             console.error(err);
             currentChatHistory = currentChatHistory.filter(m => m.id !== loadingId);
-            
             let errorMsg = `*(시스템 오류)* 연결 실패.\n\n**원인:** ${err.message}\n\n* 'Failed to fetch' 에러 시: 브라우저 보안(CORS)에 막혔거나 서버가 다운된 것입니다.`;
             currentChatHistory.push({ role: 'char', name: "시스템 안내", content: errorMsg, pinned: false });
             renderChatLog();
@@ -860,7 +835,9 @@
         
         let handle = localStorage.getItem('dreamer_handle') || document.getElementById('login-id')?.value.split('@')[0] || "user";
         document.getElementById('chat-header-handle').innerText = `By ${handle.includes('@') ? handle : '@'+handle}`;
-        document.getElementById('chat-model-select').value = localStorage.getItem('dreamer_model') || 'midnight-miqu-70b-16k';
+        
+        // 모델 셀렉트 기본값 세팅
+        document.getElementById('chat-model-select').value = localStorage.getItem('dreamer_model') || 'Midnight-Miqu-70B-v1.5';
 
         localStorage.setItem('current_screen', 'chat');
         localStorage.setItem('current_char_id', window.selectedCharId);
@@ -1007,8 +984,7 @@
     window.addEventListener('DOMContentLoaded', () => {
         renderData();
         
-        // 새로 추가된 API URL 데이터 불러오기
-        document.getElementById('settings-api-url').value = localStorage.getItem('dreamer_api_url') || 'https://api.infermatic.ai/v1';
+        document.getElementById('settings-api-url').value = localStorage.getItem('dreamer_api_url') || 'https://api.totalgpt.ai/v1';
         document.getElementById('settings-api-key').value = localStorage.getItem('dreamer_api_key') || '';
         document.getElementById('settings-nickname').value = localStorage.getItem('dreamer_nickname') || '';
         document.getElementById('settings-handle').value = localStorage.getItem('dreamer_handle') || '';
