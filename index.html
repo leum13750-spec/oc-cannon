@@ -2,15 +2,13 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <!-- 모바일 기기(아이폰 등) 최적화: 확대 방지 및 Safe Area 적용 -->
+    <!-- 모바일 기기 최적화: 확대 방지 및 Safe Area 적용 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>dreamer.ai</title>
-    <!-- 외부 CSS 파일 연결 -->
-    <link rel="stylesheet" href="style.css">
     <!-- 아이콘 사용을 위한 FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- [추가 7] 로그인 화면 깜빡임 완벽 방지 코드 (깨진 부분 복구됨) -->
+    <!-- 로그인 화면 깜빡임 완벽 방지 코드 -->
     <script>
         if (localStorage.getItem('dreamer_logged_in') === 'true') {
             const hideStyle = document.createElement('style');
@@ -21,7 +19,7 @@
 </head>
 <body>
 
-    <!-- [1] 로그인 & 회원가입 화면 (별도 레이어) -->
+    <!-- [1] 로그인 & 회원가입 화면 -->
     <div id="login-screen" class="screen-overlay">
         <div class="login-container">
             <h1 class="logo">dreamer.ai</h1>
@@ -45,24 +43,20 @@
             <button class="close-btn" id="btn-close-sidebar"><i class="fas fa-times"></i></button>
         </div>
         <ul class="sidebar-menu">
-            <!-- 요청에 따라 기존 탭 이동용 메뉴들을 전부 삭제하고 백업(톡썰메이커) 버튼 추가 -->
             <li id="btn-open-talk-maker"><i class="fas fa-comments"></i> 수동 대화 백업</li>
             <li class="logout-menu" id="btn-logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</li>
         </ul>
     </div>
-    <!-- 사이드바 열릴 때 배경 어둡게 하는 오버레이 -->
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
     <!-- [3] 메인 앱 인터페이스 -->
     <div id="app-content" class="app-content">
-        <!-- 상단 헤더 -->
         <header class="app-header">
             <button class="menu-btn" id="btn-open-sidebar"><i class="fas fa-bars"></i></button>
             <h1 class="logo header-logo">dreamer.ai</h1>
-            <div style="width: 24px;"></div> <!-- 중앙 정렬 맞춤용 공백 -->
+            <div style="width: 24px;"></div>
         </header>
 
-        <!-- 관리자 전용 공지사항 (User Manual) -->
         <div class="notice-bar">
             <div class="notice-content">
                 <span class="notice-tag">User Manual</span>
@@ -71,7 +65,6 @@
             <button class="edit-notice-btn" id="btn-edit-notice">Edit</button>
         </div>
 
-        <!-- 5대 핵심 메인 탭 (대화 -> 장면으로 변경됨) -->
         <nav class="main-tabs">
             <button class="tab-btn active" data-tab="character">캐릭터</button>
             <button class="tab-btn" data-tab="scene">장면</button>
@@ -80,18 +73,15 @@
             <button class="tab-btn" data-tab="settings">설정</button>
         </nav>
 
-        <!-- 탭 하단 본문 (스크롤 가능 영역) -->
         <main class="tab-content-area">
             
             <!-- 캐릭터 탭 내용 -->
             <div id="tab-character" class="tab-pane active">
                 <button class="create-btn">+ 새 캐릭터 만들기</button>
-                <div class="content-list" id="character-list-container">
-                    <!-- 캐릭터 리스트가 여기에 생성됨 -->
-                </div>
+                <div class="content-list" id="character-list-container"></div>
             </div>
 
-            <!-- 장면 탭 내용 (새로 추가됨) -->
+            <!-- 장면 탭 내용 -->
             <div id="tab-scene" class="tab-pane">
                 <h3 class="section-title">저장된 장면(Scene)</h3>
                 <div class="content-list" id="scene-list-container">
@@ -117,7 +107,6 @@
             <!-- 유저 설정 탭 내용 -->
             <div id="tab-settings" class="tab-pane">
                 <div class="settings-profile">
-                    <!-- 유저 정보 설정 영역 추가 (닉네임, 핸들명) -->
                     <div class="form-group" style="width: 100%; text-align: left;">
                         <label>닉네임</label>
                         <input type="text" id="settings-nickname" placeholder="유저 닉네임" style="width: 100%; padding: 14px; background: var(--bg-surface-light); border: none; border-radius: 12px; color: white; margin-top: 8px;">
@@ -138,507 +127,16 @@
         </main>
     </div>
 
-    <!-- [4] 우측 하단 플로팅 버그 제보 버튼 -->
+    <!-- 우측 하단 플로팅 버그 제보 버튼 -->
     <button class="bug-report-btn" id="btn-bug-report">
         <i class="fas fa-bug"></i>
     </button>
 
-</body>
-</html>
-
-<!-- 질문자님의 원래 CSS 코드 + 사진 리스트 CSS 통합 -->
-<style>
-    /* ================= 1. 전역 변수 & 기본 초기화 ================= */
-    :root {
-        --bg-main: #0a0a0a;         /* 최하단 검은 배경 */
-        --bg-surface: #151515;      /* 카드, 탭 배경 (딥 그레이) */
-        --bg-surface-light: #202020;/* 인풋박스 등 살짝 밝은 배경 */
-        --accent-color: #d8b4fe;    /* dreamer.ai 연보라색 포인트 */
-        --text-primary: #ffffff;    /* 기본 텍스트 (흰색) */
-        --text-secondary: #9ca3af;  /* 보조 텍스트 (회색) */
-        --border-color: #262626;    /* 선 색상 */
-        --danger-color: #ff6b6b;    /* 경고/로그아웃 색상 */
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        -webkit-tap-highlight-color: transparent; /* 모바일 터치 시 회색 음영 제거 */
-    }
-
-    body {
-        background-color: var(--bg-main);
-        color: var(--text-primary);
-        overflow: hidden; /* 모바일에서 전체 화면 밀림 방지 */
-    }
-
-    /* 아이폰 Safe Area 적용 (노치 및 하단 바 침범 방지) */
-    .app-content {
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        padding-top: env(safe-area-inset-top);
-        padding-bottom: env(safe-area-inset-bottom);
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
-    }
-
-    /* ================= 2. 헤더 & 공지사항 ================= */
-    .app-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 20px;
-        background-color: var(--bg-main);
-    }
-
-    .logo {
-        color: var(--accent-color);
-        font-size: 22px;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-    }
-
-    .menu-btn {
-        background: none;
-        border: none;
-        color: var(--text-primary);
-        font-size: 20px;
-        cursor: pointer;
-    }
-
-    .notice-bar {
-        margin: 0 16px 16px 16px;
-        padding: 16px;
-        background-color: var(--bg-surface);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-    }
-
-    .notice-tag {
-        display: block;
-        color: var(--text-secondary);
-        font-weight: 700;
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-
-    .notice-text {
-        color: var(--text-primary);
-        font-size: 14px;
-        line-height: 1.4;
-    }
-
-    .edit-notice-btn {
-        background: none;
-        border: none;
-        color: var(--accent-color);
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    /* ================= 3. 메인 탭 네비게이션 ================= */
-    .main-tabs {
-        display: flex;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--border-color);
-        padding: 0 16px;
-        flex-shrink: 0;
-    }
-
-    .tab-btn {
-        background: none;
-        border: none;
-        color: var(--text-secondary);
-        padding: 12px 0;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        flex-grow: 1;
-        position: relative;
-        transition: color 0.2s;
-    }
-
-    .tab-btn.active {
-        color: var(--text-primary);
-    }
-
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        left: 15%;
-        width: 70%;
-        height: 3px;
-        background-color: var(--accent-color);
-        border-radius: 3px 3px 0 0;
-    }
-
-    /* ================= 4. 탭 콘텐츠 영역 (스크롤) ================= */
-    .tab-content-area {
-        flex: 1;
-        overflow-y: auto;
-        padding: 24px 16px;
-    }
-
-    .tab-pane {
-        display: none;
-    }
-    
-    .tab-pane.active {
-        display: block;
-        animation: fadeIn 0.2s ease-in-out;
-    }
-    
-    @keyframes fadeIn { 
-        from { opacity: 0; } 
-        to { opacity: 1; } 
-    }
-
-    .create-btn {
-        width: 100%;
-        background-color: var(--bg-surface);
-        color: var(--accent-color);
-        border: 1px solid var(--border-color);
-        padding: 16px;
-        border-radius: 16px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s;
-        margin-bottom: 16px;
-    }
-    
-    .create-btn:hover { background-color: var(--bg-surface-light); }
-
-    .section-title { font-size: 18px; margin-bottom: 16px; }
-    .empty-text { color: var(--text-secondary); font-size: 14px; }
-
-    /* API & 세팅 탭 전용 스타일 */
-    .api-container {
-        background-color: var(--bg-surface);
-        padding: 20px;
-        border-radius: 16px;
-        border: 1px solid var(--border-color);
-    }
-    
-    .api-container input {
-        width: 100%;
-        padding: 14px;
-        margin: 12px 0;
-        background-color: var(--bg-surface-light);
-        border: none;
-        border-radius: 12px;
-        color: var(--text-primary);
-        font-size: 14px;
-    }
-    
-    .link-btn {
-        background: none;
-        border: none;
-        color: var(--accent-color);
-        font-size: 13px;
-        cursor: pointer;
-    }
-
-    .settings-profile {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-    }
-    
-    .profile-img-placeholder {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        border: 2px solid var(--accent-color);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 24px;
-        color: var(--accent-color);
-        margin-bottom: 10px;
-    }
-    
-    .sub-btn {
-        width: 100%;
-        padding: 16px;
-        background-color: var(--bg-surface);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        color: var(--text-primary);
-        font-size: 14px;
-        cursor: pointer;
-    }
-    
-    .danger-text { color: var(--danger-color); border-color: rgba(255, 107, 107, 0.3); }
-
-    /* ================= 5. 사이드바 (Sidebar) ================= */
-    .sidebar {
-        position: fixed;
-        top: 0;
-        left: -300px;
-        width: 280px;
-        height: 100%;
-        background-color: var(--bg-surface);
-        z-index: 1000;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        flex-direction: column;
-        padding-top: env(safe-area-inset-top);
-    }
-    
-    .sidebar.open { left: 0; }
-    
-    .sidebar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px;
-        border-bottom: 1px solid var(--border-color);
-    }
-    
-    .sidebar-header h2 { font-size: 18px; color: var(--text-primary); }
-    .close-btn { background: none; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; }
-    
-    .sidebar-menu { list-style: none; padding: 10px 0; overflow-y: auto; }
-    .sidebar-menu li {
-        padding: 16px 20px;
-        font-size: 15px;
-        color: var(--text-primary);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-    .sidebar-menu li:hover { background-color: var(--bg-surface-light); }
-    .sidebar-menu i { width: 20px; text-align: center; color: var(--text-secondary); }
-    .sidebar-menu .logout-menu { color: var(--danger-color); margin-top: 20px; }
-
-    .sidebar-overlay {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(2px);
-        z-index: 999;
-        opacity: 0; visibility: hidden;
-        transition: all 0.3s;
-    }
-    
-    .sidebar-overlay.show { opacity: 1; visibility: visible; }
-
-    /* ================= 6. 플로팅 버그 제보 버튼 ================= */
-    .bug-report-btn {
-        position: fixed;
-        bottom: calc(30px + env(safe-area-inset-bottom));
-        right: 20px;
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        background-color: var(--bg-surface);
-        color: var(--accent-color);
-        border: 1px solid var(--border-color);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-        font-size: 20px;
-        cursor: pointer;
-        z-index: 100;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    /* ================= 7. 로그인 화면 오버레이 ================= */
-    .screen-overlay {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background-color: var(--bg-main);
-        z-index: 2000;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-        transition: opacity 0.3s, visibility 0.3s;
-    }
-    
-    .screen-overlay.hidden { opacity: 0; visibility: hidden; }
-
-    .login-container {
-        width: 100%;
-        max-width: 400px;
-        background-color: var(--bg-surface);
-        padding: 40px 24px;
-        border-radius: 20px;
-        border: 1px solid var(--border-color);
-        text-align: center;
-    }
-    
-    .login-container .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
-    
-    .input-group input {
-        width: 100%;
-        padding: 16px;
-        margin-bottom: 16px;
-        background-color: var(--bg-main);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        color: var(--text-primary);
-        font-size: 15px;
-    }
-    
-    .primary-btn {
-        width: 100%;
-        padding: 16px;
-        background-color: var(--text-primary);
-        color: #000000;
-        border: none;
-        border-radius: 30px;
-        font-weight: 700;
-        font-size: 16px;
-        cursor: pointer;
-        margin-bottom: 24px;
-    }
-    
-    .login-links {
-        display: flex;
-        justify-content: space-between;
-        font-size: 13px;
-        color: var(--text-secondary);
-    }
-    
-    .login-links .link { cursor: pointer; }
-
-    /* ================= 8. 사진 + 정보 리스트 (스와이프 기능 포함) ================= */
-    .swipe-container {
-        position: relative;
-        width: 100%;
-        overflow: hidden;
-        border-radius: 16px;
-        margin-bottom: 12px;
-        background: var(--bg-surface);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-    .delete-btn-bg {
-        position: absolute;
-        top: 0; right: 0; bottom: 0;
-        width: 80px;
-        background-color: var(--danger-color);
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 20px;
-        cursor: pointer;
-        z-index: 1;
-    }
-    .list-card {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        background: var(--bg-surface);
-        padding: 16px;
-        border-radius: 16px;
-        position: relative;
-        cursor: pointer;
-        transition: transform 0.3s ease;
-        z-index: 2;
-        width: 100%;
-    }
-    .list-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
-    .list-title { font-size: 16px; font-weight: 700; color: white; display: block; margin-bottom: 4px; }
-    .list-sub { 
-        font-size: 13px; color: var(--text-secondary); line-height: 1.3;
-        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; 
-    }
-    .edit-btn {
-        position: absolute; top: 16px; right: 16px;
-        background: none; border: none; color: var(--text-secondary); font-size: 16px; cursor: pointer; padding: 4px;
-    }
-    .edit-btn:hover { color: var(--accent-color); }
-</style>
-
-<!-- 질문자님의 원래 JS 코드 (건드리지 않음) -->
-<script>
-    // ================= [1] 로그인 화면 UI 제어 =================
-    const loginScreen = document.getElementById('login-screen');
-    const btnLogin = document.getElementById('btn-login');
-    const linkRegister = document.getElementById('link-register');
-    const linkFindPw = document.getElementById('link-find-pw');
-
-    btnLogin.addEventListener('click', function() {
-        const idInput = document.getElementById('login-id').value.trim();
-        const pwInput = document.getElementById('login-pw').value.trim();
-
-        if(idInput === '' || pwInput === '') {
-            alert('핸들명(또는 이메일)과 비밀번호를 모두 입력해주세요.');
-            return;
-        }
-
-        loginScreen.classList.add('hidden');
-    });
-
-    linkRegister.addEventListener('click', function() {
-        alert('회원가입 창이 열립니다.\n(기획서 반영: @gmail.com 계정만 가입 가능하도록 연결됩니다.)');
-    });
-
-    linkFindPw.addEventListener('click', function() {
-        alert('비밀번호 찾기 창이 열립니다.\n(기획서 반영: 가입된 이메일로 6자리 인증 코드가 발송됩니다.)');
-    });
-
-    // ================= [2] 사이드바 및 메인 탭 작동 코드 =================
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
-    const btnOpenSidebar = document.getElementById('btn-open-sidebar');
-    const btnCloseSidebar = document.getElementById('btn-close-sidebar');
-
-    function toggleSidebar() {
-        sidebar.classList.toggle('open');
-        sidebarOverlay.classList.toggle('show');
-    }
-
-    btnOpenSidebar.addEventListener('click', toggleSidebar);
-    btnCloseSidebar.addEventListener('click', toggleSidebar);
-    sidebarOverlay.addEventListener('click', toggleSidebar);
-
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabPanes = document.querySelectorAll('.tab-pane');
-
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabPanes.forEach(p => p.classList.remove('active'));
-
-            this.classList.add('active');
-            const targetId = 'tab-' + this.getAttribute('data-tab');
-            document.getElementById(targetId).classList.add('active');
-        });
-    });
-
-    const btnLogout = document.getElementById('btn-logout');
-    const btnSettingsLogout = document.getElementById('btn-settings-logout');
-
-    function executeLogout() {
-        alert("모든 기기에서 로그아웃 되었습니다. (세션 파기)");
-        loginScreen.classList.remove('hidden'); 
-        if(sidebar.classList.contains('open')) toggleSidebar();
-    }
-
-    btnLogout.addEventListener('click', executeLogout);
-    if(btnSettingsLogout) btnSettingsLogout.addEventListener('click', executeLogout);
-
-</script>
-
 <!-- ========================================================= -->
-<!-- ▼ 추가된 에디터 및 톡썰메이커, 상세정보 모달창 HTML ▼ -->
+<!-- ▼ 모달창 및 풀스크린 에디터 UI ▼ -->
 <!-- ========================================================= -->
 
-<!-- [추가 1] 캐릭터 생성 풀스크린 에디터 -->
+<!-- 1. 캐릭터 생성 풀스크린 에디터 -->
 <div id="character-editor-screen" class="editor-screen hidden">
     <header class="editor-header">
         <button class="close-editor-btn" onclick="closeEditor('character')"><i class="fas fa-times"></i></button>
@@ -697,7 +195,7 @@
     </div>
 </div>
 
-<!-- [추가 2] 페르소나 생성 풀스크린 에디터 -->
+<!-- 2. 페르소나 생성 풀스크린 에디터 -->
 <div id="persona-editor-screen" class="editor-screen hidden">
     <header class="editor-header">
         <button class="close-editor-btn" onclick="closeEditor('persona')"><i class="fas fa-times"></i></button>
@@ -733,7 +231,7 @@
     </div>
 </div>
 
-<!-- [추가 3] 캐릭터 상세 정보 (새 채팅, 기존 채팅, 수정 UI) -->
+<!-- 3. 캐릭터 상세 정보 (새 채팅, 기존 채팅, 수정 UI) -->
 <div id="character-detail-screen" class="editor-screen hidden" style="z-index: 6000;">
     <header class="editor-header">
         <button class="close-editor-btn" onclick="document.getElementById('character-detail-screen').classList.add('hidden')"><i class="fas fa-arrow-left"></i></button>
@@ -753,7 +251,7 @@
     </div>
 </div>
 
-<!-- [추가 4] 톡썰메이커(백업용 대화 작성기) 풀스크린 에디터 -->
+<!-- 4. 톡썰메이커(백업용 대화 작성기) 풀스크린 에디터 -->
 <div id="talk-maker-screen" class="editor-screen hidden">
     <header class="editor-header">
         <button class="close-editor-btn" onclick="document.getElementById('talk-maker-screen').classList.add('hidden')"><i class="fas fa-times"></i></button>
@@ -781,11 +279,29 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- ▼ 에디터, 모바일 스크롤, 그리고 요청하신 상세/사진 CSS ▼ -->
+<!-- ▼ 전체 CSS 디자인 영역 ▼ -->
 <!-- ========================================================= -->
 <style>
-    /* 스크롤 밀림 완벽 방지 */
+    :root {
+        --bg-main: #0a0a0a;
+        --bg-surface: #151515;
+        --bg-surface-light: #202020;
+        --accent-color: #d8b4fe;
+        --text-primary: #ffffff;
+        --text-secondary: #9ca3af;
+        --border-color: #262626;
+        --danger-color: #ff6b6b;
+    }
+
+    * {
+        margin: 0; padding: 0; box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+    }
+
     body {
+        background-color: var(--bg-main);
+        color: var(--text-primary);
         overflow-y: auto !important; 
         overflow-x: hidden !important;
     }
@@ -797,78 +313,165 @@
         display: block !important;
     }
 
-    .tab-content-area {
-        overflow-y: visible !important;
-        flex: none !important;
-        padding-bottom: 100px !important; 
+    .app-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 16px 20px; background-color: var(--bg-main);
     }
+    .logo { color: var(--accent-color); font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+    .menu-btn { background: none; border: none; color: var(--text-primary); font-size: 20px; cursor: pointer; }
 
-    /* 에디터 화면 전체 영역 */
-    .editor-screen {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background-color: var(--bg-main);
-        z-index: 7000;
-        display: flex; flex-direction: column;
-        transition: opacity 0.3s, visibility 0.3s;
-    }
+    .notice-bar { margin: 0 16px 16px 16px; padding: 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .notice-tag { display: block; color: var(--text-secondary); font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+    .notice-text { color: var(--text-primary); font-size: 14px; line-height: 1.4; }
+    .edit-notice-btn { background: none; border: none; color: var(--accent-color); font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    .main-tabs { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding: 0 16px; flex-shrink: 0; }
+    .tab-btn { background: none; border: none; color: var(--text-secondary); padding: 12px 0; font-size: 14px; font-weight: 600; cursor: pointer; flex-grow: 1; position: relative; transition: color 0.2s; }
+    .tab-btn.active { color: var(--text-primary); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 15%; width: 70%; height: 3px; background-color: var(--accent-color); border-radius: 3px 3px 0 0; }
+
+    .tab-content-area { overflow-y: visible !important; flex: none !important; padding: 24px 16px; padding-bottom: 100px !important; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .create-btn { width: 100%; background-color: var(--bg-surface); color: var(--accent-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 16px; }
+    .create-btn:hover { background-color: var(--bg-surface-light); }
+    .section-title { font-size: 18px; margin-bottom: 16px; }
+    .empty-text { color: var(--text-secondary); font-size: 14px; }
+
+    .api-container { background-color: var(--bg-surface); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); }
+    .api-container input { width: 100%; padding: 14px; margin: 12px 0; background-color: var(--bg-surface-light); border: none; border-radius: 12px; color: var(--text-primary); font-size: 14px; }
+    .link-btn { background: none; border: none; color: var(--accent-color); font-size: 13px; cursor: pointer; }
+
+    .settings-profile { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .sub-btn { width: 100%; padding: 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-primary); font-size: 14px; cursor: pointer; }
+    .danger-text { color: var(--danger-color); border-color: rgba(255, 107, 107, 0.3); }
+
+    .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background-color: var(--bg-surface); z-index: 1000; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
+    .sidebar.open { left: 0; }
+    .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); }
+    .sidebar-header h2 { font-size: 18px; color: var(--text-primary); }
+    .close-btn { background: none; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; }
+    .sidebar-menu { list-style: none; padding: 10px 0; overflow-y: auto; }
+    .sidebar-menu li { padding: 16px 20px; font-size: 15px; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 16px; }
+    .sidebar-menu li:hover { background-color: var(--bg-surface-light); }
+    .sidebar-menu i { width: 20px; text-align: center; color: var(--text-secondary); }
+    .sidebar-menu .logout-menu { color: var(--danger-color); margin-top: 20px; }
+
+    .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s; }
+    .sidebar-overlay.show { opacity: 1; visibility: visible; }
+
+    .bug-report-btn { position: fixed; bottom: calc(30px + env(safe-area-inset-bottom)); right: 20px; width: 52px; height: 52px; border-radius: 50%; background-color: var(--bg-surface); color: var(--accent-color); border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.6); font-size: 20px; cursor: pointer; z-index: 100; display: flex; justify-content: center; align-items: center; }
+
+    .screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-main); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px; transition: opacity 0.3s, visibility 0.3s; }
+    .screen-overlay.hidden { opacity: 0; visibility: hidden; }
+    .login-container { width: 100%; max-width: 400px; background-color: var(--bg-surface); padding: 40px 24px; border-radius: 20px; border: 1px solid var(--border-color); text-align: center; }
+    .login-container .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
+    .input-group input { width: 100%; padding: 16px; margin-bottom: 16px; background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-primary); font-size: 15px; }
+    .primary-btn { width: 100%; padding: 16px; background-color: var(--text-primary); color: #000000; border: none; border-radius: 30px; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 24px; }
+    .login-links { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); }
+    .login-links .link { cursor: pointer; }
+
+    /* 리스트 디자인 */
+    .swipe-container { position: relative; width: 100%; overflow: hidden; border-radius: 16px; margin-bottom: 12px; background: var(--bg-surface); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .delete-btn-bg { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; background-color: var(--danger-color); color: white; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; z-index: 1; }
+    .list-card { display: flex; align-items: center; gap: 16px; background: var(--bg-surface); padding: 16px; border-radius: 16px; position: relative; cursor: pointer; transition: transform 0.3s ease; z-index: 2; width: 100%; }
+    
+    /* 리스트 사진을 48px로 축소 */
+    .char-img { width: 48px !important; height: 48px !important; border-radius: 12px; object-fit: cover; background-color: var(--bg-surface-light); flex-shrink: 0; }
+    .persona-img { width: 48px !important; height: 48px !important; border-radius: 50%; object-fit: cover; background-color: var(--bg-surface-light); flex-shrink: 0; }
+    
+    .list-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+    .list-title { font-size: 16px; font-weight: 700; color: white; display: block; margin-bottom: 4px; }
+    .list-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; }
+    .edit-btn { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-secondary); font-size: 16px; cursor: pointer; padding: 4px; }
+    .edit-btn:hover { color: var(--accent-color); }
+
+    /* 에디터 화면 전역 설정 */
+    .editor-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-main); z-index: 7000; display: flex; flex-direction: column; transition: opacity 0.3s, visibility 0.3s; }
     .editor-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    
-    .editor-header {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 16px 20px;
-        background-color: var(--bg-main);
-        border-bottom: 1px solid var(--border-color);
-        flex-shrink: 0;
-        padding-top: calc(16px + env(safe-area-inset-top)); 
-    }
-    
+    .editor-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background-color: var(--bg-main); border-bottom: 1px solid var(--border-color); flex-shrink: 0; padding-top: calc(16px + env(safe-area-inset-top)); }
     .close-editor-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
     .save-editor-btn { background: none; border: none; color: var(--accent-color); font-weight: bold; font-size: 16px; cursor: pointer; }
-
-    .editor-body {
-        flex: 1;
-        overflow-y: auto; 
-        padding: 24px 20px;
-        padding-bottom: calc(40px + env(safe-area-inset-bottom)); 
-    }
-
+    .editor-body { flex: 1; overflow-y: auto; padding: 24px 20px; padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
     .form-group { margin-bottom: 24px; }
     .form-group label { display: block; color: var(--accent-color); font-size: 13px; font-weight: 700; margin-bottom: 8px; }
-    .form-group input, .form-group textarea, .form-group select {
-        width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color);
-        border-radius: 12px; padding: 14px; color: white; font-size: 15px; outline: none;
-    }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; color: white; font-size: 15px; outline: none; }
     .form-group input:focus, .form-group textarea:focus { border-color: var(--accent-color); }
     .char-count { font-size: 11px; color: var(--text-secondary); text-align: right; margin-top: 4px; }
 
-    /* [요청 반영 1] 리스트의 캐릭터 및 페르소나 사진을 48px로 축소 */
-    .char-img { width:48px !important; height:48px !important; border-radius:12px; object-fit:cover; }
-    .persona-img { width:48px !important; height:48px !important; border-radius:50%; object-fit:cover; }
-
-    /* [요청 반영 2] 상세 정보 모달창 CSS 추가 */
+    /* 상세 정보 창 디자인 */
     .detail-img-large { width: 100px; height: 100px; border-radius: 20px; object-fit: cover; margin: 0 auto 16px auto; display: block; border: 1px solid var(--border-color); }
     .detail-name-text { font-size: 22px; font-weight: 800; color: white; text-align: center; margin-bottom: 8px; }
     .detail-sub-text { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 32px; padding: 0 20px; line-height: 1.5; }
     .action-btn-outline { width: 100%; background: transparent; border: 1px solid var(--border-color); color: white; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; transition: background 0.2s; }
     .action-btn-outline:hover { background: var(--bg-surface-light); }
     .action-btn-filled { width: 100%; background: var(--text-primary); color: black; border: none; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; }
-
-    .tag-default { font-size:12px; color:#7aa2ff; margin-left:6px; }
-    .list-meta { font-size:12px; color:var(--text-secondary); margin-top:4px; }
-    .menu-btn { background:none; border:none; color:var(--text-secondary); font-size:18px; cursor:pointer; }
 </style>
 
 <!-- ========================================================= -->
-<!-- ▼ 기능 제어 스크립트 (Syntax Error / 오타 완벽 제거) ▼ -->
+<!-- ▼ 일반 자바스크립트 영역 (UI 제어 / 로컬 저장 완벽 구현) ▼ -->
 <!-- ========================================================= -->
 <script>
-    // 톡썰메이커 열기
+    // ---------------- [1] 기본 화면 UI 제어 ----------------
+    const loginScreen = document.getElementById('login-screen');
+    const btnLogin = document.getElementById('btn-login');
+
+    btnLogin.addEventListener('click', function() {
+        const idInput = document.getElementById('login-id').value.trim();
+        const pwInput = document.getElementById('login-pw').value.trim();
+        if(idInput === '' || pwInput === '') {
+            alert('핸들명(또는 이메일)과 비밀번호를 모두 입력해주세요.');
+            return;
+        }
+        localStorage.setItem('dreamer_logged_in', 'true');
+        loginScreen.classList.add('hidden');
+    });
+
+    document.getElementById('link-register').addEventListener('click', function() { alert('회원가입 창이 열립니다.'); });
+    document.getElementById('link-find-pw').addEventListener('click', function() { alert('비밀번호 찾기 창이 열립니다.'); });
+
+    // 사이드바 토글
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    function toggleSidebar() {
+        sidebar.classList.toggle('open');
+        sidebarOverlay.classList.toggle('show');
+    }
+    document.getElementById('btn-open-sidebar').addEventListener('click', toggleSidebar);
+    document.getElementById('btn-close-sidebar').addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', toggleSidebar);
+
+    // 탭 이동
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('tab-' + this.getAttribute('data-tab')).classList.add('active');
+        });
+    });
+
+    function executeLogout() {
+        alert("모든 기기에서 로그아웃 되었습니다.");
+        localStorage.removeItem('dreamer_logged_in');
+        loginScreen.classList.remove('hidden'); 
+        if(sidebar.classList.contains('open')) toggleSidebar();
+    }
+    document.getElementById('btn-logout').addEventListener('click', executeLogout);
+    document.getElementById('btn-settings-logout').addEventListener('click', executeLogout);
+
+    // ---------------- [2] 에디터 및 사진 기능 ----------------
+
+    // 톡썰메이커 
     document.getElementById('btn-open-talk-maker').addEventListener('click', function() {
         document.getElementById('talk-maker-screen').classList.remove('hidden');
         toggleSidebar(); 
     });
 
-    // 톡썰메이커 로직
     window.addTalkMakerMsg = function(type) {
         const chatBox = document.getElementById('talk-maker-chat');
         const msgInput = document.getElementById('tm-msg-input');
@@ -883,485 +486,19 @@
 
         if(type === 'char') {
             bubble.style.alignItems = 'flex-start';
-            bubble.innerHTML = `
-                <span style="font-size: 13px; font-weight: bold; color: white; margin-bottom: 6px; margin-left: 4px;">${name}</span>
-                <div style="background: var(--bg-surface-light); color: white; padding: 12px 16px; border-radius: 18px 18px 18px 4px; max-width: 85%; word-break: break-word; font-size: 15px; line-height: 1.4;">${text}</div>
-            `;
+            bubble.innerHTML = `<span style="font-size: 13px; font-weight: bold; color: white; margin-bottom: 6px; margin-left: 4px;">${name}</span>
+                                <div style="background: var(--bg-surface-light); color: white; padding: 12px 16px; border-radius: 18px 18px 18px 4px; max-width: 85%; word-break: break-word; font-size: 15px; line-height: 1.4;">${text}</div>`;
         } else {
             bubble.style.alignItems = 'flex-end';
-            bubble.innerHTML = `
-                <span style="font-size: 13px; font-weight: bold; color: white; margin-bottom: 6px; margin-right: 4px;">${name}</span>
-                <div style="background: var(--accent-color); color: black; padding: 12px 16px; border-radius: 18px 18px 4px 18px; max-width: 85%; word-break: break-word; font-size: 15px; line-height: 1.4;">${text}</div>
-            `;
+            bubble.innerHTML = `<span style="font-size: 13px; font-weight: bold; color: white; margin-bottom: 6px; margin-right: 4px;">${name}</span>
+                                <div style="background: var(--accent-color); color: black; padding: 12px 16px; border-radius: 18px 18px 4px 18px; max-width: 85%; word-break: break-word; font-size: 15px; line-height: 1.4;">${text}</div>`;
         }
         chatBox.appendChild(bubble);
         msgInput.value = '';
         chatBox.scrollTop = chatBox.scrollHeight;
-    }; 
-    // ▲ 원본에 있던 에러 오타 (}; }) 제거 완료
-
-    // 상세 프로필 창 열기 로직
-    window.openCharacterDetail = function(id, data, isFirebase) {
-        const detailScreen = document.getElementById('character-detail-screen');
-        const placeholderImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        
-        document.getElementById('detail-img').src = data.photoUrl ? data.photoUrl : placeholderImg;
-        document.getElementById('detail-name').innerText = data.name || '이름 없음';
-        document.getElementById('detail-sub').innerText = data.sub || data.greeting || '설명이 없습니다.';
-
-        // 수정 버튼을 누르면 에디터로 넘어감
-        document.getElementById('btn-detail-edit').onclick = () => {
-            detailScreen.classList.add('hidden');
-            openCharEditor(id, data);
-        };
-
-        document.getElementById('btn-detail-new-chat').onclick = () => { alert('새 대화를 시작합니다. (UI 연결 예정)'); };
-        document.getElementById('btn-detail-continue-chat').onclick = () => { alert('기존 대화를 불러옵니다. (UI 연결 예정)'); };
-
-        detailScreen.classList.remove('hidden');
     };
 
-    // 스와이프 로직
-    window.attachSwipeEvents = function(cardElement) {
-        let startX = 0;
-        let currentX = 0;
-        const threshold = -60;
-
-        cardElement.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            cardElement.style.transition = 'none';
-        }, {passive: true});
-
-        cardElement.addEventListener('touchmove', (e) => {
-            currentX = e.touches[0].clientX - startX;
-            if (currentX < 0 && currentX > -100) {
-                cardElement.style.transform = `translateX(${currentX}px)`;
-            }
-        }, {passive: true});
-
-        cardElement.addEventListener('touchend', () => {
-            cardElement.style.transition = 'transform 0.3s ease';
-            if (currentX < threshold) {
-                cardElement.style.transform = `translateX(-80px)`;
-            } else {
-                cardElement.style.transform = `translateX(0px)`;
-            }
-            currentX = 0;
-        });
-    }; 
-    // ▲ 원본에 있던 에러 오타 (}; }) 제거 완료
-
-    // 공통 삭제 로직 (Firebase & Local 호환)
-    window.executeDelete = async function(id, name, type, isFirebase) {
-        if(confirm(`정말 '${name}'을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
-            if(isFirebase) {
-                try {
-                    const user = window.firebaseAuth.currentUser;
-                    await window.firebaseDeleteDoc(window.firebaseDoc(window.firebaseDb, `users/${user.uid}/${type}/${id}`));
-                    fetchRealData(user.uid);
-                    alert('삭제가 완료되었습니다.');
-                } catch(e) { alert('삭제 실패: ' + e.message); }
-            } else {
-                let storageKey = type === 'characters' ? 'dreamer_characters' : 'dreamer_personas';
-                let saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
-                saved = saved.filter(item => item.id.toString() !== id.toString());
-                localStorage.setItem(storageKey, JSON.stringify(saved));
-                if(type === 'characters') renderCharacters();
-                else renderPersonas();
-                alert('삭제가 완료되었습니다.');
-            }
-        } else {
-            // 취소 시 스와이프 복구
-            if(!isFirebase) {
-                if(type === 'characters') renderCharacters();
-                else renderPersonas();
-            } else {
-                const user = window.firebaseAuth?.currentUser;
-                if(user) fetchRealData(user.uid);
-            }
-        }
-    }; 
-    // ▲ 원본에 있던 에러 오타 (}; }) 제거 완료
-
-    // 버튼 이벤트
-    const btnCreateCharacter = document.querySelector('#tab-character .create-btn');
-    const btnCreatePersona = document.querySelector('#tab-persona .create-btn');
-
-    if(btnCreateCharacter) {
-        btnCreateCharacter.addEventListener('click', function() {
-            window.openCharEditor();
-        });
-    }
-
-    if(btnCreatePersona) {
-        btnCreatePersona.addEventListener('click', function() {
-            window.openPersonaEditor();
-        });
-    }
-
-    function closeEditor(type) {
-        if(type === 'character') {
-            document.getElementById('character-editor-screen').classList.add('hidden');
-        } else if(type === 'persona') {
-            document.getElementById('persona-editor-screen').classList.add('hidden');
-        }
-    }
-
-    document.querySelectorAll('.editor-screen input[maxlength], .editor-screen textarea[maxlength]').forEach(el => {
-        el.addEventListener('input', function() {
-            const countDiv = this.parentElement.querySelector('.char-count');
-            if(countDiv) {
-                const max = this.getAttribute('maxlength');
-                countDiv.innerText = `${this.value.length} / ${max}`;
-            }
-        });
-    });
-
-    const executeLoginStorage = document.getElementById('btn-login');
-    if (executeLoginStorage) {
-        executeLoginStorage.addEventListener('click', function() {
-            const idInput = document.getElementById('login-id').value.trim();
-            const pwInput = document.getElementById('login-pw').value.trim();
-            if(idInput !== '' && pwInput !== '') {
-                localStorage.setItem('dreamer_logged_in', 'true');
-            }
-        });
-    }
-
-    const executeLogoutStorage = [
-        document.getElementById('btn-logout'), 
-        document.getElementById('btn-settings-logout')
-    ];
-    executeLogoutStorage.forEach(function(btn) {
-        if (btn) {
-            btn.addEventListener('click', function() {
-                localStorage.removeItem('dreamer_logged_in'); 
-            });
-        }
-    });
-
-    function loadSavedData() {
-        renderCharacters();
-        renderPersonas();
-        
-        const savedApiKey = localStorage.getItem('dreamer_api_key');
-        if (savedApiKey && document.getElementById('api-key-input')) {
-            document.getElementById('api-key-input').value = savedApiKey;
-        }
-    }
-
-    // 캐릭터 그리기 (로컬 환경)
-    function renderCharacters() {
-        const container = document.getElementById('character-list-container');
-        const savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
-        
-        if (savedChars.length === 0) {
-            container.innerHTML = '<p class="empty-text" style="color:var(--text-secondary); font-size:14px; text-align:center; padding-top:20px;">생성된 캐릭터가 없습니다.</p>';
-            return;
-        }
-
-        container.innerHTML = '';
-        const placeholderImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-
-        savedChars.forEach(char => {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'swipe-container';
-            const imgSrc = char.photoUrl ? char.photoUrl : placeholderImg;
-
-            wrapper.innerHTML = `
-                <div class="delete-btn-bg" onclick="executeDelete('${char.id}', '${char.name}', 'characters', false)"><i class="fas fa-trash"></i></div>
-                <div class="list-card swipe-card">
-                    <img src="${imgSrc}" class="char-img">
-                    <div class="list-info">
-                        <span class="list-title">${char.name}</span>
-                        <span class="list-sub">${char.sub || "설명이 없습니다."}</span>
-                        <span class="list-meta">💬 0</span>
-                    </div>
-                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
-                </div>
-            `;
-            
-            const card = wrapper.querySelector('.swipe-card');
-            attachSwipeEvents(card);
-            
-            // 상세 정보 연결
-            card.onclick = () => window.openCharacterDetail(char.id, char, false);
-
-            const editBtn = card.querySelector('.edit-btn'); 
-            if(editBtn){ 
-                editBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    openCharEditor(char.id, char);
-                }; 
-            }
-            container.appendChild(wrapper);
-        });
-    }
-
-    // 페르소나 그리기 (로컬 환경)
-    function renderPersonas() {
-        const container = document.getElementById('persona-list-container');
-        const savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
-
-        if (savedPersonas.length === 0) {
-            container.innerHTML = '<p class="empty-text" style="color:var(--text-secondary); font-size:14px; text-align:center; padding-top:20px;">생성된 페르소나가 없습니다.</p>';
-            return;
-        }
-
-        container.innerHTML = '';
-        const placeholderImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-
-        savedPersonas.forEach(persona => {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'swipe-container';
-            const imgSrc = persona.photoUrl ? persona.photoUrl : placeholderImg;
-
-            wrapper.innerHTML = `
-                <div class="delete-btn-bg" onclick="executeDelete('${persona.id}', '${persona.name}', 'personas', false)"><i class="fas fa-trash"></i></div>
-                <div class="list-card swipe-card">
-                    <img src="${imgSrc}" class="persona-img">
-                    <div class="list-info">
-                        <span class="list-title">${persona.name} <span class="tag-default">Default</span></span>
-                        <span class="list-sub">${persona.info || "기본 페르소나"}</span>
-                    </div>
-                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
-                </div>
-            `;
-            
-            const card = wrapper.querySelector('.swipe-card');
-            attachSwipeEvents(card);
-            
-            const editBtn = card.querySelector('.edit-btn'); 
-            if(editBtn){ 
-                editBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    openPersonaEditor(persona.id, persona);
-                }; 
-            }
-            container.appendChild(wrapper);
-        });
-    }
-
-    // 데이터 저장 (로컬 환경 - 오류 완벽 수정)
-    function saveCharacter() {
-        if(window.firebaseAuth && window.firebaseAuth.currentUser) {
-            window.saveCharacterFirebase();
-            return;
-        }
-
-        const nameInput = document.getElementById('edit-char-name').value.trim();
-        const subInput = document.getElementById('edit-char-sub').value.trim();
-        const relationInput = document.getElementById('edit-char-relation').value;
-        const langInput = document.getElementById('edit-char-lang').value;
-        const greetingInput = document.getElementById('edit-char-greeting').value;
-        const profileInput = document.getElementById('edit-char-profile').value;
-        const appearanceInput = document.getElementById('edit-char-appearance').value;
-
-        if(!nameInput) {
-            alert("캐릭터 이름은 필수 입력 사항입니다.");
-            return;
-        }
-
-        let savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
-        
-        let charData = {
-            id: window.editingCharId || Date.now(), 
-            name: nameInput,
-            sub: subInput,
-            relation: relationInput,
-            lang: langInput,
-            greeting: greetingInput,
-            profile: profileInput,
-            appearance: appearanceInput
-        };
-
-        if(window.tempCharBase64) charData.photoUrl = window.tempCharBase64;
-
-        if(window.editingCharId) {
-            let index = savedChars.findIndex(c => c.id.toString() === window.editingCharId.toString());
-            if(index !== -1) {
-                // 기존 사진이 있고 새 사진을 등록 안했으면 기존 사진 유지
-                if(!window.tempCharBase64 && savedChars[index].photoUrl) {
-                    charData.photoUrl = savedChars[index].photoUrl;
-                }
-                savedChars[index] = charData; // 업데이트 반영
-            }
-        } else {
-            savedChars.unshift(charData); // 새로 생성
-        }
-
-        localStorage.setItem('dreamer_characters', JSON.stringify(savedChars));
-        closeEditor('character');
-        renderCharacters(); 
-        alert("캐릭터가 안전하게 저장되었습니다.");
-    }
-
-    function savePersona() {
-        if(window.firebaseAuth && window.firebaseAuth.currentUser) {
-            window.savePersonaFirebase();
-            return;
-        }
-
-        const nameInput = document.getElementById('edit-persona-name').value.trim();
-        const infoInput = document.getElementById('edit-persona-info').value.trim();
-        const appInput = document.getElementById('edit-persona-appearance').value.trim();
-        const bgInput = document.getElementById('edit-persona-bg').value.trim();
-
-        if(!nameInput) {
-            alert("페르소나 이름은 필수 입력 사항입니다.");
-            return;
-        }
-
-        let savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
-        
-        let personaData = {
-            id: window.editingPersonaId || Date.now(),
-            name: nameInput,
-            info: infoInput,
-            appearance: appInput,
-            bg: bgInput
-        };
-
-        if(window.tempPersonaBase64) personaData.photoUrl = window.tempPersonaBase64;
-
-        if(window.editingPersonaId) {
-            let index = savedPersonas.findIndex(p => p.id.toString() === window.editingPersonaId.toString());
-            if(index !== -1) {
-                if(!window.tempPersonaBase64 && savedPersonas[index].photoUrl) {
-                    personaData.photoUrl = savedPersonas[index].photoUrl;
-                }
-                savedPersonas[index] = personaData; // 업데이트 반영
-            }
-        } else {
-            savedPersonas.unshift(personaData); // 새로 생성
-        }
-
-        localStorage.setItem('dreamer_personas', JSON.stringify(savedPersonas));
-        closeEditor('persona');
-        renderPersonas();
-        alert("페르소나가 안전하게 저장되었습니다.");
-    }
-
-    const btnCheckApi = document.getElementById('btn-check-api');
-    if (btnCheckApi) {
-        btnCheckApi.onclick = function(e) {
-            e.preventDefault(); 
-            const apiKey = document.getElementById('api-key-input').value.trim();
-            if (apiKey) {
-                localStorage.setItem('dreamer_api_key', apiKey);
-                alert('API 키가 저장되었습니다. (새로고침해도 유지됩니다)');
-            } else {
-                alert('저장할 API 키를 입력해주세요.');
-            }
-        }; 
-    }
-
-    window.addEventListener('DOMContentLoaded', loadSavedData);
-</script>
-
-<!-- ========================================================= -->
-<!-- [파이어베이스 실제 통신 로직 (에러 완벽 제거본)] -->
-<!-- ========================================================= -->
-<script type="module">
-    // 실제 존재하는 버전 사용
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyCdHtTtuyoZpTMLdObLRUkO5RS_C9BOglI",
-        authDomain: "dreamer-ai-a837c.firebaseapp.com",
-        projectId: "dreamer-ai-a837c",
-        storageBucket: "dreamer-ai-a837c.firebasestorage.app",
-        messagingSenderId: "549575867089",
-        appId: "1:549575867089:web:693f99e56d58c76285e3f0"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    window.firebaseAuth = auth;
-    window.firebaseDb = db;
-    window.firebaseDeleteDoc = deleteDoc;
-    window.firebaseDoc = doc;
-
-    function replaceButtonWithReal(id) {
-        const btn = document.getElementById(id);
-        if (!btn) return null;
-        const clone = btn.cloneNode(true);
-        btn.parentNode.replaceChild(clone, btn);
-        return clone;
-    }
-
-    const realBtnLogin = replaceButtonWithReal('btn-login');
-    const realBtnRegister = replaceButtonWithReal('link-register');
-    const realBtnLogout = replaceButtonWithReal('btn-logout');
-    const realBtnSettingsLogout = replaceButtonWithReal('btn-settings-logout');
-
-    if(realBtnRegister) {
-        realBtnRegister.addEventListener('click', async () => {
-            const email = document.getElementById('login-id').value.trim();
-            const pw = document.getElementById('login-pw').value.trim();
-            const validEmail = email.includes('@') ? email : `${email}@dreamer.ai`;
-            if(email === '' || pw === '') return alert('가입할 아이디(이메일)와 비밀번호를 입력해주세요.');
-            if(pw.length < 6) return alert('비밀번호는 6자리 이상이어야 합니다.');
-            try {
-                await createUserWithEmailAndPassword(auth, validEmail, pw);
-                alert('환영합니다! 가입이 완료되었습니다.');
-            } catch(error) { alert('회원가입 실패: 이미 존재하는 아이디거나 오류가 발생했습니다.\n' + error.message); }
-        });
-    }
-
-    if(realBtnLogin) {
-        realBtnLogin.addEventListener('click', async () => {
-            const email = document.getElementById('login-id').value.trim();
-            const pw = document.getElementById('login-pw').value.trim();
-            const validEmail = email.includes('@') ? email : `${email}@dreamer.ai`;
-            if(email === '' || pw === '') return alert('아이디와 비밀번호를 모두 입력해주세요.');
-            try { await signInWithEmailAndPassword(auth, validEmail, pw); } 
-            catch(error) { alert('로그인 실패: 아이디나 비밀번호를 확인해주세요.'); }
-        });
-    }
-
-    const executeRealLogout = async () => {
-        await signOut(auth);
-        localStorage.removeItem('dreamer_logged_in');
-        alert("안전하게 로그아웃 되었습니다.");
-    };
-    if(realBtnLogout) realBtnLogout.addEventListener('click', executeRealLogout);
-    if(realBtnSettingsLogout) realBtnSettingsLogout.addEventListener('click', executeRealLogout);
-
-    onAuthStateChanged(auth, async (user) => {
-        const loginScreen = document.getElementById('login-screen');
-        if (user) {
-            localStorage.setItem('dreamer_logged_in', 'true');
-            loginScreen.classList.add('hidden');
-            loginScreen.style.pointerEvents = 'none';
-            fetchRealData(user.uid);
-            loadUserProfile(user.uid);
-        } else {
-            loginScreen.classList.remove('hidden');
-            loginScreen.style.pointerEvents = 'auto';
-            document.getElementById('character-list-container').innerHTML = '';
-            document.getElementById('persona-list-container').innerHTML = ''; 
-            loadSavedData();
-        }
-    });
-
-    const btnCreateCharacterReal = document.querySelector('#tab-character .create-btn');
-    const btnCreatePersonaReal = document.querySelector('#tab-persona .create-btn');
-    if(btnCreateCharacterReal) btnCreateCharacterReal.onclick = () => window.openCharEditor();
-    if(btnCreatePersonaReal) btnCreatePersonaReal.onclick = () => window.openPersonaEditor();
-
-    document.getElementById('edit-char-img-preview').addEventListener('click', () => { document.getElementById('edit-char-img-input').click(); });
-    document.getElementById('edit-persona-img-preview').addEventListener('click', () => { document.getElementById('edit-persona-img-input').click(); });
-
-    window.editingCharId = null;
-    window.editingPersonaId = null;
-    window.tempCharBase64 = null;
-    window.tempPersonaBase64 = null;
-
+    // 사진 압축 함수
     function compressImage(file, callback) {
         const reader = new FileReader();
         reader.onload = function(event) {
@@ -1388,6 +525,16 @@
         reader.readAsDataURL(file);
     }
 
+    // 전역 변수 초기화
+    window.editingCharId = null;
+    window.editingPersonaId = null;
+    window.tempCharBase64 = null;
+    window.tempPersonaBase64 = null;
+
+    // 사진 파일 입력 이벤트 연결
+    document.getElementById('edit-char-img-preview').addEventListener('click', function() { document.getElementById('edit-char-img-input').click(); });
+    document.getElementById('edit-persona-img-preview').addEventListener('click', function() { document.getElementById('edit-persona-img-input').click(); });
+
     document.getElementById('edit-char-img-input').addEventListener('change', function(e) {
         if(e.target.files[0]) {
             compressImage(e.target.files[0], function(base64Data) {
@@ -1406,6 +553,28 @@
         }
     });
 
+    // 상세 프로필 창 띄우기 함수
+    window.openCharacterDetail = function(id, data, isFirebase) {
+        const detailScreen = document.getElementById('character-detail-screen');
+        const placeholderImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        
+        document.getElementById('detail-img').src = data.photoUrl ? data.photoUrl : placeholderImg;
+        document.getElementById('detail-name').innerText = data.name || '이름 없음';
+        document.getElementById('detail-sub').innerText = data.sub || data.greeting || '설명이 없습니다.';
+
+        // 수정 버튼 연결: 상세창 닫고 에디터 열기
+        document.getElementById('btn-detail-edit').onclick = () => {
+            detailScreen.classList.add('hidden');
+            openCharEditor(id, data);
+        };
+
+        document.getElementById('btn-detail-new-chat').onclick = () => { alert('새 대화를 시작합니다. (UI 연결 예정)'); };
+        document.getElementById('btn-detail-continue-chat').onclick = () => { alert('기존 대화를 불러옵니다. (UI 연결 예정)'); };
+
+        detailScreen.classList.remove('hidden');
+    };
+
+    // 캐릭터 에디터 열기 함수
     window.openCharEditor = function(docId = null, data = null) {
         window.editingCharId = docId;
         window.tempCharBase64 = null;
@@ -1420,28 +589,29 @@
             document.getElementById('edit-char-profile').value = data.profile || '';
             document.getElementById('edit-char-appearance').value = data.appearance || '';
             preview.innerHTML = data.photoUrl ? `<img src="${data.photoUrl}" style="width:100%; height:100%; object-fit:cover;">` : '+ 사진 추가';
-            document.querySelector('#character-editor-screen strong').innerText = "캐릭터 수정하기";
+            document.getElementById('char-editor-title').innerText = "캐릭터 수정하기";
         } else {
             document.getElementById('edit-char-name').value = '';
             document.getElementById('edit-char-sub').value = '';
+            document.getElementById('edit-char-relation').value = '친구';
+            document.getElementById('edit-char-lang').value = 'English';
             document.getElementById('edit-char-greeting').value = '';
             document.getElementById('edit-char-profile').value = '';
             document.getElementById('edit-char-appearance').value = '';
             preview.innerHTML = '+ 사진 추가';
-            document.querySelector('#character-editor-screen strong').innerText = "새 캐릭터 만들기";
+            document.getElementById('char-editor-title').innerText = "새 캐릭터 만들기";
         }
         
+        // 글자 수 업데이트
         document.querySelectorAll('#character-editor-screen input[maxlength], #character-editor-screen textarea[maxlength]').forEach(el => {
             const countDiv = el.parentElement.querySelector('.char-count');
-            if(countDiv) {
-                const max = el.getAttribute('maxlength');
-                countDiv.innerText = `${el.value.length} / ${max}`;
-            }
+            if(countDiv) countDiv.innerText = `${el.value.length} / ${el.getAttribute('maxlength')}`;
         });
 
         document.getElementById('character-editor-screen').classList.remove('hidden');
     };
 
+    // 페르소나 에디터 열기 함수
     window.openPersonaEditor = function(docId = null, data = null) {
         window.editingPersonaId = docId;
         window.tempPersonaBase64 = null;
@@ -1453,27 +623,317 @@
             document.getElementById('edit-persona-appearance').value = data.appearance || '';
             document.getElementById('edit-persona-bg').value = data.bg || '';
             preview.innerHTML = data.photoUrl ? `<img src="${data.photoUrl}" style="width:100%; height:100%; object-fit:cover;">` : '+ 사진 추가';
-            document.querySelector('#persona-editor-screen strong').innerText = "페르소나 수정하기";
+            document.getElementById('persona-editor-title').innerText = "페르소나 수정하기";
         } else {
             document.getElementById('edit-persona-name').value = '';
             document.getElementById('edit-persona-info').value = '';
             document.getElementById('edit-persona-appearance').value = '';
             document.getElementById('edit-persona-bg').value = '';
             preview.innerHTML = '+ 사진 추가';
-            document.querySelector('#persona-editor-screen strong').innerText = "새 페르소나 만들기";
+            document.getElementById('persona-editor-title').innerText = "새 페르소나 만들기";
         }
 
         document.querySelectorAll('#persona-editor-screen input[maxlength], #persona-editor-screen textarea[maxlength]').forEach(el => {
             const countDiv = el.parentElement.querySelector('.char-count');
-            if(countDiv) {
-                const max = el.getAttribute('maxlength');
-                countDiv.innerText = `${el.value.length} / ${max}`;
-            }
+            if(countDiv) countDiv.innerText = `${el.value.length} / ${el.getAttribute('maxlength')}`;
         });
 
         document.getElementById('persona-editor-screen').classList.remove('hidden');
     };
 
+    // 에디터 닫기 함수
+    function closeEditor(type) {
+        document.getElementById(`${type}-editor-screen`).classList.add('hidden');
+    }
+
+    // 신규 생성 버튼 이벤트 연결
+    document.querySelector('#tab-character .create-btn').addEventListener('click', function() { window.openCharEditor(); });
+    document.querySelector('#tab-persona .create-btn').addEventListener('click', function() { window.openPersonaEditor(); });
+
+    // 스와이프 액션 함수
+    window.attachSwipeEvents = function(cardElement) {
+        let startX = 0; let currentX = 0; const threshold = -60;
+        cardElement.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; cardElement.style.transition = 'none'; }, {passive: true});
+        cardElement.addEventListener('touchmove', (e) => { currentX = e.touches[0].clientX - startX; if (currentX < 0 && currentX > -100) cardElement.style.transform = `translateX(${currentX}px)`; }, {passive: true});
+        cardElement.addEventListener('touchend', () => {
+            cardElement.style.transition = 'transform 0.3s ease';
+            if (currentX < threshold) cardElement.style.transform = `translateX(-80px)`;
+            else cardElement.style.transform = `translateX(0px)`;
+            currentX = 0;
+        });
+    };
+
+    // 공통 삭제 로직 (Firebase & Local 호환)
+    window.executeDelete = async function(id, name, type, isFirebase) {
+        if(confirm(`정말 '${name}'을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+            if(isFirebase) {
+                try {
+                    const user = window.firebaseAuth.currentUser;
+                    await window.firebaseDeleteDoc(window.firebaseDoc(window.firebaseDb, `users/${user.uid}/${type}/${id}`));
+                    window.fetchRealData(user.uid);
+                    alert('삭제가 완료되었습니다.');
+                } catch(e) { alert('삭제 실패: ' + e.message); }
+            } else {
+                let storageKey = type === 'characters' ? 'dreamer_characters' : 'dreamer_personas';
+                let saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                saved = saved.filter(item => item.id.toString() !== id.toString());
+                localStorage.setItem(storageKey, JSON.stringify(saved));
+                type === 'characters' ? renderCharacters() : renderPersonas();
+                alert('삭제가 완료되었습니다.');
+            }
+        } else {
+            // 취소 시 스와이프 복구
+            if(!isFirebase) { type === 'characters' ? renderCharacters() : renderPersonas(); } 
+            else { const user = window.firebaseAuth?.currentUser; if(user) window.fetchRealData(user.uid); }
+        }
+    };
+
+    // ---------------- [3] 데이터 렌더링 및 저장 (로컬 전용 로직) ----------------
+    
+    // 캐릭터 그리기
+    function renderCharacters() {
+        const container = document.getElementById('character-list-container');
+        const savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
+        
+        if (savedChars.length === 0) {
+            container.innerHTML = '<p class="empty-text" style="color:var(--text-secondary); font-size:14px; text-align:center; padding-top:20px;">생성된 캐릭터가 없습니다.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        const placeholderImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+
+        savedChars.forEach(char => {
+            const wrapper = document.createElement('div'); wrapper.className = 'swipe-container';
+            const imgSrc = char.photoUrl ? char.photoUrl : placeholderImg;
+
+            wrapper.innerHTML = `
+                <div class="delete-btn-bg" onclick="executeDelete('${char.id}', '${char.name}', 'characters', false)"><i class="fas fa-trash"></i></div>
+                <div class="list-card swipe-card">
+                    <img src="${imgSrc}" class="char-img">
+                    <div class="list-info">
+                        <span class="list-title">${char.name}</span>
+                        <span class="list-sub">${char.sub || "설명이 없습니다."}</span>
+                        <span class="list-meta">💬 0</span>
+                    </div>
+                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                </div>
+            `;
+            
+            const card = wrapper.querySelector('.swipe-card');
+            attachSwipeEvents(card);
+            
+            // 상세창 열기 이벤트
+            card.onclick = () => window.openCharacterDetail(char.id, char, false);
+            
+            // 다이렉트 에디터 열기 이벤트
+            const editBtn = card.querySelector('.edit-btn'); 
+            if(editBtn){ editBtn.onclick = (e) => { e.stopPropagation(); openCharEditor(char.id, char); }; }
+            container.appendChild(wrapper);
+        });
+    }
+
+    // 페르소나 그리기
+    function renderPersonas() {
+        const container = document.getElementById('persona-list-container');
+        const savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+
+        if (savedPersonas.length === 0) {
+            container.innerHTML = '<p class="empty-text" style="color:var(--text-secondary); font-size:14px; text-align:center; padding-top:20px;">생성된 페르소나가 없습니다.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        const placeholderImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+
+        savedPersonas.forEach(persona => {
+            const wrapper = document.createElement('div'); wrapper.className = 'swipe-container';
+            const imgSrc = persona.photoUrl ? persona.photoUrl : placeholderImg;
+
+            wrapper.innerHTML = `
+                <div class="delete-btn-bg" onclick="executeDelete('${persona.id}', '${persona.name}', 'personas', false)"><i class="fas fa-trash"></i></div>
+                <div class="list-card swipe-card">
+                    <img src="${imgSrc}" class="persona-img">
+                    <div class="list-info">
+                        <span class="list-title">${persona.name} <span class="tag-default">Default</span></span>
+                        <span class="list-sub">${persona.info || "기본 페르소나"}</span>
+                    </div>
+                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                </div>
+            `;
+            
+            const card = wrapper.querySelector('.swipe-card');
+            attachSwipeEvents(card);
+            
+            const editBtn = card.querySelector('.edit-btn'); 
+            if(editBtn){ editBtn.onclick = (e) => { e.stopPropagation(); openPersonaEditor(persona.id, persona); }; }
+            container.appendChild(wrapper);
+        });
+    }
+
+    // 데이터 저장하기 로직 (로컬 브라우저 저장)
+    function saveCharacter() {
+        // Firebase가 연결되어 있으면 Firebase 저장 함수를 호출
+        if(typeof window.saveCharacterFirebase === 'function' && window.firebaseAuth && window.firebaseAuth.currentUser) {
+            window.saveCharacterFirebase();
+            return;
+        }
+
+        const nameInput = document.getElementById('edit-char-name').value.trim();
+        if(!nameInput) return alert("캐릭터 이름은 필수 입력 사항입니다.");
+
+        let savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
+        
+        let charData = {
+            id: window.editingCharId || Date.now(), 
+            name: nameInput,
+            sub: document.getElementById('edit-char-sub').value.trim(),
+            relation: document.getElementById('edit-char-relation').value,
+            lang: document.getElementById('edit-char-lang').value,
+            greeting: document.getElementById('edit-char-greeting').value,
+            profile: document.getElementById('edit-char-profile').value,
+            appearance: document.getElementById('edit-char-appearance').value
+        };
+
+        if(window.tempCharBase64) charData.photoUrl = window.tempCharBase64;
+
+        if(window.editingCharId) {
+            let index = savedChars.findIndex(c => c.id.toString() === window.editingCharId.toString());
+            if(index !== -1) {
+                if(!window.tempCharBase64 && savedChars[index].photoUrl) {
+                    charData.photoUrl = savedChars[index].photoUrl;
+                }
+                savedChars[index] = charData; 
+            }
+        } else {
+            savedChars.unshift(charData); 
+        }
+
+        localStorage.setItem('dreamer_characters', JSON.stringify(savedChars));
+        closeEditor('character');
+        renderCharacters(); 
+        alert("캐릭터가 안전하게 저장되었습니다.");
+    }
+
+    function savePersona() {
+        if(typeof window.savePersonaFirebase === 'function' && window.firebaseAuth && window.firebaseAuth.currentUser) {
+            window.savePersonaFirebase();
+            return;
+        }
+
+        const nameInput = document.getElementById('edit-persona-name').value.trim();
+        if(!nameInput) return alert("페르소나 이름은 필수 입력 사항입니다.");
+
+        let savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+        
+        let personaData = {
+            id: window.editingPersonaId || Date.now(),
+            name: nameInput,
+            info: document.getElementById('edit-persona-info').value.trim(),
+            appearance: document.getElementById('edit-persona-appearance').value.trim(),
+            bg: document.getElementById('edit-persona-bg').value.trim()
+        };
+
+        if(window.tempPersonaBase64) personaData.photoUrl = window.tempPersonaBase64;
+
+        if(window.editingPersonaId) {
+            let index = savedPersonas.findIndex(p => p.id.toString() === window.editingPersonaId.toString());
+            if(index !== -1) {
+                if(!window.tempPersonaBase64 && savedPersonas[index].photoUrl) {
+                    personaData.photoUrl = savedPersonas[index].photoUrl;
+                }
+                savedPersonas[index] = personaData; 
+            }
+        } else {
+            savedPersonas.unshift(personaData); 
+        }
+
+        localStorage.setItem('dreamer_personas', JSON.stringify(savedPersonas));
+        closeEditor('persona');
+        renderPersonas();
+        alert("페르소나가 안전하게 저장되었습니다.");
+    }
+
+    // 초기 화면 진입 시 로딩
+    window.addEventListener('DOMContentLoaded', function() {
+        renderCharacters();
+        renderPersonas();
+        const savedApiKey = localStorage.getItem('dreamer_api_key');
+        if (savedApiKey && document.getElementById('api-key-input')) {
+            document.getElementById('api-key-input').value = savedApiKey;
+        }
+    });
+</script>
+
+<!-- ========================================================= -->
+<!-- ▼ 파이어베이스 실제 통신 모듈 (서버 저장 로직) ▼ -->
+<!-- ========================================================= -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCdHtTtuyoZpTMLdObLRUkO5RS_C9BOglI",
+        authDomain: "dreamer-ai-a837c.firebaseapp.com",
+        projectId: "dreamer-ai-a837c",
+        storageBucket: "dreamer-ai-a837c.firebasestorage.app",
+        messagingSenderId: "549575867089",
+        appId: "1:549575867089:web:693f99e56d58c76285e3f0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // 글로벌 연동을 위해 window에 할당
+    window.firebaseAuth = auth;
+    window.firebaseDb = db;
+    window.firebaseDeleteDoc = deleteDoc;
+    window.firebaseDoc = doc;
+
+    // 모듈 스크립트 내부에서 로그인 버튼 이벤트 덮어쓰기
+    const realBtnLogin = document.getElementById('btn-login');
+    const realBtnRegister = document.getElementById('link-register');
+    const realBtnLogout = document.getElementById('btn-logout');
+
+    if(realBtnRegister) {
+        realBtnRegister.addEventListener('click', async () => {
+            const email = document.getElementById('login-id').value.trim();
+            const pw = document.getElementById('login-pw').value.trim();
+            const validEmail = email.includes('@') ? email : `${email}@dreamer.ai`;
+            if(email === '' || pw === '') return; // 빈칸은 로컬에서 알림 띄움
+            if(pw.length < 6) return alert('비밀번호는 6자리 이상이어야 합니다.');
+            try {
+                await createUserWithEmailAndPassword(auth, validEmail, pw);
+                alert('환영합니다! 가입이 완료되었습니다.');
+            } catch(error) { alert('회원가입 실패: 이미 존재하는 아이디거나 오류가 발생했습니다.'); }
+        });
+    }
+
+    if(realBtnLogin) {
+        realBtnLogin.addEventListener('click', async () => {
+            const email = document.getElementById('login-id').value.trim();
+            const pw = document.getElementById('login-pw').value.trim();
+            const validEmail = email.includes('@') ? email : `${email}@dreamer.ai`;
+            if(email === '' || pw === '') return; 
+            try { await signInWithEmailAndPassword(auth, validEmail, pw); } 
+            catch(error) { alert('로그인 실패: 아이디나 비밀번호를 확인해주세요.'); }
+        });
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+        const loginScreen = document.getElementById('login-screen');
+        if (user) {
+            localStorage.setItem('dreamer_logged_in', 'true');
+            loginScreen.classList.add('hidden');
+            loginScreen.style.pointerEvents = 'none';
+            window.fetchRealData(user.uid);
+            loadUserProfile(user.uid);
+        }
+    });
+
+    // 파이어베이스 저장 브릿지
     window.saveCharacterFirebase = async function() {
         const user = auth.currentUser;
         if(!user) return alert("로그인이 풀렸습니다. 다시 로그인해주세요.");
@@ -1506,8 +966,8 @@
             }
 
             document.getElementById('character-editor-screen').classList.add('hidden');
-            fetchRealData(user.uid); 
-            alert("✨ 서버에 캐릭터가 안전하게 저장/수정 되었습니다!");
+            window.fetchRealData(user.uid); 
+            alert("✨ 서버에 캐릭터가 안전하게 저장되었습니다!");
         } catch(e) { alert("서버 저장 오류: " + e.message); }
         finally { saveBtn.innerText = "저장"; saveBtn.disabled = false; }
     };
@@ -1541,8 +1001,8 @@
             }
 
             document.getElementById('persona-editor-screen').classList.add('hidden');
-            fetchRealData(user.uid);
-            alert("✨ 서버에 페르소나가 안전하게 저장/수정 되었습니다!");
+            window.fetchRealData(user.uid);
+            alert("✨ 서버에 페르소나가 안전하게 저장되었습니다!");
         } catch(e) { alert("서버 저장 오류: " + e.message); } 
         finally { saveBtn.innerText = "저장"; saveBtn.disabled = false; }
     };
@@ -1579,16 +1039,10 @@
                 const card = wrapper.querySelector('.swipe-card');
                 window.attachSwipeEvents(card);
                 
-                // 클릭 시 상세 정보 연결
                 card.onclick = () => window.openCharacterDetail(charId, char, true);
 
                 const editBtn = card.querySelector('.edit-btn'); 
-                if(editBtn){ 
-                    editBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        openCharEditor(charId, char);
-                    }; 
-                }
+                if(editBtn){ editBtn.onclick = (e) => { e.stopPropagation(); window.openCharEditor(charId, char); }; }
                 charContainer.appendChild(wrapper);
             });
         } catch(e) { console.error("캐릭터 불러오기 실패", e); }
@@ -1621,12 +1075,7 @@
                 window.attachSwipeEvents(card);
 
                 const editBtn = card.querySelector('.edit-btn'); 
-                if(editBtn){ 
-                    editBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        openPersonaEditor(perId, per);
-                    }; 
-                }
+                if(editBtn){ editBtn.onclick = (e) => { e.stopPropagation(); window.openPersonaEditor(perId, per); }; }
                 personaContainer.appendChild(wrapper);
             });
         } catch(e) { console.error("페르소나 불러오기 실패", e); }
@@ -1640,29 +1089,8 @@
                 document.getElementById('settings-nickname').value = data.nickname || '';
                 document.getElementById('settings-handle').value = data.handle || '';
             }
-        } catch(e) { console.error("프로필 불러오기 실패", e); }
+        } catch(e) {}
     }
-
-    document.getElementById('btn-save-profile').addEventListener('click', async () => {
-        const user = auth.currentUser;
-        if(!user) return;
-        
-        const nickname = document.getElementById('settings-nickname').value.trim();
-        const handle = document.getElementById('settings-handle').value.trim();
-        const btn = document.getElementById('btn-save-profile');
-        
-        btn.innerText = "저장 중...";
-        try {
-            await setDoc(doc(db, "users", user.uid), {
-                nickname: nickname,
-                handle: handle,
-                updatedAt: Date.now()
-            }, { merge: true });
-            alert("프로필이 저장되었습니다!");
-        } catch(e) {
-            alert("저장 실패: " + e.message);
-        } finally {
-            btn.innerText = "프로필 저장";
-        }
-    });
 </script>
+</body>
+</html>
