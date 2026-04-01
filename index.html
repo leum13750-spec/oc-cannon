@@ -145,7 +145,7 @@
     <header class="editor-header">
         <button class="close-editor-btn" onclick="document.getElementById('notice-edit-screen').classList.add('hidden')"><i class="fas fa-times"></i></button>
         <strong style="font-size: 16px;">공지사항 작성 (관리자)</strong>
-        <button class="save-editor-btn" onclick="saveNoticeToServer()">업로드</button>
+        <button id="btn-upload-notice" class="save-editor-btn" onclick="saveNoticeToServer()">업로드</button>
     </header>
     <div class="editor-body">
         <div class="form-group">
@@ -473,34 +473,34 @@
         }
     }
 
+    // ★ [보안] 오류 방지를 위한 임시 함수 (파이어베이스 로딩 전 클릭 시 대응)
+    window.saveNoticeToServer = function() {
+        alert("데이터베이스 연결을 준비 중입니다. 잠시 후 다시 눌러주세요.");
+    };
+
     // ★ [보안 패치] 로그인 화면 (금칙어 적용 및 핸들명 단독 확정) ★
     document.getElementById('btn-login').addEventListener('click', function() {
         const idVal = document.getElementById('login-id').value.trim();
         if(idVal === '') return alert('아이디를 입력해주세요.');
         
-        // 1. 금칙어 리스트 및 필터링 로직
         const bannedWords = ['admin', '운영자', '관리자', 'system', 'root', 'master'];
         const lowerId = idVal.toLowerCase();
         
-        // ReschaRiley가 아니면서, 금칙어를 포함하고 있다면 차단!
         if (idVal !== 'ReschaRiley' && bannedWords.some(word => lowerId.includes(word))) {
             return alert('해당 단어가 포함된 핸들명은 보안상 사용할 수 없습니다.');
         }
         
-        // 2. 관리자 권한 부여
         if(idVal === 'ReschaRiley') localStorage.setItem('dreamer_is_admin', 'true');
         else localStorage.setItem('dreamer_is_admin', 'false');
 
-        // 3. 뚫리지 않도록 로그인 시 핸들명 로컬 저장 (설정 탭으로 넘겨주기 위함)
         localStorage.setItem('dreamer_handle', idVal);
         localStorage.setItem('dreamer_logged_in', 'true');
         
-        document.getElementById('settings-handle').value = idVal; // 설정 탭에도 즉시 띄워줌
+        document.getElementById('settings-handle').value = idVal; 
         document.getElementById('login-screen').classList.add('hidden');
         checkAdminUI();
     });
 
-    // ★ [보안 패치] 설정 탭 저장 시 핸들명 권한 체크 삭제 (루프홀 차단) ★
     document.getElementById('btn-save-profile').onclick = function() {
         const apiUrl = document.getElementById('settings-api-url').value.trim();
         const apiKey = document.getElementById('settings-api-key').value.trim();
@@ -509,8 +509,6 @@
         if(apiUrl) localStorage.setItem('dreamer_api_url', apiUrl);
         if(apiKey) localStorage.setItem('dreamer_api_key', apiKey);
         if(nickname) localStorage.setItem('dreamer_nickname', nickname);
-        
-        // 핸들명은 수정 불가(readonly)이므로 여기서 저장/권한 체크를 하지 않음!
         
         alert('프로필과 설정이 저장되었습니다.');
     };
@@ -545,7 +543,6 @@
         localStorage.removeItem('current_screen'); toggleSidebar();
     };
 
-    // 완전한 로그아웃 기능
     function executeLogout() {
         localStorage.removeItem('dreamer_logged_in');
         localStorage.removeItem('dreamer_is_admin');
@@ -1023,7 +1020,6 @@
         } catch(err) { console.error(err); currentChatHistory = currentChatHistory.filter(m => m.id !== loadingId); alert("재생성 실패: " + err.message); renderChatLog(); }
     }
 
-    // ★ 앱 실행 시 저장된 값 불러오기 및 설정 탭 핸들명 고정 반영 ★
     window.addEventListener('DOMContentLoaded', () => {
         renderData();
         
@@ -1096,15 +1092,39 @@
         } catch(e) { console.warn("공지사항을 가져올 수 없습니다.", e); }
     };
 
+    // ★ [보안 패치] 업로드 시 서버 권한 검증 및 UI 피드백 추가 ★
     window.saveNoticeToServer = async function() {
-        const title = document.getElementById('notice-edit-title').value;
-        const content = document.getElementById('notice-edit-content').value;
+        const btn = document.getElementById('btn-upload-notice');
+        btn.innerText = "처리 중...";
+        btn.style.opacity = "0.5";
+        btn.disabled = true;
+
+        if (!auth.currentUser) {
+            alert('❌ 업로드 불가\n\n서버(Firebase)에 정상적으로 로그인되지 않았습니다.\n\n해결방법:\n1. [설정] 탭 아래 [로그아웃] 후 [가입하기]를 눌러 ReschaRiley 아이디로 계정을 먼저 생성해주세요.\n2. 이미 가입했다면 비밀번호가 틀린 것일 수 있습니다.');
+            btn.innerText = "업로드"; btn.style.opacity = "1"; btn.disabled = false;
+            return;
+        }
+
+        const title = document.getElementById('notice-edit-title').value.trim();
+        const content = document.getElementById('notice-edit-content').value.trim();
+        
+        if(!title || !content) {
+            alert('제목과 내용을 모두 입력해주세요.');
+            btn.innerText = "업로드"; btn.style.opacity = "1"; btn.disabled = false;
+            return;
+        }
+
         try {
-            await setDoc(doc(db, 'globals', 'notice'), { title, content, updatedAt: Date.now() });
-            alert('공지사항이 성공적으로 업데이트되었습니다.');
+            await setDoc(doc(db, 'globals', 'notice'), { title: title, content: content, updatedAt: Date.now() });
+            alert('✅ 공지사항이 성공적으로 등록되었습니다!');
             document.getElementById('notice-edit-screen').classList.add('hidden');
             window.fetchGlobalNotice(); 
-        } catch(e) { alert('업데이트 실패: 데이터베이스 쓰기 권한이 필요합니다. ' + e.message); }
+        } catch(e) { 
+            console.error(e);
+            alert('❌ 업로드 실패\n\n데이터베이스 쓰기 권한이 없습니다.\nFirebase Firestore 규칙(Rules)에서 globals 경로의 쓰기 권한을 허용해주세요.\n\n에러내용: ' + e.message); 
+        } finally {
+            btn.innerText = "업로드"; btn.style.opacity = "1"; btn.disabled = false;
+        }
     };
 
     onAuthStateChanged(auth, async (user) => {
