@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- ★ 앱처럼 보이게 하는 웹앱(PWA) 메타 태그 추가 (사파리 주소바 숨김 및 아이콘) ★ -->
+    <!-- ★ 앱처럼 보이게 하는 웹앱(PWA) 메타 태그 (사파리 주소바 숨김 및 아이콘) ★ -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -140,7 +140,7 @@
 <!-- ★ 메시지 수정 전용 UI 창 (C.ai 스타일) ★ -->
 <div id="edit-message-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 15000; align-items: center; justify-content: center; padding: 20px; flex-direction: column;">
     <div style="width: 100%; max-width: 500px; background: #1c1c1e; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 24px; border: 1px solid #333;">
-        <textarea id="edit-message-textarea" style="width: 100%; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.5; resize: none; outline: none; min-height: 150px; font-family: inherit;"></textarea>
+        <textarea id="edit-message-textarea" class="auto-resize-textarea" style="width: 100%; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.5; resize: none; outline: none; min-height: 100px; max-height: 50vh; overflow-y: auto; font-family: inherit;"></textarea>
         <div style="display: flex; gap: 16px; align-items: center; justify-content: flex-start;">
             <button onclick="cancelEditMessage()" style="background: transparent; border: none; color: #fff; font-size: 16px; padding: 12px 16px; cursor: pointer;">Cancel</button>
             <button onclick="saveEditMessage()" style="background: #fff; border: none; color: #000; font-size: 16px; font-weight: bold; padding: 12px 32px; border-radius: 30px; cursor: pointer;">Save</button>
@@ -175,7 +175,7 @@
         </div>
         <div class="form-group">
             <label>공지 내용</label>
-            <textarea id="notice-edit-content" rows="15" placeholder="내용을 입력하세요 (줄바꿈 반영됨)"></textarea>
+            <textarea id="notice-edit-content" class="auto-resize-textarea" rows="15" placeholder="내용을 입력하세요 (줄바꿈 반영됨)"></textarea>
         </div>
     </div>
 </div>
@@ -195,10 +195,10 @@
         </div>
         <div class="form-group"><label class="required">Name</label><input type="text" id="edit-char-name" maxlength="25" placeholder="캐릭터의 이름을 입력하세요"><div class="char-count">0 / 25</div></div>
         <div class="form-group"><label>Tagline</label><input type="text" id="edit-char-sub" maxlength="40" placeholder="캐릭터를 한마디로 설명해주세요"><div class="char-count">0 / 40</div></div>
-        <div class="form-group"><label class="required">Greeting</label><textarea id="edit-char-greeting" maxlength="4096" rows="4" placeholder="캐릭터가 대화를 시작할 때 건넬 첫 메시지를 입력하세요"></textarea><div class="char-count">0 / 4096</div></div>
-        <div class="form-group"><label>Definition</label><textarea id="edit-char-profile" rows="4" placeholder="캐릭터의 상세한 성격, 특징, 배경 등을 입력하세요"></textarea></div>
-        <div class="form-group"><label>Relation</label><textarea id="edit-char-relation" rows="3" placeholder="캐릭터가 알고 있는 유저에 대한 정보를 입력하세요 (예: 유저는 나의 오랜 친구다)"></textarea></div>
-        <div class="form-group"><label>Story</label><textarea id="edit-char-story" rows="3" placeholder="캐릭터와 유저 간에 있었던 중요한 사건이나 기억해야 할 설정을 입력하세요"></textarea></div>
+        <div class="form-group"><label class="required">Greeting</label><textarea id="edit-char-greeting" class="auto-resize-textarea" maxlength="4096" rows="4" placeholder="캐릭터가 대화를 시작할 때 건넬 첫 메시지를 입력하세요"></textarea><div class="char-count">0 / 4096</div></div>
+        <div class="form-group"><label>Definition</label><textarea id="edit-char-profile" class="auto-resize-textarea" rows="4" placeholder="캐릭터의 상세한 성격, 특징, 배경 등을 입력하세요"></textarea></div>
+        <div class="form-group"><label>Relation</label><textarea id="edit-char-relation" class="auto-resize-textarea" rows="3" placeholder="캐릭터가 알고 있는 유저에 대한 정보를 입력하세요 (예: 유저는 나의 오랜 친구다)"></textarea></div>
+        <div class="form-group"><label>Story</label><textarea id="edit-char-story" class="auto-resize-textarea" rows="3" placeholder="캐릭터와 유저 간에 있었던 중요한 사건이나 기억해야 할 설정을 입력하세요"></textarea></div>
         <div class="form-group">
             <label>Language (봇 언어 설정)</label>
             <select id="edit-char-language">
@@ -223,8 +223,8 @@
             <input type="file" id="edit-persona-img-input" accept="image/*" style="display: none;">
         </div>
         <div class="form-group"><label class="required">페르소나 이름</label><input type="text" id="edit-persona-name" maxlength="25"><div class="char-count">0 / 25</div></div>
-        <div class="form-group"><label>나의 외관 특징</label><textarea id="edit-persona-appearance" rows="3"></textarea></div>
-        <div class="form-group"><label>배경 및 성향</label><textarea id="edit-persona-bg" rows="4"></textarea></div>
+        <div class="form-group"><label>나의 외관 특징</label><textarea id="edit-persona-appearance" class="auto-resize-textarea" rows="3"></textarea></div>
+        <div class="form-group"><label>배경 및 성향</label><textarea id="edit-persona-bg" class="auto-resize-textarea" rows="4"></textarea></div>
         <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
             <input type="checkbox" id="edit-persona-default" style="width: auto; margin: 0;">
             <label for="edit-persona-default" style="margin: 0; cursor: pointer; font-size: 14px;">이 페르소나를 기본값으로 고정</label>
@@ -262,7 +262,7 @@
             <div style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">수동으로 대화를 작성해보세요.</div>
         </div>
         <div style="padding: 16px; background: var(--bg-surface); border-top: 1px solid var(--border-color); padding-bottom: calc(16px + env(safe-area-inset-bottom));">
-            <textarea id="tm-msg-input" rows="2" placeholder="메시지를 입력하세요..." style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg-surface-light); color: white; margin-bottom: 8px; resize: none; outline: none;"></textarea>
+            <textarea id="tm-msg-input" class="auto-resize-textarea" rows="2" placeholder="메시지를 입력하세요..." style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg-surface-light); color: white; margin-bottom: 8px; resize: none; outline: none; max-height: 120px; overflow-y: auto;"></textarea>
             <div style="display: flex; gap: 8px;">
                 <button onclick="addTalkMakerMsg('char')" style="flex: 1; padding: 14px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer;">캐릭터 전송</button>
                 <button onclick="addTalkMakerMsg('user')" style="flex: 1; padding: 14px; border-radius: 8px; border: none; background: var(--accent-color); color: black; font-weight: bold; cursor: pointer;">내 전송</button>
@@ -305,7 +305,7 @@
 
     <footer id="chat-footer" style="padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: 10000;">
         <div style="display: flex; align-items: flex-end; background: #252525; border-radius: 20px; padding: 10px 16px; border: 1px solid #444;">
-            <textarea id="chat-input" placeholder="메시지 입력 (/ooc 내용 으로 봇에게 지시)..." rows="1" style="flex: 1; max-height: 120px; background: none; border: none; color: white; outline: none; resize: none; font-size: 15px; line-height: 1.4;"></textarea>
+            <textarea id="chat-input" class="auto-resize-textarea" placeholder="메시지 입력 (/ooc 내용 으로 봇에게 지시)..." rows="1" style="flex: 1; max-height: 120px; background: none; border: none; color: white; outline: none; resize: none; font-size: 15px; line-height: 1.4; overflow-y: auto;"></textarea>
             <button onclick="sendChatMessage()" style="background: none; border: none; color: #d8b4fe; font-weight: bold; font-size: 18px; cursor: pointer; margin-left: 12px; padding-bottom: 2px;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </footer>
@@ -398,7 +398,7 @@
     .tab-pane.active { display: block; animation: fadeIn 0.2s; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .create-btn { width: 100%; background: var(--bg-surface); color: var(--accent-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; font-weight: 600; cursor: margin-bottom: 16px; }
+    .create-btn { width: 100%; background: var(--bg-surface); color: var(--accent-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
     .empty-text { color: var(--text-secondary); font-size: 14px; text-align: center; margin-top: 20px; }
 
     .swipe-container { position: relative; width: 100%; overflow: hidden; border-radius: 16px; margin-bottom: 12px; background: var(--bg-surface); }
@@ -453,8 +453,8 @@
     
     .msg-block { display: flex; flex-direction: column; width: 100%; cursor: pointer; padding: 12px 16px; border-radius: 12px; transition: background 0.2s, border 0.2s; margin-bottom: 8px; position: relative; }
     .msg-block:active { background: #1a1a1a; }
-    .msg-header { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
-    .msg-content { font-size: 14px; line-height: 1.2; color: #e0e0e0; word-break: break-word; }
+    .msg-header { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .msg-content { font-size: 14px; line-height: 1.6; color: #e0e0e0; word-break: break-word; }
     
     .msg-separator { border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-top: 16px; width: 100%; }
     .msg-block:last-child .msg-separator { display: none; }
@@ -484,6 +484,20 @@
     window.tempPersonaBase64 = null;
     window.selectedCharId = null;
     const defaultImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+
+    // ★ Textarea 자동 크기 조절 (Auto-resize) 함수 ★
+    function adjustTextareaHeight(el) {
+        if (!el.classList.contains('auto-resize-textarea')) return;
+        el.style.height = 'auto'; // 높이 초기화
+        el.style.height = el.scrollHeight + 'px'; // 스크롤 길이에 맞춰 높이 재설정
+    }
+
+    // 문서 내의 모든 자동 조절 textarea에 이벤트 적용
+    document.addEventListener('input', function(e) {
+        if (e.target.tagName.toLowerCase() === 'textarea') {
+            adjustTextareaHeight(e.target);
+        }
+    }, false);
 
     // 관리자 확인 UI 함수
     function checkAdminUI() {
@@ -542,8 +556,10 @@
 
     window.openNoticeEditScreen = function() {
         document.getElementById('notice-edit-title').value = document.getElementById('main-notice-title').innerText;
-        document.getElementById('notice-edit-content').value = document.getElementById('notice-read-content').innerText;
+        const ta = document.getElementById('notice-edit-content');
+        ta.value = document.getElementById('notice-read-content').innerText;
         document.getElementById('notice-edit-screen').classList.remove('hidden');
+        setTimeout(() => adjustTextareaHeight(ta), 50); // 열릴 때 높이 맞춤
     }
 
     const sidebar = document.getElementById('sidebar');
@@ -598,7 +614,8 @@
     };
     window.addTalkMakerMsg = function(type) {
         const chatBox = document.getElementById('talk-maker-chat');
-        const text = document.getElementById('tm-msg-input').value.trim();
+        const inputEl = document.getElementById('tm-msg-input');
+        const text = inputEl.value.trim();
         if(!text) return;
         const name = type === 'char' ? '캐릭터' : '나';
         const bubble = document.createElement('div');
@@ -612,7 +629,10 @@
             bubble.innerHTML = `<span style="font-size: 13px; font-weight: bold; color: white; margin-bottom: 6px;">${name}</span>
                                 <div style="background: var(--accent-color); color: black; padding: 12px 16px; border-radius: 18px 18px 4px 18px; max-width: 85%; font-size: 15px;">${text}</div>`;
         }
-        chatBox.appendChild(bubble); document.getElementById('tm-msg-input').value = ''; chatBox.scrollTop = chatBox.scrollHeight;
+        chatBox.appendChild(bubble); 
+        inputEl.value = ''; 
+        inputEl.style.height = 'auto'; // 전송 후 높이 초기화
+        chatBox.scrollTop = chatBox.scrollHeight;
     };
 
     function compressImage(file, callback) {
@@ -647,6 +667,11 @@
         document.getElementById('edit-char-language').value = data ? (data.language || 'English') : 'English';
         document.getElementById('edit-char-img-preview').innerHTML = (data && data.photoUrl) ? `<img src="${data.photoUrl}" style="width:100%;height:100%;object-fit:cover;">` : '+ 사진 추가';
         document.getElementById('character-editor-screen').classList.remove('hidden');
+        
+        // 에디터 열릴 때 텍스트 에어리어 높이 자동 맞춤
+        setTimeout(() => {
+            document.querySelectorAll('#character-editor-screen textarea').forEach(ta => adjustTextareaHeight(ta));
+        }, 50);
     };
 
     window.openPersonaEditor = function(id = null, data = null) {
@@ -662,6 +687,11 @@
         else document.getElementById('edit-persona-default').checked = false;
         
         document.getElementById('persona-editor-screen').classList.remove('hidden');
+
+        // 에디터 열릴 때 텍스트 에어리어 높이 자동 맞춤
+        setTimeout(() => {
+            document.querySelectorAll('#persona-editor-screen textarea').forEach(ta => adjustTextareaHeight(ta));
+        }, 50);
     };
     
     window.closeEditor = function(type) { document.getElementById(`${type}-editor-screen`).classList.add('hidden'); };
@@ -865,7 +895,11 @@
         if (isOOC) displayContent = `**[OOC 지시어]**\n${text.substring(4).trim()}`;
 
         currentChatHistory.push({ role: 'user', content: displayContent, pinned: false, isOOC: isOOC });
-        input.value = ''; renderChatLog(); saveCurrentChatState();
+        
+        input.value = ''; 
+        input.style.height = 'auto'; // 입력창 비운 뒤 높이 원상복구
+        
+        renderChatLog(); saveCurrentChatState();
 
         let rawApiUrl = localStorage.getItem('dreamer_api_url') || ''; const apiKey = localStorage.getItem('dreamer_api_key') || '';
         if(!rawApiUrl || !apiKey) { currentChatHistory.push({ role: 'char', name: "시스템", content: `*(오류)* 설정 탭에서 **API 주소**와 **API Key**를 먼저 입력해주세요!`, pinned: false }); renderChatLog(); return; }
@@ -930,9 +964,31 @@
         }
 
         isReadOnlyMode = false; document.getElementById('chat-footer').style.display = 'block';
-        const nameVal = document.getElementById('detail-name')?.innerText || "캐릭터"; const imgVal = document.getElementById('detail-img')?.src || ""; const greetingVal = document.getElementById('detail-sub')?.innerText || "*미소지으며* 반가워요.";
-        document.getElementById('chat-header-name').innerText = nameVal; document.getElementById('chat-header-img').src = imgVal;
-        document.getElementById('right-sidebar-name').innerText = nameVal; document.getElementById('right-sidebar-img').src = imgVal;
+        
+        // ★ 새로고침 이름 초기화 버그 해결 (DOM 대신 로컬 스토리지에서 직접 가져오기) ★
+        let nameVal = "캐릭터";
+        let imgVal = defaultImg;
+        let greetingVal = "*미소지으며* 반가워요.";
+        
+        if (window.selectedCharId) {
+            const savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
+            const charData = savedChars.find(c => c.id === window.selectedCharId);
+            if (charData) {
+                nameVal = charData.name || nameVal;
+                imgVal = charData.photoUrl || imgVal;
+                greetingVal = charData.greeting || greetingVal;
+            }
+        } else {
+            // 예외 상황: 아이디가 없으면 텍스트 노드에서 읽어오기 시도
+            nameVal = document.getElementById('detail-name')?.textContent || nameVal;
+            imgVal = document.getElementById('detail-img')?.src || imgVal;
+            greetingVal = document.getElementById('detail-sub')?.textContent || greetingVal;
+        }
+        
+        document.getElementById('chat-header-name').innerText = nameVal; 
+        document.getElementById('chat-header-img').src = imgVal;
+        document.getElementById('right-sidebar-name').innerText = nameVal; 
+        document.getElementById('right-sidebar-img').src = imgVal;
         
         let handle = localStorage.getItem('dreamer_handle') || "user";
         document.getElementById('chat-header-handle').innerText = `By ${handle.includes('@') ? handle : '@'+handle}`;
@@ -988,15 +1044,19 @@
 
     window.doTogglePinMessage = function() { if(selectedMsgIndex !== null) { currentChatHistory[selectedMsgIndex].pinned = !currentChatHistory[selectedMsgIndex].pinned; renderChatLog(); saveCurrentChatState(); } closeActionSheet(); }
     
-    // ★ 메시지 수정 창 (버그 수정됨) ★
+    // 메시지 수정 창
     window.doEditMessage = function() {
         const currentText = currentChatHistory[selectedMsgIndex].content;
-        document.getElementById('edit-message-textarea').value = currentText;
+        const ta = document.getElementById('edit-message-textarea');
+        ta.value = currentText;
         document.getElementById('edit-message-overlay').style.display = 'flex';
         // 액션 시트 UI만 닫기 (selectedMsgIndex는 유지)
         document.getElementById('action-sheet').style.bottom = '-400px'; 
         document.getElementById('action-sheet-overlay').style.opacity = '0'; 
         document.getElementById('action-sheet-overlay').style.visibility = 'hidden';
+        
+        // 열린 직후 높이 재계산
+        setTimeout(() => adjustTextareaHeight(ta), 50);
     }
     window.cancelEditMessage = function() {
         document.getElementById('edit-message-overlay').style.display = 'none';
