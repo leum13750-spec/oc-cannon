@@ -171,7 +171,7 @@
 
 <div id="character-detail-screen" class="editor-screen hidden" style="z-index: 6000;">
     <header class="editor-header">
-        <button class="close-editor-btn" onclick="document.getElementById('character-detail-screen').classList.add('hidden')"><i class="fas fa-arrow-left"></i></button>
+        <button class="close-editor-btn" onclick="document.getElementById('character-detail-screen').classList.add('hidden'); localStorage.removeItem('current_screen');"><i class="fas fa-arrow-left"></i></button>
         <strong style="font-size: 16px;">캐릭터 프로필</strong>
         <div style="width: 24px;"></div>
     </header>
@@ -190,7 +190,7 @@
 
 <div id="talk-maker-screen" class="editor-screen hidden">
     <header class="editor-header">
-        <button class="close-editor-btn" onclick="document.getElementById('talk-maker-screen').classList.add('hidden')"><i class="fas fa-times"></i></button>
+        <button class="close-editor-btn" onclick="document.getElementById('talk-maker-screen').classList.add('hidden'); localStorage.removeItem('current_screen');"><i class="fas fa-times"></i></button>
         <strong style="font-size: 16px;">수동 대화 백업</strong>
         <div style="width: 24px;"></div>
     </header>
@@ -453,12 +453,15 @@
     document.getElementById('btn-logout').onclick = executeLogout;
     document.getElementById('btn-settings-logout').onclick = executeLogout;
 
+    // ★ 탭 이동 시 위치 기억 추가 ★
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             this.classList.add('active');
-            document.getElementById('tab-' + this.getAttribute('data-tab')).classList.add('active');
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById('tab-' + tabId).classList.add('active');
+            localStorage.setItem('dreamer_current_tab', tabId); 
         });
     });
 
@@ -471,6 +474,7 @@
 
     document.getElementById('btn-open-talk-maker').onclick = () => {
         document.getElementById('talk-maker-screen').classList.remove('hidden');
+        localStorage.setItem('current_screen', 'talk_maker');
         toggleSidebar(); 
     };
     window.addTalkMakerMsg = function(type) {
@@ -540,8 +544,12 @@
     };
     window.closeEditor = function(type) { document.getElementById(`${type}-editor-screen`).classList.add('hidden'); };
 
+    // ★ 상세화면 위치 기억 기능 추가 ★
     window.openCharacterDetail = function(id, data) {
         window.selectedCharId = id;
+        localStorage.setItem('current_screen', 'detail');
+        localStorage.setItem('current_char_id', id);
+        
         document.getElementById('detail-img').src = data.photoUrl || defaultImg;
         document.getElementById('detail-name').innerText = data.name;
         document.getElementById('detail-sub').innerText = data.sub || data.greeting || '설명이 없습니다.';
@@ -969,7 +977,7 @@
         } catch(err) {
             console.error(err);
             currentChatHistory = currentChatHistory.filter(m => m.id !== loadingId);
-            let errorMsg = `*(시스템 오류)* 연결 실패.\n\n**원인:** ${err.message}\n\n* 'Failed to fetch' 에러 시: 브라우저 보안(CORS)에 막혔거나 서버가 다운된 것입니다.`;
+            let errorMsg = `*(시스템 오류)* 연결 실패.\n\n**원인:** ${err.message}\n\n* 'Failed 전송' 에러 시: 브라우저 보안(CORS)에 막혔거나 서버가 다운된 것입니다.`;
             currentChatHistory.push({ role: 'char', name: "시스템 안내", content: errorMsg, pinned: false });
             renderChatLog();
         }
@@ -1272,6 +1280,7 @@
         }
     }
 
+    // ★ 초기 로드 및 새로고침 시 화면/탭 상태 복원 ★
     window.addEventListener('DOMContentLoaded', () => {
         renderData();
         
@@ -1280,17 +1289,35 @@
         document.getElementById('settings-nickname').value = localStorage.getItem('dreamer_nickname') || '';
         document.getElementById('settings-handle').value = localStorage.getItem('dreamer_handle') || '';
 
-        if(localStorage.getItem('current_screen') === 'chat') {
-            const charId = localStorage.getItem('current_char_id');
-            if(charId) {
+        // 1. 마지막으로 보던 탭 복구
+        const savedTab = localStorage.getItem('dreamer_current_tab');
+        if (savedTab) {
+            const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
+            if (tabBtn) tabBtn.click();
+        }
+
+        // 2. 마지막으로 보던 화면(모달/채팅) 복구
+        const currentScreen = localStorage.getItem('current_screen');
+        const charId = localStorage.getItem('current_char_id');
+
+        if (currentScreen === 'talk_maker') {
+            document.getElementById('talk-maker-screen').classList.remove('hidden');
+        } 
+        else if (currentScreen === 'detail' || currentScreen === 'chat') {
+            if (charId) {
                 const savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
                 const charData = savedChars.find(c => c.id === charId);
-                if(charData) {
+                if (charData) {
                     window.selectedCharId = charId;
                     document.getElementById('detail-name').innerText = charData.name;
                     document.getElementById('detail-img').src = charData.photoUrl || defaultImg;
                     document.getElementById('detail-sub').innerText = charData.greeting;
-                    OpenChat(false);
+                    
+                    if (currentScreen === 'chat') {
+                        OpenChat(false);
+                    } else if (currentScreen === 'detail') {
+                        openCharacterDetail(charId, charData);
+                    }
                 }
             }
         }
@@ -1319,17 +1346,36 @@
     const db = getFirestore(app);
     let currentUserUid = null;
 
+    // ★ Firebase 데이터가 로컬 데이터를 덮어써서 날아가는 버그 수정 (데이터 병합) ★
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserUid = user.uid;
             try {
+                // 캐릭터 병합
                 const cSnap = await getDocs(collection(db, `users/${user.uid}/characters`));
                 let cList = []; cSnap.forEach(d => { cList.push({ id: d.id, ...d.data() }) });
-                if(cList.length > 0) { localStorage.setItem('dreamer_characters', JSON.stringify(cList)); window.renderData(); }
+                if(cList.length > 0) {
+                    let localChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
+                    let localMap = new Map(localChars.map(c => [c.id.toString(), c]));
+                    cList.forEach(fc => {
+                        if(!localMap.has(fc.id.toString())) localMap.set(fc.id.toString(), fc);
+                    });
+                    localStorage.setItem('dreamer_characters', JSON.stringify(Array.from(localMap.values()))); 
+                    window.renderData(); 
+                }
 
+                // 페르소나 병합
                 const pSnap = await getDocs(collection(db, `users/${user.uid}/personas`));
                 let pList = []; pSnap.forEach(d => { pList.push({ id: d.id, ...d.data() }) });
-                if(pList.length > 0) { localStorage.setItem('dreamer_personas', JSON.stringify(pList)); window.renderData(); }
+                if(pList.length > 0) { 
+                    let localPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+                    let localMap = new Map(localPersonas.map(p => [p.id.toString(), p]));
+                    pList.forEach(fp => {
+                        if(!localMap.has(fp.id.toString())) localMap.set(fp.id.toString(), fp);
+                    });
+                    localStorage.setItem('dreamer_personas', JSON.stringify(Array.from(localMap.values()))); 
+                    window.renderData(); 
+                }
             } catch(e) { console.warn("서버 동기화 지연됨"); }
         }
     });
