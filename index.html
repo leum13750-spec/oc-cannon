@@ -1141,8 +1141,8 @@
 
         let savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
         
-        if(editingCharId) {
-            let index = savedChars.findIndex(c => c.id.toString() === editingCharId.toString());
+        if(window.editingCharId) {
+            let index = savedChars.findIndex(c => c.id.toString() === window.editingCharId.toString());
             if(index !== -1) {
                 savedChars[index].name = nameInput;
                 savedChars[index].sub = subInput;
@@ -1192,8 +1192,8 @@
 
         let savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
         
-        if(editingPersonaId) {
-            let index = savedPersonas.findIndex(p => p.id.toString() === editingPersonaId.toString());
+        if(window.editingPersonaId) {
+            let index = savedPersonas.findIndex(p => p.id.toString() === window.editingPersonaId.toString());
             if(index !== -1) {
                 savedPersonas[index].name = nameInput;
                 savedPersonas[index].info = infoInput;
@@ -1376,8 +1376,8 @@
     document.getElementById('edit-char-img-input').addEventListener('change', function(e) {
         if(e.target.files[0]) {
             compressImage(e.target.files[0], function(base64Data) {
-                tempCharBase64 = base64Data;
-                window.tempCharBase64 = base64Data;
+                window.window.tempCharBase64 = base64Data;
+                window.window.window.tempCharBase64 = base64Data;
                 document.getElementById('edit-char-img-preview').innerHTML = `<img src="${tempCharBase64}" style="width:100%; height:100%; object-fit:cover;">`;
             });
         }
@@ -1386,16 +1386,16 @@
     document.getElementById('edit-persona-img-input').addEventListener('change', function(e) {
         if(e.target.files[0]) {
             compressImage(e.target.files[0], function(base64Data) {
-                tempPersonaBase64 = base64Data;
-                window.tempPersonaBase64 = base64Data;
+                window.window.tempPersonaBase64 = base64Data;
+                window.window.window.tempPersonaBase64 = base64Data;
                 document.getElementById('edit-persona-img-preview').innerHTML = `<img src="${tempPersonaBase64}" style="width:100%; height:100%; object-fit:cover;">`;
             });
         }
     });
 
     window.openCharEditor = function(docId = null, data = null) {
-        editingCharId = docId;
-        window.editingCharId = docId;
+        window.window.window.editingCharId = docId;
+        window.window.window.window.editingCharId = docId;
         tempCharBase64 = null;
         window.tempCharBase64 = null;
         const preview = document.getElementById('edit-char-img-preview');
@@ -1433,8 +1433,8 @@
     };
 
     window.openPersonaEditor = function(docId = null, data = null) {
-        editingPersonaId = docId;
-        window.editingPersonaId = docId;
+        window.window.editingPersonaId = docId;
+        window.window.window.editingPersonaId = docId;
         tempPersonaBase64 = null;
         window.tempPersonaBase64 = null;
         const preview = document.getElementById('edit-persona-img-preview');
