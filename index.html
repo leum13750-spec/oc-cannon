@@ -169,7 +169,7 @@
         <div id="detail-sub" class="detail-sub-text">짧은 설명</div>
 
         <div style="padding: 0 16px; margin-top: 24px;">
-            <button class="action-btn-filled" onclick="alert('채팅방 UI로 연결 예정입니다.')"><i class="fas fa-plus"></i> 새 채팅 시작하기</button>
+            <button class="action-btn-filled" onclick="onclick=OpenChat()"><i class="fas fa-plus"></i> 새 채팅 시작하기</button>
             <button class="action-btn-outline" onclick="alert('기존 대화방으로 연결 예정입니다.')"><i class="fas fa-comments"></i> 기존 채팅 이어보기</button>
             <button class="action-btn-outline" id="btn-detail-edit" style="color: var(--accent-color); border-color: rgba(216, 180, 254, 0.5);"><i class="fas fa-edit"></i> 이 캐릭터 수정하기</button>
         </div>
@@ -656,5 +656,28 @@
         </div>
     </footer>
 </div>
+<script>
+function OpenChat() {
+    // 1. 아래쪽에 넣어둔 채팅창을 화면에 띄웁니다.
+    // 사용자님의 채팅창 ID가 'real-chat-screen'이라면 아래 이름을 맞춰주세요.
+    const screen = document.getElementById('chat-screen') || document.querySelector('[id*="chat"]');
+    screen.style.display = 'flex';
+    screen.style.position = 'fixed';
+    screen.style.zIndex = '9999';
+
+    // 2. 캐릭터 이름과 인사말을 채워넣습니다.
+    const name = document.getElementById('detail-name-text').innerText;
+    const img = document.getElementById('detail-img-large').src;
+    
+    // 첫 인사를 로그에 찍어줍니다.
+    const chatLog = document.getElementById('chat-log');
+    chatLog.innerHTML = `<div style="color:white; padding:10px;">[${name}]: 안녕! 대화를 시작하자.</div>`;
+}
+
+function closeChat() {
+    // 채팅창을 다시 숨깁니다.
+    document.querySelector('[id*="chat"]').style.display = 'none';
+}
+</script>
 </body>
 </html>
