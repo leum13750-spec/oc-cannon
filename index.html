@@ -675,28 +675,27 @@
         </div>
     </footer>
 </div>
-<script>
-function OpenChat() {
-    // 1. 아래쪽에 넣어둔 채팅창을 화면에 띄웁니다.
-    // 사용자님의 채팅창 ID가 'real-chat-screen'이라면 아래 이름을 맞춰주세요.
-    const screen = document.getElementById('chat-screen') || document.querySelector('[id*="chat"]');
-    screen.style.display = 'flex';
-    screen.style.position = 'fixed';
-    screen.style.zIndex = '9999';
+<div id="real-chat-screen" class="editor-screen" style="display: none; flex-direction: column; background-color: #121212; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
+    <header class="editor-header" style="border-bottom: 1px solid #333; background: #181818; display: flex; align-items: center; padding: 10px 16px;">
+        <button onclick="closeChat()" style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 10px;">←</button>
+        <div style="margin-left: 10px; display: flex; align-items: center; gap: 10px; flex: 1;">
+            <img id="chat-header-img" src="" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: #444;">
+            <div style="display: flex; flex-direction: column;">
+                <strong id="chat-header-name" style="color: #fff; font-size: 15px;">이름</strong>
+                <small style="color: #888; font-size: 11px;">@User</small>
+            </div>
+        </div>
+    </header>
 
-    // 2. 캐릭터 이름과 인사말을 채워넣습니다.
-    const name = document.getElementById('detail-name-text').innerText;
-    const img = document.getElementById('detail-img-large').src;
-    
-    // 첫 인사를 로그에 찍어줍니다.
-    const chatLog = document.getElementById('chat-log');
-    chatLog.innerHTML = `<div style="color:white; padding:10px;">[${name}]: 안녕! 대화를 시작하자.</div>`;
-}
+    <div id="chat-log" style="flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px;"></div>
 
-function closeChat() {
-    // 채팅창을 다시 숨깁니다.
-    document.querySelector('[id*="chat"]').style.display = 'none';
-}
-</script>
+    <footer style="padding: 15px; background: #121212; border-top: 1px solid #222; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; background: #252525; border-radius: 24px; padding: 5px 15px; border: 1px solid #444;">
+            <textarea id="chat-input" placeholder="메시지 입력..." rows="1" style="flex: 1; background: none; border: none; color: white; padding: 10px; outline: none; resize: none; font-size: 15px;"></textarea>
+            <button style="background: none; border: none; color: #7d5fff; font-weight: bold; cursor: pointer;">전송</button>
+        </div>
+    </footer>
+</div>
+
 </body>
 </html>
