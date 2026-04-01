@@ -109,7 +109,8 @@
                     </div>
                     <div class="form-group" style="width: 100%; text-align: left;">
                         <label>핸들명 (아이디)</label>
-                        <input type="text" id="settings-handle" placeholder="@handle" style="width: 100%; padding: 14px; background: var(--bg-surface-light); border: none; border-radius: 12px; color: white; margin-top: 8px;">
+                        <input type="text" id="settings-handle" placeholder="아이디 입력" style="width: 100%; padding: 14px; background: var(--bg-surface-light); border: none; border-radius: 12px; color: white; margin-top: 8px;">
+                        <div style="font-size:11px; color:gray; margin-top:4px;">ReschaRiley 입력 시 관리자 권한이 부여됩니다.</div>
                     </div>
                     <button class="primary-btn" id="btn-save-profile" style="margin-bottom: 0;">프로필 및 설정 저장</button>
                     <hr style="width: 100%; border-color: var(--border-color); margin: 16px 0;">
@@ -462,22 +463,7 @@
     window.selectedCharId = null;
     const defaultImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
 
-    // ★ 로그인 시 특정 핸들명(ReschaRiley) 관리자 계정 판별 ★
-    document.getElementById('btn-login').addEventListener('click', function() {
-        const idVal = document.getElementById('login-id').value.trim();
-        if(idVal === '') return alert('아이디를 입력해주세요.');
-        
-        if(idVal === 'ReschaRiley') {
-            localStorage.setItem('dreamer_is_admin', 'true');
-        } else {
-            localStorage.setItem('dreamer_is_admin', 'false');
-        }
-
-        localStorage.setItem('dreamer_logged_in', 'true');
-        document.getElementById('login-screen').classList.add('hidden');
-        checkAdminUI();
-    });
-
+    // 관리자 확인 함수
     function checkAdminUI() {
         if(localStorage.getItem('dreamer_is_admin') === 'true') {
             document.getElementById('btn-edit-notice').style.display = 'block';
@@ -486,13 +472,44 @@
         }
     }
 
-    // ★ 공지사항 열기/편집 관련 로직 ★
+    // [1] 로그인 화면에서 확인
+    document.getElementById('btn-login').addEventListener('click', function() {
+        const idVal = document.getElementById('login-id').value.trim();
+        if(idVal === '') return alert('아이디를 입력해주세요.');
+        
+        if(idVal === 'ReschaRiley') localStorage.setItem('dreamer_is_admin', 'true');
+        else localStorage.setItem('dreamer_is_admin', 'false');
+
+        localStorage.setItem('dreamer_logged_in', 'true');
+        document.getElementById('login-screen').classList.add('hidden');
+        checkAdminUI();
+    });
+
+    // [2] 설정 탭에서 확인 및 권한 실시간 갱신 (요청하신 방법2 적용)
+    document.getElementById('btn-save-profile').onclick = function() {
+        const apiUrl = document.getElementById('settings-api-url').value.trim();
+        const apiKey = document.getElementById('settings-api-key').value.trim();
+        const nickname = document.getElementById('settings-nickname').value.trim();
+        const handle = document.getElementById('settings-handle').value.trim();
+        
+        if(apiUrl) localStorage.setItem('dreamer_api_url', apiUrl);
+        if(apiKey) localStorage.setItem('dreamer_api_key', apiKey);
+        if(nickname) localStorage.setItem('dreamer_nickname', nickname);
+        
+        if(handle) {
+            localStorage.setItem('dreamer_handle', handle);
+            if(handle === 'ReschaRiley') localStorage.setItem('dreamer_is_admin', 'true');
+            else localStorage.setItem('dreamer_is_admin', 'false');
+        }
+        
+        checkAdminUI(); // 바로 관리자 권한 갱신
+        alert('프로필과 설정이 저장되었습니다.');
+    };
+
     window.openNoticeScreen = function() {
         document.getElementById('notice-screen').classList.remove('hidden');
         checkAdminUI();
-        if(typeof window.fetchGlobalNotice === 'function') {
-            window.fetchGlobalNotice();
-        }
+        if(typeof window.fetchGlobalNotice === 'function') window.fetchGlobalNotice();
     }
 
     window.openNoticeEditScreen = function() {
@@ -504,28 +521,26 @@
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     window.toggleSidebar = function() { 
-        sidebar.classList.toggle('open'); 
-        sidebarOverlay.classList.toggle('show'); 
+        sidebar.classList.toggle('open'); sidebarOverlay.classList.toggle('show'); 
     };
     document.getElementById('btn-open-sidebar').onclick = toggleSidebar;
     document.getElementById('btn-close-sidebar').onclick = toggleSidebar;
     sidebarOverlay.onclick = function() {
-        sidebar.classList.remove('open');
-        document.getElementById('sidebar-right').style.right = '-300px';
-        sidebarOverlay.classList.remove('show');
+        sidebar.classList.remove('open'); document.getElementById('sidebar-right').style.right = '-300px'; sidebarOverlay.classList.remove('show');
     };
 
     document.getElementById('btn-go-home').onclick = () => {
         document.getElementById('real-chat-screen').style.display = 'none';
         document.getElementById('character-detail-screen').classList.add('hidden');
         document.getElementById('talk-maker-screen').classList.add('hidden');
-        localStorage.removeItem('current_screen'); 
-        toggleSidebar();
+        localStorage.removeItem('current_screen'); toggleSidebar();
     };
 
+    // ★ 완전히 로그아웃되도록 Firebase 연결 끊기 함수 포함 ★
     function executeLogout() {
         localStorage.removeItem('dreamer_logged_in');
         localStorage.removeItem('dreamer_is_admin');
+        if(typeof window.firebaseSignOut === 'function') window.firebaseSignOut(); // Firebase 로그아웃 호출
         document.getElementById('login-screen').classList.remove('hidden');
         if(sidebar.classList.contains('open')) toggleSidebar();
     }
@@ -552,8 +567,7 @@
 
     document.getElementById('btn-open-talk-maker').onclick = () => {
         document.getElementById('talk-maker-screen').classList.remove('hidden');
-        localStorage.setItem('current_screen', 'talk_maker');
-        toggleSidebar(); 
+        localStorage.setItem('current_screen', 'talk_maker'); toggleSidebar(); 
     };
     window.addTalkMakerMsg = function(type) {
         const chatBox = document.getElementById('talk-maker-chat');
@@ -571,9 +585,7 @@
             bubble.innerHTML = `<span style="font-size: 13px; font-weight: bold; color: white; margin-bottom: 6px;">${name}</span>
                                 <div style="background: var(--accent-color); color: black; padding: 12px 16px; border-radius: 18px 18px 4px 18px; max-width: 85%; font-size: 15px;">${text}</div>`;
         }
-        chatBox.appendChild(bubble);
-        document.getElementById('tm-msg-input').value = '';
-        chatBox.scrollTop = chatBox.scrollHeight;
+        chatBox.appendChild(bubble); document.getElementById('tm-msg-input').value = ''; chatBox.scrollTop = chatBox.scrollHeight;
     };
 
     function compressImage(file, callback) {
@@ -618,13 +630,9 @@
         document.getElementById('edit-persona-bg').value = data ? (data.bg || '') : '';
         document.getElementById('edit-persona-img-preview').innerHTML = (data && data.photoUrl) ? `<img src="${data.photoUrl}" style="width:100%;height:100%;object-fit:cover;">` : '+ 사진 추가';
         
-        // ★ 기존 디폴트 설정 불러오기 ★
         const currentDefault = localStorage.getItem('dreamer_current_persona_id');
-        if (id && currentDefault === id) {
-            document.getElementById('edit-persona-default').checked = true;
-        } else {
-            document.getElementById('edit-persona-default').checked = false;
-        }
+        if (id && currentDefault === id) document.getElementById('edit-persona-default').checked = true;
+        else document.getElementById('edit-persona-default').checked = false;
         
         document.getElementById('persona-editor-screen').classList.remove('hidden');
     };
@@ -667,14 +675,9 @@
 
         let savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
         let charData = {
-            id: window.editingCharId || Date.now().toString(), 
-            name: nameInput,
-            sub: document.getElementById('edit-char-sub').value.trim(), 
-            greeting: greetingInput,
-            profile: document.getElementById('edit-char-profile').value.trim(), 
-            relation: document.getElementById('edit-char-relation').value.trim(),
-            story: document.getElementById('edit-char-story').value.trim(),
-            language: document.getElementById('edit-char-language').value
+            id: window.editingCharId || Date.now().toString(), name: nameInput, sub: document.getElementById('edit-char-sub').value.trim(), 
+            greeting: greetingInput, profile: document.getElementById('edit-char-profile').value.trim(), relation: document.getElementById('edit-char-relation').value.trim(),
+            story: document.getElementById('edit-char-story').value.trim(), language: document.getElementById('edit-char-language').value
         };
         if(window.tempCharBase64) charData.photoUrl = window.tempCharBase64;
         
@@ -692,17 +695,14 @@
         const nameInput = document.getElementById('edit-persona-name').value.trim();
         if(!nameInput) return alert("페르소나 이름은 필수 입력 사항입니다.");
         let savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
-        let personaData = {
-            id: window.editingPersonaId || Date.now().toString(), name: nameInput,
-            appearance: document.getElementById('edit-persona-appearance').value.trim(), bg: document.getElementById('edit-persona-bg').value.trim()
-        };
+        let personaData = { id: window.editingPersonaId || Date.now().toString(), name: nameInput, appearance: document.getElementById('edit-persona-appearance').value.trim(), bg: document.getElementById('edit-persona-bg').value.trim() };
         if(window.tempPersonaBase64) personaData.photoUrl = window.tempPersonaBase64;
+        
         if(window.editingPersonaId) {
             let index = savedPersonas.findIndex(p => p.id.toString() === window.editingPersonaId.toString());
             if(index !== -1) { if(!window.tempPersonaBase64 && savedPersonas[index].photoUrl) personaData.photoUrl = savedPersonas[index].photoUrl; savedPersonas[index] = personaData; }
         } else { savedPersonas.unshift(personaData); }
         
-        // ★ 디폴트(기본) 페르소나 영구 고정 설정 ★
         if(document.getElementById('edit-persona-default').checked) {
             localStorage.setItem('dreamer_current_persona_id', personaData.id);
         }
@@ -719,13 +719,10 @@
         cBox.innerHTML = cList.length === 0 ? '<p class="empty-text">저장된 캐릭터가 없습니다.</p>' : '';
         cList.forEach(c => {
             const w = document.createElement('div'); w.className = 'swipe-container';
-            w.innerHTML = `
-                <div class="delete-btn-bg" onclick="executeDelete('${c.id}', '${c.name}', 'characters')"><i class="fas fa-trash"></i></div>
-                <div class="list-card swipe-card">
-                    <img src="${c.photoUrl || defaultImg}" class="char-img">
-                    <div class="list-info"><span class="list-title">${c.name}</span><span class="list-sub">${c.sub || c.greeting || "설명이 없습니다."}</span></div>
-                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
-                </div>`;
+            w.innerHTML = `<div class="delete-btn-bg" onclick="executeDelete('${c.id}', '${c.name}', 'characters')"><i class="fas fa-trash"></i></div>
+                <div class="list-card swipe-card"><img src="${c.photoUrl || defaultImg}" class="char-img">
+                <div class="list-info"><span class="list-title">${c.name}</span><span class="list-sub">${c.sub || c.greeting || "설명이 없습니다."}</span></div>
+                <button class="edit-btn"><i class="fas fa-edit"></i></button></div>`;
             const card = w.querySelector('.swipe-card'); attachSwipeEvents(card);
             card.onclick = () => openCharacterDetail(c.id, c);
             w.querySelector('.edit-btn').onclick = (e) => { e.stopPropagation(); openCharEditor(c.id, c); };
@@ -739,13 +736,10 @@
         pList.forEach(p => {
             const w = document.createElement('div'); w.className = 'swipe-container';
             const isDefault = (p.id === defaultId) ? '<i class="fas fa-check-circle" style="color:var(--accent-color); font-size:12px; margin-left:6px;"></i>' : '';
-            w.innerHTML = `
-                <div class="delete-btn-bg" onclick="executeDelete('${p.id}', '${p.name}', 'personas')"><i class="fas fa-trash"></i></div>
-                <div class="list-card swipe-card">
-                    <img src="${p.photoUrl || defaultImg}" class="persona-img">
-                    <div class="list-info"><span class="list-title">${p.name} ${isDefault}</span><span class="list-sub">${p.appearance || p.bg || "상세 설명이 없습니다."}</span></div>
-                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
-                </div>`;
+            w.innerHTML = `<div class="delete-btn-bg" onclick="executeDelete('${p.id}', '${p.name}', 'personas')"><i class="fas fa-trash"></i></div>
+                <div class="list-card swipe-card"><img src="${p.photoUrl || defaultImg}" class="persona-img">
+                <div class="list-info"><span class="list-title">${p.name} ${isDefault}</span><span class="list-sub">${p.appearance || p.bg || "상세 설명이 없습니다."}</span></div>
+                <button class="edit-btn"><i class="fas fa-edit"></i></button></div>`;
             const card = w.querySelector('.swipe-card'); attachSwipeEvents(card);
             w.querySelector('.edit-btn').onclick = (e) => { e.stopPropagation(); openPersonaEditor(p.id, p); };
             pBox.appendChild(w);
@@ -758,26 +752,11 @@
     let isSceneSelectionMode = false;
     let selectedSceneIndices = new Set();
 
-    document.getElementById('btn-save-profile').onclick = function() {
-        const apiUrl = document.getElementById('settings-api-url').value.trim();
-        const apiKey = document.getElementById('settings-api-key').value.trim();
-        const nickname = document.getElementById('settings-nickname').value.trim();
-        const handle = document.getElementById('settings-handle').value.trim();
-        
-        if(apiUrl) localStorage.setItem('dreamer_api_url', apiUrl);
-        if(apiKey) localStorage.setItem('dreamer_api_key', apiKey);
-        if(nickname) localStorage.setItem('dreamer_nickname', nickname);
-        if(handle) localStorage.setItem('dreamer_handle', handle);
-        alert('프로필과 설정이 저장되었습니다.');
-    };
-
     function parseMarkdown(text) {
         if (!text) return "";
-        return text
-            .replace(/\*\*\*(.*?)\*\*\*/g, '<span class="md-bold md-action">$1</span>')
+        return text.replace(/\*\*\*(.*?)\*\*\*/g, '<span class="md-bold md-action">$1</span>')
             .replace(/\*\*(.*?)\*\*/g, '<span class="md-bold">$1</span>')
-            .replace(/\*(.*?)\*/g, '<span class="md-action">$1</span>')
-            .replace(/\n/g, '<br>');
+            .replace(/\*(.*?)\*/g, '<span class="md-action">$1</span>').replace(/\n/g, '<br>');
     }
 
     function renderChatLog() {
@@ -787,53 +766,30 @@
             const block = document.createElement('div');
             block.className = 'msg-block';
             if(msg.pinned) block.classList.add('pinned-msg');
-            if(isSceneSelectionMode) {
-                block.classList.add('scene-selectable');
-                if(selectedSceneIndices.has(index)) block.classList.add('scene-selected');
-            }
+            if(isSceneSelectionMode) { block.classList.add('scene-selectable'); if(selectedSceneIndices.has(index)) block.classList.add('scene-selected'); }
             
             if(isSceneSelectionMode) {
-                block.onclick = () => {
-                    if(selectedSceneIndices.has(index)) selectedSceneIndices.delete(index);
-                    else selectedSceneIndices.add(index);
-                    renderChatLog();
-                };
+                block.onclick = () => { if(selectedSceneIndices.has(index)) selectedSceneIndices.delete(index); else selectedSceneIndices.add(index); renderChatLog(); };
             } else if(!isReadOnlyMode) {
                 let isSwiping = false, startX = 0, currentX = 0;
                 block.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isSwiping = false; }, {passive: true});
                 block.addEventListener('touchmove', e => { currentX = e.touches[0].clientX - startX; if (Math.abs(currentX) > 10) isSwiping = true; }, {passive: true});
-                block.addEventListener('touchend', (e) => {
-                    if (isSwiping && Math.abs(currentX) > 60) regenerateMessage(index);
-                    currentX = 0;
-                });
+                block.addEventListener('touchend', (e) => { if (isSwiping && Math.abs(currentX) > 60) regenerateMessage(index); currentX = 0; });
                 block.onclick = (e) => { if (isSwiping) return; openActionSheet(index); };
             }
             
             let senderName = msg.role === 'char' ? (msg.name || "캐릭터") : (localStorage.getItem('dreamer_nickname') || document.getElementById('settings-nickname').value || "나");
             let pinIcon = msg.pinned ? '<i class="fas fa-thumbtack pinned-icon"></i>' : '';
-
             let footerUI = '';
             if (msg.role === 'char' && !isReadOnlyMode && !isSceneSelectionMode) {
                 let altText = msg.altCount ? (msg.altIndex + ' / ' + msg.altCount) : '1 / 1';
-                footerUI = `
-                    <div style="display:flex; align-items:center; gap: 16px; margin-top: 12px; color: #8e8e93; font-size: 14px; padding-left: 4px;">
-                        <div style="display:flex; align-items:center; gap: 16px;">
-                            <button onclick="event.stopPropagation(); regenerateMessage(${index})" style="background:none; border:none; color:#8e8e93; cursor:pointer; font-size:16px; padding: 4px;"><i class="fas fa-chevron-left"></i></button>
-                            <span style="font-weight: 500; font-size: 13px;">${altText}</span>
-                            <button onclick="event.stopPropagation(); regenerateMessage(${index})" style="background:none; border:none; color:#8e8e93; cursor:pointer; font-size:16px; padding: 4px;"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                        <i class="far fa-thumbs-up" style="cursor:pointer;" onclick="event.stopPropagation();"></i>
-                        <i class="far fa-thumbs-down" style="cursor:pointer;" onclick="event.stopPropagation();"></i>
-                    </div>
-                `;
+                footerUI = `<div style="display:flex; align-items:center; gap: 16px; margin-top: 12px; color: #8e8e93; font-size: 14px; padding-left: 4px;">
+                        <div style="display:flex; align-items:center; gap: 16px;"><button onclick="event.stopPropagation(); regenerateMessage(${index})" style="background:none; border:none; color:#8e8e93; cursor:pointer; font-size:16px; padding: 4px;"><i class="fas fa-chevron-left"></i></button>
+                        <span style="font-weight: 500; font-size: 13px;">${altText}</span><button onclick="event.stopPropagation(); regenerateMessage(${index})" style="background:none; border:none; color:#8e8e93; cursor:pointer; font-size:16px; padding: 4px;"><i class="fas fa-chevron-right"></i></button></div>
+                        <i class="far fa-thumbs-up" style="cursor:pointer;" onclick="event.stopPropagation();"></i><i class="far fa-thumbs-down" style="cursor:pointer;" onclick="event.stopPropagation();"></i></div>`;
             }
 
-            block.innerHTML = `
-                <div class="msg-header">${senderName} ${pinIcon}</div>
-                <div class="msg-content">${parseMarkdown(msg.content)}</div>
-                ${footerUI}
-                <div class="msg-separator"></div>
-            `;
+            block.innerHTML = `<div class="msg-header">${senderName} ${pinIcon}</div><div class="msg-content">${parseMarkdown(msg.content)}</div>${footerUI}<div class="msg-separator"></div>`;
             logBox.appendChild(block);
         });
         if(!isSceneSelectionMode) logBox.scrollTop = logBox.scrollHeight;
@@ -845,86 +801,48 @@
         if(!rawApiUrl || !apiKey) return alert("설정 탭에서 API 주소와 Key를 먼저 입력 및 저장해주세요.");
 
         let baseUrl = rawApiUrl.replace(/\/chat\/completions\/?$/, '').replace(/\/$/, '');
-        const btn = event.currentTarget;
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 갱신 중...';
-        
+        const btn = event.currentTarget; const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 갱신 중...';
         try {
             const response = await fetch(`${baseUrl}/models`, { method: 'GET', headers: { 'Authorization': `Bearer ${apiKey}` } });
             if(!response.ok) throw new Error("서버에서 목록을 거부했습니다. (" + response.status + ")");
-            const data = await response.json();
-            const modelList = data.data || data;
-
-            const selectEl = document.getElementById('chat-model-select');
-            selectEl.innerHTML = ''; 
+            const data = await response.json(); const modelList = data.data || data;
+            const selectEl = document.getElementById('chat-model-select'); selectEl.innerHTML = ''; 
 
             if(Array.isArray(modelList) && modelList.length > 0) {
                 modelList.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.textContent = m.id; selectEl.appendChild(opt); });
                 const savedModel = localStorage.getItem('dreamer_model');
                 let exists = Array.from(selectEl.options).some(o => o.value === savedModel);
-                if(savedModel && exists) selectEl.value = savedModel;
-                else changeModel(selectEl.options[0].value);
+                if(savedModel && exists) selectEl.value = savedModel; else changeModel(selectEl.options[0].value);
                 alert("모델 목록을 성공적으로 불러왔습니다!");
-            } else {
-                selectEl.innerHTML = '<option value="">서버에 모델이 없습니다.</option>';
-                alert("사용 가능한 모델이 0개입니다.");
-            }
+            } else { selectEl.innerHTML = '<option value="">서버에 모델이 없습니다.</option>'; alert("사용 가능한 모델이 0개입니다."); }
         } catch(e) { alert("모델 목록을 불러오지 못했습니다:\n" + e.message); } finally { btn.innerHTML = originalHTML; }
     }
 
-    window.changePersona = function(personaId) {
-        localStorage.setItem('dreamer_current_persona_id', personaId);
-        renderData(); // 리스트에 기본값 표시 갱신
-    }
+    window.changePersona = function(personaId) { localStorage.setItem('dreamer_current_persona_id', personaId); renderData(); }
 
     window.loadChatPersonas = function() {
         const selectEl = document.getElementById('chat-persona-select');
         const pList = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
         selectEl.innerHTML = '';
-        if(pList.length === 0) {
-            selectEl.innerHTML = '<option value="">등록된 페르소나가 없습니다</option>';
-            return;
-        }
-        pList.forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p.id;
-            opt.textContent = p.name;
-            selectEl.appendChild(opt);
-        });
+        if(pList.length === 0) { selectEl.innerHTML = '<option value="">등록된 페르소나가 없습니다</option>'; return; }
+        pList.forEach(p => { const opt = document.createElement('option'); opt.value = p.id; opt.textContent = p.name; selectEl.appendChild(opt); });
+        
         const savedId = localStorage.getItem('dreamer_current_persona_id');
-        if(savedId && pList.some(p => p.id === savedId)) {
-            selectEl.value = savedId;
-        } else {
-            selectEl.value = pList[0].id;
-            localStorage.setItem('dreamer_current_persona_id', pList[0].id);
-        }
+        if(savedId && pList.some(p => p.id === savedId)) selectEl.value = savedId;
+        else { selectEl.value = pList[0].id; localStorage.setItem('dreamer_current_persona_id', pList[0].id); }
     }
 
     window.sendChatMessage = async function() {
-        const input = document.getElementById('chat-input');
-        const text = input.value.trim();
-        if (!text) return;
-
-        let displayContent = text;
-        let isOOC = text.toLowerCase().startsWith('/ooc');
+        const input = document.getElementById('chat-input'); const text = input.value.trim(); if (!text) return;
+        let displayContent = text; let isOOC = text.toLowerCase().startsWith('/ooc');
         if (isOOC) displayContent = `**[OOC 지시어]**\n${text.substring(4).trim()}`;
 
         currentChatHistory.push({ role: 'user', content: displayContent, pinned: false, isOOC: isOOC });
-        input.value = '';
-        renderChatLog();
-        saveCurrentChatState();
+        input.value = ''; renderChatLog(); saveCurrentChatState();
 
-        let rawApiUrl = localStorage.getItem('dreamer_api_url') || '';
-        const apiKey = localStorage.getItem('dreamer_api_key') || '';
-        
-        if(!rawApiUrl || !apiKey) {
-            currentChatHistory.push({ role: 'char', name: "시스템", content: `*(오류)* 설정 탭에서 **API 주소**와 **API Key**를 먼저 입력해주세요!`, pinned: false });
-            renderChatLog(); return;
-        }
-
-        let apiUrl = rawApiUrl;
-        if (!apiUrl.endsWith('/chat/completions')) apiUrl = apiUrl.replace(/\/$/, '') + '/chat/completions';
-
+        let rawApiUrl = localStorage.getItem('dreamer_api_url') || ''; const apiKey = localStorage.getItem('dreamer_api_key') || '';
+        if(!rawApiUrl || !apiKey) { currentChatHistory.push({ role: 'char', name: "시스템", content: `*(오류)* 설정 탭에서 **API 주소**와 **API Key**를 먼저 입력해주세요!`, pinned: false }); renderChatLog(); return; }
+        let apiUrl = rawApiUrl; if (!apiUrl.endsWith('/chat/completions')) apiUrl = apiUrl.replace(/\/$/, '') + '/chat/completions';
         const model = localStorage.getItem('dreamer_model');
         if(!model) { currentChatHistory.push({ role: 'char', name: "시스템", content: `*(오류)* 우측 상단 메뉴에서 모델을 선택해주세요.`, pinned: false }); renderChatLog(); return; }
 
@@ -933,234 +851,7 @@
         const savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
         const charData = savedChars.find(c => c.id === window.selectedCharId);
         if(charData) {
-            if(charData.profile) sysPrompt += charData.profile + "\n";
-            if(charData.relation) sysPrompt += `Relation with user: ${charData.relation}\n`;
-            if(charData.story) sysPrompt += `Story/Background: ${charData.story}\n`;
-            if(charData.language === 'Korean') sysPrompt += `You must strictly reply in Korean.\n`;
-            else sysPrompt += `You must strictly reply in English.\n`;
-        }
-
-        const activePersonaId = localStorage.getItem('dreamer_current_persona_id');
-        const savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
-        const activePersona = savedPersonas.find(p => p.id === activePersonaId);
-        if(activePersona) {
-            sysPrompt += `\n[User's Persona (My Profile)]\n- Name: ${activePersona.name}\n`;
-            if(activePersona.appearance) sysPrompt += `- Appearance: ${activePersona.appearance}\n`;
-            if(activePersona.bg) sysPrompt += `- Background: ${activePersona.bg}\n`;
-            sysPrompt += `* Note: Recognize me by this persona and react accordingly.\n`;
-        }
-
-        let apiMessages = [{ role: 'system', content: sysPrompt }];
-        let pinnedMessages = currentChatHistory.filter(m => m.pinned);
-        if(pinnedMessages.length > 0) {
-            sysPrompt += "\n[CRITICAL MEMORIES]:\n";
-            pinnedMessages.forEach(m => { sysPrompt += `${m.role === 'user' ? 'User' : 'You'}: ${m.content}\n`; });
-            apiMessages[0].content = sysPrompt;
-        }
-
-        currentChatHistory.forEach(msg => {
-            let finalContent = msg.content;
-            if (msg.role === 'user' && msg.isOOC) {
-                finalContent = `[System Directive (OOC): Stop your character roleplay for a moment and strictly follow this instruction: ${msg.content.replace('**[OOC 지시어]**\n', '')}]`;
-            }
-            apiMessages.push({ role: msg.role === 'char' ? 'assistant' : 'user', content: finalContent });
-        });
-
-        const loadingId = Date.now();
-        currentChatHistory.push({ id: loadingId, role: 'char', name: charName, content: "*(메시지 작성 중...)*", pinned: false });
-        renderChatLog();
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model: model, messages: apiMessages, max_tokens: 500, temperature: 0.7 })
-            });
-
-            if(!response.ok) throw new Error(`서버 오류 발생 (상태 코드: ${response.status})`);
-            const data = await response.json();
-            const reply = data.choices[0].message.content;
-
-            currentChatHistory = currentChatHistory.filter(m => m.id !== loadingId);
-            currentChatHistory.push({ role: 'char', name: charName, content: reply, pinned: false });
-            renderChatLog(); saveCurrentChatState();
-        } catch(err) {
-            console.error(err);
-            currentChatHistory = currentChatHistory.filter(m => m.id !== loadingId);
-            currentChatHistory.push({ role: 'char', name: "시스템 안내", content: `*(시스템 오류)* 연결 실패.\n\n**원인:** ${err.message}`, pinned: false });
-            renderChatLog();
-        }
-    }
-    
-    document.getElementById('chat-input').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
-    });
-
-    function saveCurrentChatState() {
-        if(!window.selectedCharId || isReadOnlyMode) return;
-        localStorage.setItem(`chat_history_${window.selectedCharId}`, JSON.stringify(currentChatHistory));
-    }
-
-    window.OpenChat = function(isNew = false, readOnlyData = null) {
-        document.getElementById('character-detail-screen').classList.add('hidden');
-        const chatScreen = document.getElementById('real-chat-screen');
-        chatScreen.style.display = 'flex';
-
-        if(readOnlyData) {
-            isReadOnlyMode = true;
-            document.getElementById('chat-header-name').innerText = readOnlyData.name + " (읽기 전용)";
-            document.getElementById('chat-footer').style.display = 'none';
-            currentChatHistory = readOnlyData.history; renderChatLog(); return;
-        }
-
-        isReadOnlyMode = false;
-        document.getElementById('chat-footer').style.display = 'block';
-
-        const nameVal = document.getElementById('detail-name')?.innerText || "캐릭터";
-        const imgVal = document.getElementById('detail-img')?.src || "";
-        const greetingVal = document.getElementById('detail-sub')?.innerText || "*미소지으며* 반가워요.";
-
-        document.getElementById('chat-header-name').innerText = nameVal;
-        document.getElementById('chat-header-img').src = imgVal;
-        document.getElementById('right-sidebar-name').innerText = nameVal;
-        document.getElementById('right-sidebar-img').src = imgVal;
-        
-        let handle = localStorage.getItem('dreamer_handle') || document.getElementById('login-id')?.value.split('@')[0] || "user";
-        document.getElementById('chat-header-handle').innerText = `By ${handle.includes('@') ? handle : '@'+handle}`;
-        
-        const selectEl = document.getElementById('chat-model-select');
-        const savedModel = localStorage.getItem('dreamer_model');
-        if (savedModel && Array.from(selectEl.options).some(o => o.value === savedModel)) selectEl.value = savedModel;
-
-        loadChatPersonas();
-
-        localStorage.setItem('current_screen', 'chat');
-        localStorage.setItem('current_char_id', window.selectedCharId);
-
-        if(isNew) {
-            currentChatHistory = [{ role: 'char', name: nameVal, content: greetingVal, pinned: false }];
-            saveCurrentChatState();
-        } else {
-            const savedHistory = localStorage.getItem(`chat_history_${window.selectedCharId}`);
-            if(savedHistory) currentChatHistory = JSON.parse(savedHistory);
-            else currentChatHistory = [{ role: 'char', name: nameVal, content: greetingVal, pinned: false }];
-        }
-        renderChatLog();
-    }
-
-    window.goHomeFromChat = function() {
-        document.getElementById('real-chat-screen').style.display = 'none';
-        localStorage.removeItem('current_screen'); 
-    }
-
-    window.changeModel = function(modelValue) { localStorage.setItem('dreamer_model', modelValue); }
-
-    window.startSceneSelection = function() {
-        toggleRightSidebar(); isSceneSelectionMode = true; selectedSceneIndices.clear();
-        document.getElementById('scene-selection-bar').style.display = 'flex'; renderChatLog();
-    }
-    
-    window.cancelSceneSave = function() {
-        isSceneSelectionMode = false; document.getElementById('scene-selection-bar').style.display = 'none'; renderChatLog();
-    }
-
-    window.confirmSceneSave = function() {
-        if(selectedSceneIndices.size === 0) return alert('저장할 메시지를 하나 이상 선택하세요.');
-        const sceneName = prompt("이 장면의 이름을 정해주세요:");
-        if (!sceneName) return;
-
-        let sortedIndices = Array.from(selectedSceneIndices).sort((a,b) => a-b);
-        let extractedHistory = sortedIndices.map(idx => currentChatHistory[idx]);
-
-        let scenes = JSON.parse(localStorage.getItem('dreamer_scenes') || '[]');
-        scenes.push({ id: Date.now().toString(), name: sceneName, charName: document.getElementById('chat-header-name').innerText, history: JSON.parse(JSON.stringify(extractedHistory)), date: new Date().toLocaleDateString() });
-        localStorage.setItem('dreamer_scenes', JSON.stringify(scenes));
-        alert('장면이 저장되었습니다.'); renderScenes(); cancelSceneSave();
-    }
-
-    window.renderScenes = function() {
-        const sBox = document.getElementById('scene-list-container');
-        const sList = JSON.parse(localStorage.getItem('dreamer_scenes') || '[]');
-        if(sList.length === 0) return sBox.innerHTML = '<p class="empty-text">저장된 장면이 없습니다.</p>';
-
-        sBox.innerHTML = '';
-        sList.forEach(s => {
-            const w = document.createElement('div'); w.className = 'swipe-container'; w.style.marginBottom = '12px';
-            w.innerHTML = `<div class="delete-btn-bg" onclick="deleteScene('${s.id}')"><i class="fas fa-trash"></i></div>
-                <div class="list-card swipe-card" style="background: var(--bg-surface); padding: 16px; border-radius: 12px; cursor:pointer;">
-                    <div style="flex:1;">
-                        <div style="font-weight:bold; color:white; margin-bottom:4px; font-size:16px;">${s.name}</div>
-                        <div style="font-size:12px; color:var(--text-secondary);">${s.charName} · ${s.date} · 메시지 ${s.history.length}개</div>
-                    </div>
-                </div>`;
-            const card = w.querySelector('.swipe-card'); attachSwipeEvents(card);
-            card.onclick = () => OpenChat(false, s); sBox.appendChild(w);
-        });
-    }
-
-    window.deleteScene = function(id) {
-        if(!confirm('장면을 삭제하시겠습니까?')) return;
-        let scenes = JSON.parse(localStorage.getItem('dreamer_scenes') || '[]');
-        localStorage.setItem('dreamer_scenes', JSON.stringify(scenes.filter(s => s.id !== id))); renderScenes();
-    }
-
-    window.toggleRightSidebar = function() {
-        const sidebar = document.getElementById('sidebar-right');
-        const overlay = document.getElementById('sidebar-overlay');
-        if(sidebar.style.right === '0px') { sidebar.style.right = '-300px'; overlay.classList.remove('show'); } 
-        else { sidebar.style.right = '0px'; overlay.classList.add('show'); }
-    }
-
-    window.openActionSheet = function(index) {
-        selectedMsgIndex = index;
-        document.getElementById('action-sheet').style.bottom = '20px';
-        document.getElementById('action-sheet-overlay').style.opacity = '1';
-        document.getElementById('action-sheet-overlay').style.visibility = 'visible';
-    }
-    window.closeActionSheet = function() {
-        document.getElementById('action-sheet').style.bottom = '-400px';
-        document.getElementById('action-sheet-overlay').style.opacity = '0';
-        document.getElementById('action-sheet-overlay').style.visibility = 'hidden';
-        selectedMsgIndex = null;
-    }
-
-    window.doTogglePinMessage = function() { if(selectedMsgIndex !== null) { currentChatHistory[selectedMsgIndex].pinned = !currentChatHistory[selectedMsgIndex].pinned; renderChatLog(); saveCurrentChatState(); } closeActionSheet(); }
-    window.doEditMessage = function() {
-        const newText = prompt("메시지를 수정하세요:", currentChatHistory[selectedMsgIndex].content);
-        if (newText !== null && newText.trim() !== '') { currentChatHistory[selectedMsgIndex].content = newText; renderChatLog(); saveCurrentChatState(); }
-        closeActionSheet();
-    }
-    window.doCopyMessage = function() { navigator.clipboard.writeText(currentChatHistory[selectedMsgIndex].content).then(() => { alert('복사되었습니다.'); closeActionSheet(); }); }
-    window.doRewindMessage = function() {
-        if (confirm("이 메시지를 포함하여 이후 대화가 삭제됩니다. 계속할까요?")) { currentChatHistory = currentChatHistory.slice(0, selectedMsgIndex + 1); renderChatLog(); saveCurrentChatState(); closeActionSheet(); }
-    }
-    window.doBranchMessage = function() {
-        alert("현재 대화를 바탕으로 새 채팅방(분기점)이 생성되었습니다! (아래 대화 절단됨)");
-        currentChatHistory = currentChatHistory.slice(0, selectedMsgIndex + 1); renderChatLog(); saveCurrentChatState(); closeActionSheet();
-    }
-
-    window.regenerateMessage = async function(index) {
-        if (index !== currentChatHistory.length - 1) return alert("가장 마지막 AI 메시지만 재생성(스와이프) 할 수 있습니다.");
-        if (currentChatHistory[index].role !== 'char') return;
-
-        let currentAltIndex = currentChatHistory[index].altIndex || 1;
-        let currentAltCount = currentChatHistory[index].altCount || 1;
-        currentAltIndex++; currentAltCount = Math.max(currentAltCount, currentAltIndex);
-        currentChatHistory.pop();
-
-        let rawApiUrl = localStorage.getItem('dreamer_api_url') || '';
-        const apiKey = localStorage.getItem('dreamer_api_key') || '';
-        if(!rawApiUrl || !apiKey) { alert("API 설정이 필요합니다."); return; }
-        let apiUrl = rawApiUrl; if (!apiUrl.endsWith('/chat/completions')) apiUrl = apiUrl.replace(/\/$/, '') + '/chat/completions';
-        const model = localStorage.getItem('dreamer_model'); if(!model) { alert("모델을 선택해주세요."); return; }
-
-        const charName = document.getElementById('chat-header-name').innerText;
-        let sysPrompt = `You are ${charName}. `;
-        const savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
-        const charData = savedChars.find(c => c.id === window.selectedCharId);
-        if(charData) {
-            if(charData.profile) sysPrompt += charData.profile + "\n";
-            if(charData.relation) sysPrompt += `Relation with user: ${charData.relation}\n`;
+            if(charData.profile) sysPrompt += charData.profile + "\n"; if(charData.relation) sysPrompt += `Relation with user: ${charData.relation}\n`;
             if(charData.story) sysPrompt += `Story/Background: ${charData.story}\n`;
             if(charData.language === 'Korean') sysPrompt += `You must strictly reply in Korean.\n`; else sysPrompt += `You must strictly reply in English.\n`;
         }
@@ -1177,10 +868,7 @@
 
         let apiMessages = [{ role: 'system', content: sysPrompt }];
         let pinnedMessages = currentChatHistory.filter(m => m.pinned);
-        if(pinnedMessages.length > 0) {
-            sysPrompt += "\n[CRITICAL MEMORIES]:\n";
-            pinnedMessages.forEach(m => { sysPrompt += `${m.role === 'user' ? 'User' : 'You'}: ${m.content}\n`; }); apiMessages[0].content = sysPrompt;
-        }
+        if(pinnedMessages.length > 0) { sysPrompt += "\n[CRITICAL MEMORIES]:\n"; pinnedMessages.forEach(m => { sysPrompt += `${m.role === 'user' ? 'User' : 'You'}: ${m.content}\n`; }); apiMessages[0].content = sysPrompt; }
 
         currentChatHistory.forEach(msg => {
             let finalContent = msg.content;
@@ -1188,29 +876,156 @@
             apiMessages.push({ role: msg.role === 'char' ? 'assistant' : 'user', content: finalContent });
         });
 
-        const loadingId = Date.now();
-        currentChatHistory.push({ id: loadingId, role: 'char', name: charName, content: "*(새로운 응답 생성 중...)*", pinned: false }); renderChatLog();
+        const loadingId = Date.now(); currentChatHistory.push({ id: loadingId, role: 'char', name: charName, content: "*(메시지 작성 중...)*", pinned: false }); renderChatLog();
+
+        try {
+            const response = await fetch(apiUrl, { method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: model, messages: apiMessages, max_tokens: 500, temperature: 0.7 }) });
+            if(!response.ok) throw new Error(`서버 오류 발생 (상태 코드: ${response.status})`);
+            const data = await response.json(); const reply = data.choices[0].message.content;
+            currentChatHistory = currentChatHistory.filter(m => m.id !== loadingId);
+            currentChatHistory.push({ role: 'char', name: charName, content: reply, pinned: false }); renderChatLog(); saveCurrentChatState();
+        } catch(err) {
+            console.error(err); currentChatHistory = currentChatHistory.filter(m => m.id !== loadingId);
+            currentChatHistory.push({ role: 'char', name: "시스템 안내", content: `*(시스템 오류)* 연결 실패.\n\n**원인:** ${err.message}`, pinned: false }); renderChatLog();
+        }
+    }
+    
+    document.getElementById('chat-input').addEventListener('keypress', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } });
+
+    function saveCurrentChatState() { if(!window.selectedCharId || isReadOnlyMode) return; localStorage.setItem(`chat_history_${window.selectedCharId}`, JSON.stringify(currentChatHistory)); }
+
+    window.OpenChat = function(isNew = false, readOnlyData = null) {
+        document.getElementById('character-detail-screen').classList.add('hidden');
+        const chatScreen = document.getElementById('real-chat-screen'); chatScreen.style.display = 'flex';
+        if(readOnlyData) {
+            isReadOnlyMode = true; document.getElementById('chat-header-name').innerText = readOnlyData.name + " (읽기 전용)";
+            document.getElementById('chat-footer').style.display = 'none'; currentChatHistory = readOnlyData.history; renderChatLog(); return;
+        }
+
+        isReadOnlyMode = false; document.getElementById('chat-footer').style.display = 'block';
+        const nameVal = document.getElementById('detail-name')?.innerText || "캐릭터"; const imgVal = document.getElementById('detail-img')?.src || ""; const greetingVal = document.getElementById('detail-sub')?.innerText || "*미소지으며* 반가워요.";
+        document.getElementById('chat-header-name').innerText = nameVal; document.getElementById('chat-header-img').src = imgVal;
+        document.getElementById('right-sidebar-name').innerText = nameVal; document.getElementById('right-sidebar-img').src = imgVal;
+        
+        let handle = localStorage.getItem('dreamer_handle') || document.getElementById('login-id')?.value.split('@')[0] || "user";
+        document.getElementById('chat-header-handle').innerText = `By ${handle.includes('@') ? handle : '@'+handle}`;
+        
+        const selectEl = document.getElementById('chat-model-select'); const savedModel = localStorage.getItem('dreamer_model');
+        if (savedModel && Array.from(selectEl.options).some(o => o.value === savedModel)) selectEl.value = savedModel;
+
+        loadChatPersonas();
+        localStorage.setItem('current_screen', 'chat'); localStorage.setItem('current_char_id', window.selectedCharId);
+
+        if(isNew) { currentChatHistory = [{ role: 'char', name: nameVal, content: greetingVal, pinned: false }]; saveCurrentChatState(); } 
+        else {
+            const savedHistory = localStorage.getItem(`chat_history_${window.selectedCharId}`);
+            if(savedHistory) currentChatHistory = JSON.parse(savedHistory); else currentChatHistory = [{ role: 'char', name: nameVal, content: greetingVal, pinned: false }];
+        }
+        renderChatLog();
+    }
+
+    window.goHomeFromChat = function() { document.getElementById('real-chat-screen').style.display = 'none'; localStorage.removeItem('current_screen'); }
+    window.changeModel = function(modelValue) { localStorage.setItem('dreamer_model', modelValue); }
+
+    window.startSceneSelection = function() { toggleRightSidebar(); isSceneSelectionMode = true; selectedSceneIndices.clear(); document.getElementById('scene-selection-bar').style.display = 'flex'; renderChatLog(); }
+    window.cancelSceneSave = function() { isSceneSelectionMode = false; document.getElementById('scene-selection-bar').style.display = 'none'; renderChatLog(); }
+
+    window.confirmSceneSave = function() {
+        if(selectedSceneIndices.size === 0) return alert('저장할 메시지를 하나 이상 선택하세요.');
+        const sceneName = prompt("이 장면의 이름을 정해주세요:"); if (!sceneName) return;
+        let sortedIndices = Array.from(selectedSceneIndices).sort((a,b) => a-b); let extractedHistory = sortedIndices.map(idx => currentChatHistory[idx]);
+        let scenes = JSON.parse(localStorage.getItem('dreamer_scenes') || '[]');
+        scenes.push({ id: Date.now().toString(), name: sceneName, charName: document.getElementById('chat-header-name').innerText, history: JSON.parse(JSON.stringify(extractedHistory)), date: new Date().toLocaleDateString() });
+        localStorage.setItem('dreamer_scenes', JSON.stringify(scenes)); alert('장면이 저장되었습니다.'); renderScenes(); cancelSceneSave();
+    }
+
+    window.renderScenes = function() {
+        const sBox = document.getElementById('scene-list-container'); const sList = JSON.parse(localStorage.getItem('dreamer_scenes') || '[]');
+        if(sList.length === 0) return sBox.innerHTML = '<p class="empty-text">저장된 장면이 없습니다.</p>';
+        sBox.innerHTML = '';
+        sList.forEach(s => {
+            const w = document.createElement('div'); w.className = 'swipe-container'; w.style.marginBottom = '12px';
+            w.innerHTML = `<div class="delete-btn-bg" onclick="deleteScene('${s.id}')"><i class="fas fa-trash"></i></div>
+                <div class="list-card swipe-card" style="background: var(--bg-surface); padding: 16px; border-radius: 12px; cursor:pointer;">
+                    <div style="flex:1;"><div style="font-weight:bold; color:white; margin-bottom:4px; font-size:16px;">${s.name}</div><div style="font-size:12px; color:var(--text-secondary);">${s.charName} · ${s.date} · 메시지 ${s.history.length}개</div></div>
+                </div>`;
+            const card = w.querySelector('.swipe-card'); attachSwipeEvents(card); card.onclick = () => OpenChat(false, s); sBox.appendChild(w);
+        });
+    }
+
+    window.deleteScene = function(id) { if(!confirm('장면을 삭제하시겠습니까?')) return; let scenes = JSON.parse(localStorage.getItem('dreamer_scenes') || '[]'); localStorage.setItem('dreamer_scenes', JSON.stringify(scenes.filter(s => s.id !== id))); renderScenes(); }
+    window.toggleRightSidebar = function() { const sidebar = document.getElementById('sidebar-right'); const overlay = document.getElementById('sidebar-overlay'); if(sidebar.style.right === '0px') { sidebar.style.right = '-300px'; overlay.classList.remove('show'); } else { sidebar.style.right = '0px'; overlay.classList.add('show'); } }
+
+    window.openActionSheet = function(index) { selectedMsgIndex = index; document.getElementById('action-sheet').style.bottom = '20px'; document.getElementById('action-sheet-overlay').style.opacity = '1'; document.getElementById('action-sheet-overlay').style.visibility = 'visible'; }
+    window.closeActionSheet = function() { document.getElementById('action-sheet').style.bottom = '-400px'; document.getElementById('action-sheet-overlay').style.opacity = '0'; document.getElementById('action-sheet-overlay').style.visibility = 'hidden'; selectedMsgIndex = null; }
+
+    window.doTogglePinMessage = function() { if(selectedMsgIndex !== null) { currentChatHistory[selectedMsgIndex].pinned = !currentChatHistory[selectedMsgIndex].pinned; renderChatLog(); saveCurrentChatState(); } closeActionSheet(); }
+    window.doEditMessage = function() { const newText = prompt("메시지를 수정하세요:", currentChatHistory[selectedMsgIndex].content); if (newText !== null && newText.trim() !== '') { currentChatHistory[selectedMsgIndex].content = newText; renderChatLog(); saveCurrentChatState(); } closeActionSheet(); }
+    window.doCopyMessage = function() { navigator.clipboard.writeText(currentChatHistory[selectedMsgIndex].content).then(() => { alert('복사되었습니다.'); closeActionSheet(); }); }
+    window.doRewindMessage = function() { if (confirm("이 메시지를 포함하여 이후 대화가 삭제됩니다. 계속할까요?")) { currentChatHistory = currentChatHistory.slice(0, selectedMsgIndex + 1); renderChatLog(); saveCurrentChatState(); closeActionSheet(); } }
+    window.doBranchMessage = function() { alert("현재 대화를 바탕으로 새 채팅방(분기점)이 생성되었습니다! (아래 대화 절단됨)"); currentChatHistory = currentChatHistory.slice(0, selectedMsgIndex + 1); renderChatLog(); saveCurrentChatState(); closeActionSheet(); }
+
+    window.regenerateMessage = async function(index) {
+        if (index !== currentChatHistory.length - 1) return alert("가장 마지막 AI 메시지만 재생성(스와이프) 할 수 있습니다.");
+        if (currentChatHistory[index].role !== 'char') return;
+
+        let currentAltIndex = currentChatHistory[index].altIndex || 1; let currentAltCount = currentChatHistory[index].altCount || 1;
+        currentAltIndex++; currentAltCount = Math.max(currentAltCount, currentAltIndex); currentChatHistory.pop();
+
+        let rawApiUrl = localStorage.getItem('dreamer_api_url') || ''; const apiKey = localStorage.getItem('dreamer_api_key') || '';
+        if(!rawApiUrl || !apiKey) { alert("API 설정이 필요합니다."); return; }
+        let apiUrl = rawApiUrl; if (!apiUrl.endsWith('/chat/completions')) apiUrl = apiUrl.replace(/\/$/, '') + '/chat/completions';
+        const model = localStorage.getItem('dreamer_model'); if(!model) { alert("모델을 선택해주세요."); return; }
+
+        const charName = document.getElementById('chat-header-name').innerText;
+        let sysPrompt = `You are ${charName}. `;
+        const savedChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]'); const charData = savedChars.find(c => c.id === window.selectedCharId);
+        if(charData) {
+            if(charData.profile) sysPrompt += charData.profile + "\n"; if(charData.relation) sysPrompt += `Relation with user: ${charData.relation}\n`;
+            if(charData.story) sysPrompt += `Story/Background: ${charData.story}\n`; if(charData.language === 'Korean') sysPrompt += `You must strictly reply in Korean.\n`; else sysPrompt += `You must strictly reply in English.\n`;
+        }
+
+        const activePersonaId = localStorage.getItem('dreamer_current_persona_id');
+        const savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]'); const activePersona = savedPersonas.find(p => p.id === activePersonaId);
+        if(activePersona) {
+            sysPrompt += `\n[User's Persona (My Profile)]\n- Name: ${activePersona.name}\n`;
+            if(activePersona.appearance) sysPrompt += `- Appearance: ${activePersona.appearance}\n`; if(activePersona.bg) sysPrompt += `- Background: ${activePersona.bg}\n`;
+            sysPrompt += `* Note: Recognize me by this persona and react accordingly.\n`;
+        }
+
+        let apiMessages = [{ role: 'system', content: sysPrompt }];
+        let pinnedMessages = currentChatHistory.filter(m => m.pinned);
+        if(pinnedMessages.length > 0) { sysPrompt += "\n[CRITICAL MEMORIES]:\n"; pinnedMessages.forEach(m => { sysPrompt += `${m.role === 'user' ? 'User' : 'You'}: ${m.content}\n`; }); apiMessages[0].content = sysPrompt; }
+
+        currentChatHistory.forEach(msg => {
+            let finalContent = msg.content;
+            if (msg.role === 'user' && msg.isOOC) finalContent = `[System Directive (OOC): Stop your character roleplay for a moment and strictly follow this instruction: ${msg.content.replace('**[OOC 지시어]**\n', '')}]`;
+            apiMessages.push({ role: msg.role === 'char' ? 'assistant' : 'user', content: finalContent });
+        });
+
+        const loadingId = Date.now(); currentChatHistory.push({ id: loadingId, role: 'char', name: charName, content: "*(새로운 응답 생성 중...)*", pinned: false }); renderChatLog();
 
         try {
             const response = await fetch(apiUrl, { method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: model, messages: apiMessages, max_tokens: 500, temperature: 0.9 }) });
             if(!response.ok) throw new Error(`서버 오류 (${response.status})`);
             const data = await response.json(); const reply = data.choices[0].message.content;
             currentChatHistory = currentChatHistory.filter(m => m.id !== loadingId);
-            currentChatHistory.push({ role: 'char', name: charName, content: reply, pinned: false, altCount: currentAltCount, altIndex: currentAltIndex });
-            renderChatLog(); saveCurrentChatState();
-        } catch(err) {
-            console.error(err); currentChatHistory = currentChatHistory.filter(m => m.id !== loadingId); alert("재생성 실패: " + err.message); renderChatLog();
-        }
+            currentChatHistory.push({ role: 'char', name: charName, content: reply, pinned: false, altCount: currentAltCount, altIndex: currentAltIndex }); renderChatLog(); saveCurrentChatState();
+        } catch(err) { console.error(err); currentChatHistory = currentChatHistory.filter(m => m.id !== loadingId); alert("재생성 실패: " + err.message); renderChatLog(); }
     }
 
+    // ★ 초기 앱 실행 시 관리자 여부 확인 ★
     window.addEventListener('DOMContentLoaded', () => {
         renderData();
+        
+        const savedHandle = localStorage.getItem('dreamer_handle');
+        if (savedHandle === 'ReschaRiley') localStorage.setItem('dreamer_is_admin', 'true');
         checkAdminUI();
         
         document.getElementById('settings-api-url').value = localStorage.getItem('dreamer_api_url') || 'https://api.totalgpt.ai/v1';
         document.getElementById('settings-api-key').value = localStorage.getItem('dreamer_api_key') || '';
         document.getElementById('settings-nickname').value = localStorage.getItem('dreamer_nickname') || '';
-        document.getElementById('settings-handle').value = localStorage.getItem('dreamer_handle') || '';
+        document.getElementById('settings-handle').value = savedHandle || '';
 
         const savedTab = localStorage.getItem('dreamer_current_tab');
         if (savedTab) { const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`); if (tabBtn) tabBtn.click(); }
@@ -1243,7 +1058,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc, getDocs, collection, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const app = initializeApp({
@@ -1257,7 +1072,11 @@
     const db = getFirestore(app);
     let currentUserUid = null;
 
-    // ★ 글로벌 공지사항 로드/저장 로직 추가 ★
+    // ★ 진짜 로그아웃 기능 (Firebase 연결 끊기) ★
+    window.firebaseSignOut = function() {
+        signOut(auth).catch((error) => console.error("로그아웃 에러:", error));
+    };
+
     window.fetchGlobalNotice = async function() {
         try {
             const docRef = doc(db, 'globals', 'notice');
@@ -1278,10 +1097,8 @@
             await setDoc(doc(db, 'globals', 'notice'), { title, content, updatedAt: Date.now() });
             alert('공지사항이 성공적으로 업데이트되었습니다.');
             document.getElementById('notice-edit-screen').classList.add('hidden');
-            window.fetchGlobalNotice(); // 화면 갱신
-        } catch(e) {
-            alert('업데이트 실패: 데이터베이스 쓰기 권한이 필요합니다. ' + e.message);
-        }
+            window.fetchGlobalNotice(); 
+        } catch(e) { alert('업데이트 실패: 데이터베이스 쓰기 권한이 필요합니다. ' + e.message); }
     };
 
     onAuthStateChanged(auth, async (user) => {
