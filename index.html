@@ -149,10 +149,10 @@
         <div class="form-group"><label>페르소나 이름 (필수)</label><input type="text" id="edit-persona-name" maxlength="25"><div class="char-count">0 / 25</div></div>
         <div class="form-group"><label>나의 외관 특징</label><textarea id="edit-persona-appearance" rows="3"></textarea></div>
         <div class="form-group"><label>배경 및 성향</label><textarea id="edit-persona-bg" rows="4"></textarea></div>
-   <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
-    <input type="checkbox" id="edit-persona-default" style="width: auto; margin: 0;">
-    <label for="edit-persona-default" style="margin: 0; cursor: pointer; font-size: 14px;">기본 페르소나로 설정</label>
-</div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
+            <input type="checkbox" id="edit-persona-default" style="width: auto; margin: 0;">
+            <label for="edit-persona-default" style="margin: 0; cursor: pointer; font-size: 14px;">기본 페르소나로 설정</label>
+        </div>
      </div>
 </div>
 
@@ -169,7 +169,8 @@
         <div id="detail-sub" class="detail-sub-text">짧은 설명</div>
 
         <div style="padding: 0 16px; margin-top: 24px;">
-            <button class="action-btn-filled" onclick="onclick=OpenChat()"><i class="fas fa-plus"></i> 새 채팅 시작하기</button>
+            <!-- [수정됨] onclick 오타 수정 -->
+            <button class="action-btn-filled" onclick="OpenChat()"><i class="fas fa-plus"></i> 새 채팅 시작하기</button>
             <button class="action-btn-outline" onclick="alert('기존 대화방으로 연결 예정입니다.')"><i class="fas fa-comments"></i> 기존 채팅 이어보기</button>
             <button class="action-btn-outline" id="btn-detail-edit" style="color: var(--accent-color); border-color: rgba(216, 180, 254, 0.5);"><i class="fas fa-edit"></i> 이 캐릭터 수정하기</button>
         </div>
@@ -196,22 +197,26 @@
         </div>
     </div>
 </div>
-<div id="real-chat-screen" class="editor-screen hidden" style="display: none; flex-direction: column; background-color: #121212; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-    <header class="editor-header" style="border-bottom: 1px solid #333; background: #181818; display: flex; align-items: center; padding: 10px 16px;">
-        <button onclick="closeChat()" style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;">←</button>
-        <div style="margin-left: 10px; display: flex; align-items: center; gap: 10px;">
-            <img id="chat-header-img" src="" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-            <strong id="chat-header-name" style="color: #fff;">이름</strong>
+
+<!-- [수정됨] 5. 진짜 채팅방 화면 DOM 분리 복구 -->
+<div id="real-chat-screen" class="editor-screen" style="display: none; flex-direction: column; background-color: #121212; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
+    <header class="editor-header" style="border-bottom: 1px solid #333; background: #181818; display: flex; align-items: center; padding: 10px 16px; height: 60px;">
+        <button onclick="closeChat()" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; padding: 5px 15px;">←</button>
+        <div style="margin-left: 5px; display: flex; align-items: center; gap: 10px;">
+            <img id="chat-header-img" src="" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: #444;">
+            <div style="display: flex; flex-direction: column;">
+                <strong id="chat-header-name" style="color: #fff; font-size: 15px;">이름</strong>
+                <small style="color: #888; font-size: 11px;">@c.ai_style</small>
+            </div>
         </div>
     </header>
 
-    <div id="chat-log" style="flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px;">
-        </div>
+    <div id="chat-log" style="flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px; background: #121212;"></div>
 
-    <footer style="padding: 15px; background: #121212; border-top: 1px solid #222;">
-        <div style="display: flex; align-items: center; background: #252525; border-radius: 24px; padding: 5px 15px;">
-            <textarea id="chat-input" placeholder="메시지 입력..." rows="1" style="flex: 1; background: none; border: none; color: white; outline: none; resize: none;"></textarea>
-            <button style="background: none; border: none; color: #7d5fff; font-weight: bold;">전송</button>
+    <footer style="padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: 10000;">
+        <div style="display: flex; align-items: center; background: #252525; border-radius: 24px; padding: 8px 16px; border: 1px solid #444;">
+            <textarea id="chat-input" placeholder="메시지를 입력하세요..." rows="1" style="flex: 1; background: none; border: none; color: white; outline: none; resize: none; font-size: 15px; font-family: inherit;"></textarea>
+            <button style="background: none; border: none; color: #7d5fff; font-weight: bold; cursor: pointer; margin-left: 10px;">전송</button>
         </div>
     </footer>
 </div>
@@ -251,7 +256,6 @@
     .create-btn { width: 100%; background: var(--bg-surface); color: var(--accent-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
     .empty-text { color: var(--text-secondary); font-size: 14px; text-align: center; margin-top: 20px; }
 
-    /* 리스트 스타일 (사진 48px 축소) */
     .swipe-container { position: relative; width: 100%; overflow: hidden; border-radius: 16px; margin-bottom: 12px; background: var(--bg-surface); }
     .delete-btn-bg { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; background-color: var(--danger-color); color: white; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; z-index: 1; }
     .list-card { display: flex; align-items: center; gap: 14px; background: var(--bg-surface); padding: 14px 16px; border-radius: 16px; position: relative; cursor: pointer; z-index: 2; width: 100%; transition: transform 0.3s ease; }
@@ -264,7 +268,6 @@
     .list-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .edit-btn { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--text-secondary); font-size: 16px; cursor: pointer; padding: 4px; }
 
-    /* 에디터 화면 전역 설정 */
     .editor-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); z-index: 7000; display: flex; flex-direction: column; transition: 0.3s; }
     .editor-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
     .editor-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--bg-main); border-bottom: 1px solid var(--border-color); padding-top: calc(16px + env(safe-area-inset-top)); }
@@ -277,7 +280,6 @@
     .form-group input, .form-group textarea, .form-group select { width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; color: white; font-size: 15px; outline: none; }
     .char-count { font-size: 11px; color: var(--text-secondary); text-align: right; margin-top: 4px; }
 
-    /* 상세 정보 창 디자인 */
     .detail-img-large { width: 100px; height: 100px; border-radius: 20px; object-fit: cover; margin: 0 auto 16px auto; display: block; border: 1px solid var(--border-color); }
     .detail-name-text { font-size: 22px; font-weight: 800; color: white; text-align: center; margin-bottom: 8px; }
     .detail-sub-text { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 32px; padding: 0 20px; line-height: 1.5; }
@@ -285,7 +287,6 @@
     .action-btn-outline { background: transparent; border: 1px solid var(--border-color); color: white; }
     .action-btn-filled { background: var(--text-primary); color: black; border: none; }
 
-    /* 로그인 및 사이드바 */
     .screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px; transition: 0.3s; }
     .screen-overlay.hidden { opacity: 0; visibility: hidden; }
     .login-container { width: 100%; max-width: 400px; background: var(--bg-surface); padding: 40px 24px; border-radius: 20px; border: 1px solid var(--border-color); text-align: center; }
@@ -305,10 +306,9 @@
 </style>
 
 <!-- ========================================================= -->
-<!-- ▼ 자바스크립트 영역 (무한로딩 완벽 해결 - 지연시간 0초) ▼ -->
+<!-- ▼ 자바스크립트 영역 (기본 로직) ▼ -->
 <!-- ========================================================= -->
 <script>
-    // 상태 변수
     window.editingCharId = null;
     window.editingPersonaId = null;
     window.tempCharBase64 = null;
@@ -449,7 +449,7 @@
         document.getElementById('character-detail-screen').classList.remove('hidden');
     };
 
-    // 삭제 기능 (기기 즉시 반영)
+    // 삭제 기능
     window.executeDelete = function(id, name, type) {
         if(!confirm(`'${name}'을(를) 삭제하시겠습니까?`)) { renderData(); return; }
         
@@ -457,9 +457,7 @@
         let saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
         localStorage.setItem(storageKey, JSON.stringify(saved.filter(item => item.id.toString() !== id.toString())));
         
-        renderData(); // 화면에서 즉시 삭제
-        
-        // 파이어베이스 연동되어 있다면 백그라운드 서버 삭제 진행 (대기시간 0초)
+        renderData();
         if(typeof window.bgSyncDelete === 'function') window.bgSyncDelete(type, id);
     };
 
@@ -471,7 +469,7 @@
         cardElement.addEventListener('touchend', () => { cardElement.style.transition = 'transform 0.3s'; cardElement.style.transform = currentX < -50 ? 'translateX(-80px)' : 'translateX(0px)'; currentX = 0; });
     };
 
-    // 🌟 핵심 해결: 저장 시 무조건 기기에 "즉시 반영"하고 팝업을 닫음 (무한로딩 완벽 차단) 🌟
+    // 저장 로직
     window.saveCharacter = function() {
         const nameInput = document.getElementById('edit-char-name').value.trim();
         if(!nameInput) return alert("캐릭터 이름은 필수 입력 사항입니다.");
@@ -498,14 +496,9 @@
             savedChars.unshift(charData); 
         }
 
-        // 1. 기기 저장소에 즉시 저장
         localStorage.setItem('dreamer_characters', JSON.stringify(savedChars));
-        
-        // 2. 대기 시간 0.01초 없이 팝업창을 바로 닫고 새로고침
         closeEditor('character');
         renderData();
-
-        // 3. (옵션) 파이어베이스 로그인 상태라면 서버에 조용히 백업 요청 (화면 안 멈춤)
         if(typeof window.bgSyncSave === 'function') window.bgSyncSave('characters', charData);
     };
 
@@ -533,16 +526,12 @@
             savedPersonas.unshift(personaData); 
         }
 
-        // 즉시 저장 및 화면 반영
         localStorage.setItem('dreamer_personas', JSON.stringify(savedPersonas));
         closeEditor('persona');
         renderData();
-
-        // 조용히 서버 백업
         if(typeof window.bgSyncSave === 'function') window.bgSyncSave('personas', personaData);
     };
 
-    // 화면 그리기 함수 (로컬 기반)
     window.renderData = function() {
         const cBox = document.getElementById('character-list-container');
         const pBox = document.getElementById('persona-list-container');
@@ -593,7 +582,7 @@
 </script>
 
 <!-- ========================================================= -->
-<!-- [파이어베이스 백그라운드 동기화 모듈] 화면 멈춤 없음 -->
+<!-- [파이어베이스 백그라운드 동기화 모듈] (수정됨: 닫힘 태그 복구) -->
 <!-- ========================================================= -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -611,11 +600,9 @@
     const db = getFirestore(app);
     let currentUserUid = null;
 
-    // Firebase 로그인 상태 확인 후 최초 1회 서버 데이터 가져오기
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserUid = user.uid;
-            // 서버에 있는 데이터를 가져와서 로컬에 덮어씌움 (동기화)
             try {
                 const cSnap = await getDocs(collection(db, `users/${user.uid}/characters`));
                 let cList = []; cSnap.forEach(d => { cList.push({ id: d.id, ...d.data() }) });
@@ -624,7 +611,7 @@
                 const pSnap = await getDocs(collection(db, `users/${user.uid}/personas`));
                 let pList = []; pSnap.forEach(d => { pList.push({ id: d.id, ...d.data() }) });
                 if(pList.length > 0) { localStorage.setItem('dreamer_personas', JSON.stringify(pList)); window.renderData(); }
-            } catch(e) { console.warn("서버 동기화 지연됨 (로컬 우선 사용)"); }
+            } catch(e) { console.warn("서버 동기화 지연됨"); }
         }
     });
 
@@ -632,51 +619,43 @@
         const id = document.getElementById('login-id').value.trim();
         const pw = document.getElementById('login-pw').value.trim();
         const validEmail = id.includes('@') ? id : `${id}@dreamer.ai`;
-        if(id && pw) signInWithEmailAndPassword(auth, validEmail, pw).catch(()=>{}); // 에러 나도 모른 척 넘어감 (로컬 사용 우선)
+        if(id && pw) signInWithEmailAndPassword(auth, validEmail, pw).catch(()=>{}); 
     });
 
-    // 화면 멈춤 없이 서버에 조용히 백업하는 함수
-<div id="real-chat-screen" class="editor-screen" style="display: none; flex-direction: column; background-color: #121212; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
-    <header class="editor-header" style="border-bottom: 1px solid #333; background: #181818; display: flex; align-items: center; padding: 10px 16px; height: 60px;">
-        <button onclick="closeChat()" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; padding: 5px 15px;">←</button>
-        <div style="margin-left: 5px; display: flex; align-items: center; gap: 10px;">
-            <img id="chat-header-img" src="" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: #444;">
-            <div style="display: flex; flex-direction: column;">
-                <strong id="chat-header-name" style="color: #fff; font-size: 15px;">이름</strong>
-                <small style="color: #888; font-size: 11px;">@c.ai_style</small>
-            </div>
-        </div>
-    </header>
+    // 끊겼던 백그라운드 서버 동기화 함수 복구
+    window.bgSyncSave = async function(type, data) {
+        if(!currentUserUid) return;
+        try { await setDoc(doc(db, `users/${currentUserUid}/${type}`, data.id.toString()), data); } catch(e) {}
+    };
 
-    <div id="chat-log" style="flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px; background: #121212;"></div>
+    window.bgSyncDelete = async function(type, id) {
+        if(!currentUserUid) return;
+        try { await deleteDoc(doc(db, `users/${currentUserUid}/${type}`, id.toString())); } catch(e) {}
+    };
+</script>
 
-    <footer style="padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: 10000;">
-        <div style="display: flex; align-items: center; background: #252525; border-radius: 24px; padding: 8px 16px; border: 1px solid #444;">
-            <textarea id="chat-input" placeholder="메시지를 입력하세요..." rows="1" style="flex: 1; background: none; border: none; color: white; outline: none; resize: none; font-size: 15px; font-family: inherit;"></textarea>
-            <button style="background: none; border: none; color: #7d5fff; font-weight: bold; cursor: pointer; margin-left: 10px;">전송</button>
-        </div>
-    </footer>
-</div>
-
+<!-- ========================================================= -->
+<!-- ▼ 진짜 채팅방 제어 로직 ▼ -->
+<!-- ========================================================= -->
 <script>
-// 버튼 클릭 시 실행되는 함수
 function OpenChat() {
     const chatScreen = document.getElementById('real-chat-screen');
     if (!chatScreen) return;
     
-    // 1. 화면 표시
+    // 화면 표시
     chatScreen.style.display = 'flex';
 
-    // 2. 캐릭터 데이터 추출 (8:05 이미지의 ID 기준)
+    // 캐릭터 상세창에서 정보 뽑아오기
     const nameVal = document.getElementById('detail-name')?.innerText || "캐릭터";
     const imgVal = document.getElementById('detail-img')?.src || "";
-    const greetingVal = document.getElementById('edit-char-greeting')?.value || "반가워요!";
+    // 입력된 인사말이 있으면 가져오고, 없으면 기본 인사말
+    const greetingVal = document.getElementById('detail-sub')?.innerText || "반가워요!";
 
-    // 3. 헤더 업데이트
+    // 채팅방 헤더 업데이트
     document.getElementById('chat-header-name').innerText = nameVal;
     document.getElementById('chat-header-img').src = imgVal;
 
-    // 4. 첫마디 출력
+    // 첫마디 출력 (말풍선 그리기)
     const chatLog = document.getElementById('chat-log');
     if (chatLog) {
         chatLog.innerHTML = `
@@ -693,11 +672,11 @@ function OpenChat() {
     }
 }
 
-// 창 닫기 함수
 function closeChat() {
     const screen = document.getElementById('real-chat-screen');
     if (screen) screen.style.display = 'none';
 }
 </script>
+
 </body>
 </html>
