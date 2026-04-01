@@ -196,6 +196,25 @@
         </div>
     </div>
 </div>
+<div id="real-chat-screen" class="editor-screen hidden" style="display: none; flex-direction: column; background-color: #121212; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
+    <header class="editor-header" style="border-bottom: 1px solid #333; background: #181818; display: flex; align-items: center; padding: 10px 16px;">
+        <button onclick="closeChat()" style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;">←</button>
+        <div style="margin-left: 10px; display: flex; align-items: center; gap: 10px;">
+            <img id="chat-header-img" src="" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+            <strong id="chat-header-name" style="color: #fff;">이름</strong>
+        </div>
+    </header>
+
+    <div id="chat-log" style="flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px;">
+        </div>
+
+    <footer style="padding: 15px; background: #121212; border-top: 1px solid #222;">
+        <div style="display: flex; align-items: center; background: #252525; border-radius: 24px; padding: 5px 15px;">
+            <textarea id="chat-input" placeholder="메시지 입력..." rows="1" style="flex: 1; background: none; border: none; color: white; outline: none; resize: none;"></textarea>
+            <button style="background: none; border: none; color: #7d5fff; font-weight: bold;">전송</button>
+        </div>
+    </footer>
+</div>
 
 <!-- ========================================================= -->
 <!-- ▼ 전체 CSS 디자인 영역 ▼ -->
