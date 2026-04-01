@@ -1199,7 +1199,7 @@
                 savedPersonas[index].info = infoInput;
                 savedPersonas[index].appearance = appInput;
                 savedPersonas[index].bg = bgInput;
-                if(tempPersonaBase64) savedPersonas[index].photoUrl = tempPersonaBase64;
+                if(window.tempPersonaBase64) savedPersonas[index].photoUrl = tempPersonaBase64;
             }
         } else {
             savedPersonas.unshift({
@@ -1208,7 +1208,7 @@
                 info: infoInput,
                 appearance: appInput,
                 bg: bgInput,
-                photoUrl: tempPersonaBase64
+                photoUrl: window.tempPersonaBase64
             });
         }
 
@@ -1376,9 +1376,9 @@
     document.getElementById('edit-char-img-input').addEventListener('change', function(e) {
         if(e.target.files[0]) {
             compressImage(e.target.files[0], function(base64Data) {
+                window.tempCharBase64 = base64Data;
                 window.window.tempCharBase64 = base64Data;
-                window.window.window.tempCharBase64 = base64Data;
-                document.getElementById('edit-char-img-preview').innerHTML = `<img src="${tempCharBase64}" style="width:100%; height:100%; object-fit:cover;">`;
+                document.getElementById('edit-char-img-preview').innerHTML = `<img src="${window.tempCharBase64}" style="width:100%; height:100%; object-fit:cover;">`;
             });
         }
     });
@@ -1386,16 +1386,16 @@
     document.getElementById('edit-persona-img-input').addEventListener('change', function(e) {
         if(e.target.files[0]) {
             compressImage(e.target.files[0], function(base64Data) {
+                window.tempPersonaBase64 = base64Data;
                 window.window.tempPersonaBase64 = base64Data;
-                window.window.window.tempPersonaBase64 = base64Data;
-                document.getElementById('edit-persona-img-preview').innerHTML = `<img src="${tempPersonaBase64}" style="width:100%; height:100%; object-fit:cover;">`;
+                document.getElementById('edit-persona-img-preview').innerHTML = `<img src="${window.tempPersonaBase64}" style="width:100%; height:100%; object-fit:cover;">`;
             });
         }
     });
 
     window.openCharEditor = function(docId = null, data = null) {
-        window.window.window.editingCharId = docId;
-        window.window.window.window.editingCharId = docId;
+        window.editingCharId = docId;
+        window.editingCharId = docId;
         tempCharBase64 = null;
         window.tempCharBase64 = null;
         const preview = document.getElementById('edit-char-img-preview');
@@ -1433,8 +1433,8 @@
     };
 
     window.openPersonaEditor = function(docId = null, data = null) {
+        window.editingPersonaId = docId;
         window.window.editingPersonaId = docId;
-        window.window.window.editingPersonaId = docId;
         tempPersonaBase64 = null;
         window.tempPersonaBase64 = null;
         const preview = document.getElementById('edit-persona-img-preview');
