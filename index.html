@@ -1151,7 +1151,7 @@
                 savedChars[index].greeting = greetingInput;
                 savedChars[index].profile = profileInput;
                 savedChars[index].appearance = appearanceInput;
-                if(tempCharBase64) savedChars[index].photoUrl = tempCharBase64;
+                if(window.tempCharBase64) savedChars[index].photoUrl = tempCharBase64;
             }
         } else {
             savedChars.unshift({
@@ -1163,7 +1163,7 @@
                 greeting: greetingInput,
                 profile: profileInput,
                 appearance: appearanceInput,
-                photoUrl: tempCharBase64
+                photoUrl: window.tempCharBase64
             });
         }
 
