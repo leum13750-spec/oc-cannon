@@ -946,3 +946,228 @@
     // 앱 실행 시 데이터 불러오기
     window.addEventListener('DOMContentLoaded', loadSavedData);
 </script>
+<!-- ========================================================= -->
+<!-- [파이어베이스 진짜 서버 연동 코드] - 기존 코드 수정 없이 덮어씌우기 -->
+<!-- ========================================================= -->
+<script type="module">
+    // 1. 파이어베이스 핵심 기능 불러오기 (인증, 데이터베이스)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+    // 2. 질문자님의 파이어베이스 서버 열쇠 (Config)
+    const firebaseConfig = {
+        apiKey: "AIzaSyCdHtTtuyoZpTMLdObLRUkO5RS_C9BOglI",
+        authDomain: "dreamer-ai-a837c.firebaseapp.com",
+        projectId: "dreamer-ai-a837c",
+        storageBucket: "dreamer-ai-a837c.firebasestorage.app",
+        messagingSenderId: "549575867089",
+        appId: "1:549575867089:web:693f99e56d58c76285e3f0"
+    };
+
+    // 파이어베이스 시동 걸기
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ---------------------------------------------------------
+    // [기존 가짜 버튼 기능 가로채기 (클론 방식)]
+    // 기존에 걸려있던 alert 경고창이나 임시 로직을 제거하고 진짜 서버 로직을 연결합니다.
+    // ---------------------------------------------------------
+    function replaceButtonWithReal(id) {
+        const btn = document.getElementById(id);
+        if (!btn) return null;
+        const clone = btn.cloneNode(true); // 버튼 복제 (기존 기능 초기화)
+        btn.parentNode.replaceChild(clone, btn); // 원래 버튼과 교체
+        return clone;
+    }
+
+    const realBtnLogin = replaceButtonWithReal('btn-login');
+    const realBtnRegister = replaceButtonWithReal('link-register');
+    const realBtnLogout = replaceButtonWithReal('btn-logout');
+    const realBtnSettingsLogout = replaceButtonWithReal('btn-settings-logout');
+
+    // ---------------------------------------------------------
+    // [인증 1] 진짜 회원가입 기능 (이메일, 비밀번호)
+    // ---------------------------------------------------------
+    realBtnRegister.addEventListener('click', async () => {
+        const email = document.getElementById('login-id').value.trim();
+        const pw = document.getElementById('login-pw').value.trim();
+        
+        // 아이디에 @가 없으면 구글 규격에 맞게 임시 이메일화 시킴
+        const validEmail = email.includes('@') ? email : `${email}@dreamer.ai`;
+
+        if(email === '' || pw === '') return alert('가입할 아이디(이메일)와 비밀번호를 입력해주세요.');
+        if(pw.length < 6) return alert('비밀번호는 6자리 이상이어야 합니다.');
+
+        try {
+            await createUserWithEmailAndPassword(auth, validEmail, pw);
+            alert('환영합니다! 가입이 완료되었습니다.');
+            // 가입 성공 시 자동으로 로그인 처리됨
+        } catch(error) {
+            alert('회원가입 실패: 이미 존재하는 아이디거나 오류가 발생했습니다.\n' + error.message);
+        }
+    });
+
+    // ---------------------------------------------------------
+    // [인증 2] 진짜 로그인 기능
+    // ---------------------------------------------------------
+    realBtnLogin.addEventListener('click', async () => {
+        const email = document.getElementById('login-id').value.trim();
+        const pw = document.getElementById('login-pw').value.trim();
+        
+        const validEmail = email.includes('@') ? email : `${email}@dreamer.ai`;
+
+        if(email === '' || pw === '') return alert('아이디와 비밀번호를 모두 입력해주세요.');
+
+        try {
+            await signInWithEmailAndPassword(auth, validEmail, pw);
+            // 로그인 성공 시 onAuthStateChanged 가 화면을 자동으로 넘김
+        } catch(error) {
+            alert('로그인 실패: 아이디나 비밀번호를 확인해주세요.');
+        }
+    });
+
+    // ---------------------------------------------------------
+    // [인증 3] 진짜 로그아웃 기능
+    // ---------------------------------------------------------
+    const executeRealLogout = async () => {
+        await signOut(auth);
+        localStorage.removeItem('dreamer_logged_in');
+        alert("안전하게 로그아웃 되었습니다.");
+    };
+    realBtnLogout.addEventListener('click', executeRealLogout);
+    if(realBtnSettingsLogout) realBtnSettingsLogout.addEventListener('click', executeRealLogout);
+
+    // ---------------------------------------------------------
+    // [자동 감지] 로그인 상태에 따라 화면 변경 & 내 데이터 불러오기
+    // ---------------------------------------------------------
+    onAuthStateChanged(auth, (user) => {
+        const loginScreen = document.getElementById('login-screen');
+        if (user) {
+            // 로그인 성공 시
+            localStorage.setItem('dreamer_logged_in', 'true');
+            loginScreen.classList.add('hidden');
+            loginScreen.style.pointerEvents = 'none'; // 뒤에 있는 버튼 안 눌리게
+            
+            // 로그인한 유저의 진짜 서버 데이터 불러오기
+            fetchRealData(user.uid);
+        } else {
+            // 로그아웃 시
+            loginScreen.classList.remove('hidden');
+            loginScreen.style.pointerEvents = 'auto';
+            document.getElementById('character-list-container').innerHTML = '';
+            document.getElementById('persona-list-container').innerHTML = '';
+        }
+    });
+
+    // ---------------------------------------------------------
+    // [데이터베이스 1] 서버에서 내 데이터 불러오기
+    // ---------------------------------------------------------
+    async function fetchRealData(uid) {
+        const charContainer = document.getElementById('character-list-container');
+        const personaContainer = document.getElementById('persona-list-container');
+        
+        // 1. 캐릭터 불러오기
+        try {
+            const charSnap = await getDocs(collection(db, `users/${uid}/characters`));
+            if(charSnap.empty) {
+                charContainer.innerHTML = '<p class="empty-text" style="color:var(--text-secondary); font-size:14px; text-align:center; padding-top:20px;">서버에 저장된 캐릭터가 없습니다.</p>';
+            } else {
+                charContainer.innerHTML = '';
+                charSnap.forEach(doc => {
+                    const char = doc.data();
+                    const card = document.createElement('div');
+                    card.style.cssText = "background:var(--bg-surface); border:1px solid var(--border-color); padding:16px; border-radius:16px; margin-bottom:12px; cursor:pointer;";
+                    card.innerHTML = `<strong style="font-size:16px;">${char.name}</strong><br><span style="font-size:13px; color:var(--text-secondary); margin-top:4px; display:inline-block;">${char.sub || "설명이 없습니다."}</span>`;
+                    card.onclick = () => alert(`${char.name} 상세 정보/대화방으로 이동합니다.\n(다음 단계에서 채팅창을 만들 예정입니다!)`);
+                    charContainer.appendChild(card);
+                });
+            }
+        } catch(e) { console.error("캐릭터 불러오기 실패:", e); }
+
+        // 2. 페르소나 불러오기
+        try {
+            const personaSnap = await getDocs(collection(db, `users/${uid}/personas`));
+            if(personaSnap.empty) {
+                personaContainer.innerHTML = '<p class="empty-text" style="color:var(--text-secondary); font-size:14px; text-align:center; padding-top:20px;">서버에 저장된 페르소나가 없습니다.</p>';
+            } else {
+                personaContainer.innerHTML = '';
+                personaSnap.forEach(doc => {
+                    const per = doc.data();
+                    const card = document.createElement('div');
+                    card.style.cssText = "background:var(--bg-surface); border:1px solid var(--border-color); padding:16px; border-radius:16px; margin-bottom:12px;";
+                    card.innerHTML = `<strong style="font-size:16px;">${per.name}</strong><br><span style="font-size:13px; color:var(--text-secondary); margin-top:4px; display:inline-block;">${per.info || "기본 페르소나"}</span>`;
+                    personaContainer.appendChild(card);
+                });
+            }
+        } catch(e) { console.error("페르소나 불러오기 실패:", e); }
+    }
+
+    // ---------------------------------------------------------
+    // [데이터베이스 2] 기존 저장 버튼 기능을 진짜 서버 저장으로 덮어씌우기
+    // ---------------------------------------------------------
+    window.saveCharacter = async function() {
+        const user = auth.currentUser;
+        if(!user) return alert("로그인이 풀렸습니다. 다시 로그인해주세요.");
+
+        const nameInput = document.getElementById('edit-char-name').value.trim();
+        const subInput = document.getElementById('edit-char-sub').value.trim();
+        const relationInput = document.getElementById('edit-char-relation').value;
+        const langInput = document.getElementById('edit-char-lang').value;
+        const greetingInput = document.getElementById('edit-char-greeting').value;
+        const profileInput = document.getElementById('edit-char-profile').value;
+
+        if(!nameInput) return alert("캐릭터 이름은 필수 입력 사항입니다.");
+
+        // 서버에 저장하는 코드
+        try {
+            await addDoc(collection(db, `users/${user.uid}/characters`), {
+                name: nameInput,
+                sub: subInput,
+                relation: relationInput,
+                lang: langInput,
+                greeting: greetingInput,
+                profile: profileInput,
+                createdAt: Date.now()
+            });
+
+            // 입력창 초기화 및 닫기
+            document.getElementById('edit-char-name').value = '';
+            document.getElementById('edit-char-sub').value = '';
+            document.getElementById('character-editor-screen').classList.add('hidden');
+            
+            alert("✨ 구글 서버에 캐릭터가 영구 저장되었습니다!");
+            fetchRealData(user.uid); // 리스트 새로고침
+        } catch(e) {
+            alert("서버 저장 오류: " + e.message);
+        }
+    };
+
+    window.savePersona = async function() {
+        const user = auth.currentUser;
+        if(!user) return alert("로그인이 풀렸습니다. 다시 로그인해주세요.");
+
+        const nameInput = document.getElementById('edit-persona-name').value.trim();
+        const infoInput = document.getElementById('edit-persona-info').value.trim();
+
+        if(!nameInput) return alert("페르소나 이름은 필수 입력 사항입니다.");
+
+        try {
+            await addDoc(collection(db, `users/${user.uid}/personas`), {
+                name: nameInput,
+                info: infoInput,
+                createdAt: Date.now()
+            });
+
+            document.getElementById('edit-persona-name').value = '';
+            document.getElementById('edit-persona-info').value = '';
+            document.getElementById('persona-editor-screen').classList.add('hidden');
+
+            alert("✨ 구글 서버에 페르소나가 영구 저장되었습니다!");
+            fetchRealData(user.uid);
+        } catch(e) {
+            alert("서버 저장 오류: " + e.message);
+        }
+    };
+</script>
