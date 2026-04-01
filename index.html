@@ -242,7 +242,7 @@
 
     <footer id="chat-footer" style="padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: 10000;">
         <div style="display: flex; align-items: flex-end; background: #252525; border-radius: 20px; padding: 10px 16px; border: 1px solid #444;">
-            <textarea id="chat-input" placeholder="메시지 입력 (마크다운 사용 가능)..." rows="1" style="flex: 1; max-height: 120px; background: none; border: none; color: white; outline: none; resize: none; font-size: 15px; line-height: 1.4;"></textarea>
+            <textarea id="chat-input" placeholder="메시지 입력 (/ooc 내용 으로 봇에게 지시)..." rows="1" style="flex: 1; max-height: 120px; background: none; border: none; color: white; outline: none; resize: none; font-size: 15px; line-height: 1.4;"></textarea>
             <button onclick="sendChatMessage()" style="background: none; border: none; color: #d8b4fe; font-weight: bold; font-size: 18px; cursor: pointer; margin-left: 12px; padding-bottom: 2px;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </footer>
@@ -281,10 +281,13 @@
         </button>
     </div>
 
+    <!-- ★ 페르소나 선택 기능 추가 ★ -->
     <div style="padding: 20px;">
         <h3 style="font-size: 14px; color: #999; margin-bottom: 12px;">현재 내 페르소나</h3>
-        <div id="current-persona-display" style="background: #181818; padding: 16px; border-radius: 12px; border: 1px solid #333; color: white; margin-bottom: 12px;">기본 페르소나</div>
-        <button onclick="alert('페르소나 변경 창이 열립니다.')" style="width: 100%; padding: 10px; background: #d8b4fe; color: black; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">페르소나 교체/수정</button>
+        <select id="chat-persona-select" onchange="changePersona(this.value)" style="width: 100%; padding: 12px; background: #181818; color: white; border: 1px solid #333; border-radius: 8px; outline: none; appearance: none; margin-bottom: 12px;">
+            <option value="">페르소나를 선택하세요</option>
+        </select>
+        <p style="font-size: 11px; color: gray; margin-top: 4px; margin-bottom: 12px;">채팅에 반영될 내 페르소나를 선택합니다.</p>
     </div>
 </div>
 
@@ -815,12 +818,48 @@
         }
     }
 
+    // ★ 페르소나 변경 및 로드 기능 추가 ★
+    window.changePersona = function(personaId) {
+        localStorage.setItem('dreamer_current_persona_id', personaId);
+    }
+
+    window.loadChatPersonas = function() {
+        const selectEl = document.getElementById('chat-persona-select');
+        const pList = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+        selectEl.innerHTML = '';
+        if(pList.length === 0) {
+            selectEl.innerHTML = '<option value="">등록된 페르소나가 없습니다</option>';
+            return;
+        }
+        pList.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.name;
+            selectEl.appendChild(opt);
+        });
+        const savedId = localStorage.getItem('dreamer_current_persona_id');
+        if(savedId && pList.some(p => p.id === savedId)) {
+            selectEl.value = savedId;
+        } else {
+            selectEl.value = pList[0].id;
+            localStorage.setItem('dreamer_current_persona_id', pList[0].id);
+        }
+    }
+
     window.sendChatMessage = async function() {
         const input = document.getElementById('chat-input');
         const text = input.value.trim();
         if (!text) return;
 
-        currentChatHistory.push({ role: 'user', content: text, pinned: false });
+        // ★ OOC 명령어 감지 및 UI 표시 처리 ★
+        let displayContent = text;
+        let isOOC = text.toLowerCase().startsWith('/ooc');
+        if (isOOC) {
+            let oocText = text.substring(4).trim();
+            displayContent = `**[OOC 지시어]**\n${oocText}`;
+        }
+
+        currentChatHistory.push({ role: 'user', content: displayContent, pinned: false, isOOC: isOOC });
         input.value = '';
         renderChatLog();
         saveCurrentChatState();
@@ -859,6 +898,18 @@
             else sysPrompt += `You must strictly reply in English.\n`;
         }
 
+        // ★ 페르소나 정보 주입 ★
+        const activePersonaId = localStorage.getItem('dreamer_current_persona_id');
+        const savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+        const activePersona = savedPersonas.find(p => p.id === activePersonaId);
+        if(activePersona) {
+            sysPrompt += `\n[User's Persona (My Profile)]\n`;
+            sysPrompt += `- Name: ${activePersona.name}\n`;
+            if(activePersona.appearance) sysPrompt += `- Appearance: ${activePersona.appearance}\n`;
+            if(activePersona.bg) sysPrompt += `- Background: ${activePersona.bg}\n`;
+            sysPrompt += `* Note: Recognize me by this persona and react accordingly.\n`;
+        }
+
         let apiMessages = [{ role: 'system', content: sysPrompt }];
 
         let pinnedMessages = currentChatHistory.filter(m => m.pinned);
@@ -870,8 +921,13 @@
             apiMessages[0].content = sysPrompt;
         }
 
+        // ★ OOC 텍스트를 시스템 지시어로 변환하여 API로 전송 ★
         currentChatHistory.forEach(msg => {
-            apiMessages.push({ role: msg.role === 'char' ? 'assistant' : 'user', content: msg.content });
+            let finalContent = msg.content;
+            if (msg.role === 'user' && msg.isOOC) {
+                finalContent = `[System Directive (OOC): Stop your character roleplay for a moment and strictly follow this instruction: ${msg.content.replace('**[OOC 지시어]**\n', '')}]`;
+            }
+            apiMessages.push({ role: msg.role === 'char' ? 'assistant' : 'user', content: finalContent });
         });
 
         const loadingId = Date.now();
@@ -962,6 +1018,9 @@
         if (savedModel && Array.from(selectEl.options).some(o => o.value === savedModel)) {
             selectEl.value = savedModel;
         }
+
+        // ★ 채팅방 열릴 때 페르소나 목록 로드 ★
+        loadChatPersonas();
 
         localStorage.setItem('current_screen', 'chat');
         localStorage.setItem('current_char_id', window.selectedCharId);
@@ -1145,6 +1204,18 @@
             else sysPrompt += `You must strictly reply in English.\n`;
         }
 
+        // ★ 페르소나 정보 주입 ★
+        const activePersonaId = localStorage.getItem('dreamer_current_persona_id');
+        const savedPersonas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+        const activePersona = savedPersonas.find(p => p.id === activePersonaId);
+        if(activePersona) {
+            sysPrompt += `\n[User's Persona (My Profile)]\n`;
+            sysPrompt += `- Name: ${activePersona.name}\n`;
+            if(activePersona.appearance) sysPrompt += `- Appearance: ${activePersona.appearance}\n`;
+            if(activePersona.bg) sysPrompt += `- Background: ${activePersona.bg}\n`;
+            sysPrompt += `* Note: Recognize me by this persona and react accordingly.\n`;
+        }
+
         let apiMessages = [{ role: 'system', content: sysPrompt }];
         let pinnedMessages = currentChatHistory.filter(m => m.pinned);
         if(pinnedMessages.length > 0) {
@@ -1153,8 +1224,13 @@
             apiMessages[0].content = sysPrompt;
         }
 
+        // ★ OOC 텍스트를 시스템 지시어로 변환하여 API로 전송 ★
         currentChatHistory.forEach(msg => {
-            apiMessages.push({ role: msg.role === 'char' ? 'assistant' : 'user', content: msg.content });
+            let finalContent = msg.content;
+            if (msg.role === 'user' && msg.isOOC) {
+                finalContent = `[System Directive (OOC): Stop your character roleplay for a moment and strictly follow this instruction: ${msg.content.replace('**[OOC 지시어]**\n', '')}]`;
+            }
+            apiMessages.push({ role: msg.role === 'char' ? 'assistant' : 'user', content: finalContent });
         });
 
         const loadingId = Date.now();
