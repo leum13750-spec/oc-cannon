@@ -103,6 +103,19 @@
             <!-- 설정 탭 -->
             <div id="tab-settings" class="tab-pane">
                 <div class="settings-profile">
+                    
+                    <!-- ★ 클라우드 백업/복구 UI ★ -->
+                    <div class="form-group" style="width: 100%; text-align: left; background: rgba(216, 180, 254, 0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(216, 180, 254, 0.2);">
+                        <label style="color: var(--accent-color);"><i class="fas fa-sync-alt"></i> 클라우드 동기화 (기기/앱 변경 시)</label>
+                        <div style="display: flex; gap: 8px; margin-top: 12px;">
+                            <button class="primary-btn" id="btn-cloud-backup" style="flex: 1; padding: 12px; margin-bottom: 0; font-size: 14px;"><i class="fas fa-cloud-upload-alt"></i> 서버에 백업</button>
+                            <button class="action-btn-outline" id="btn-cloud-restore" style="flex: 1; padding: 12px; margin-bottom: 0; font-size: 14px; border-color: var(--accent-color); color: var(--accent-color);"><i class="fas fa-cloud-download-alt"></i> 기기로 불러오기</button>
+                        </div>
+                        <div style="font-size:12px; color:gray; margin-top:10px; line-height: 1.4;">사파리에서 백업 후, Stadium 앱에서 불러오기를 누르면 모든 대화 내역과 설정이 완벽히 연동됩니다.</div>
+                    </div>
+                    
+                    <hr style="width: 100%; border-color: var(--border-color); margin: 20px 0;">
+
                     <div class="form-group" style="width: 100%; text-align: left;">
                         <label>API 주소 (URL) <span style="color:red">*</span></label>
                         <input type="text" id="settings-api-url" placeholder="https://api.totalgpt.ai/v1" style="width: 100%; padding: 14px; background: var(--bg-surface-light); border: none; border-radius: 12px; color: white; margin-top: 8px;">
@@ -125,7 +138,7 @@
                     </div>
                     <button class="primary-btn" id="btn-save-profile" style="margin-bottom: 0;">프로필 및 설정 저장</button>
                     <hr style="width: 100%; border-color: var(--border-color); margin: 16px 0;">
-                    <button class="sub-btn danger-text" id="btn-settings-logout">로그아웃</button>
+                    <button class="sub-btn danger-text" id="btn-settings-logout" style="width:100%; padding: 16px; border-radius: 12px; background: transparent; border: 1px solid var(--danger-color); color: var(--danger-color); font-weight: bold; font-size: 15px; cursor: pointer;">로그아웃</button>
                 </div>
             </div>
         </main>
@@ -1255,6 +1268,73 @@ You must completely immerse yourself in the character of {{char}}. Do not break 
     const db = getFirestore(app);
     let currentUserUid = null;
 
+    // ★ 클라우드 수동 백업 및 복구 로직 (Stadium 앱 등 브라우저 이동용) ★
+    document.getElementById('btn-cloud-backup').onclick = async function() {
+        if(!currentUserUid) return alert("로그인이 필요합니다.");
+        const btn = document.getElementById('btn-cloud-backup');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 백업 중...';
+        try {
+            // 1. 설정 및 API키 연동
+            const settings = {
+                api_url: localStorage.getItem('dreamer_api_url') || '',
+                api_key: localStorage.getItem('dreamer_api_key') || '',
+                nickname: localStorage.getItem('dreamer_nickname') || '',
+                current_persona: localStorage.getItem('dreamer_current_persona_id') || '',
+                model: localStorage.getItem('dreamer_model') || ''
+            };
+            await setDoc(doc(db, `users/${currentUserUid}/data`, 'settings'), settings);
+
+            // 2. 대화 기록 연동
+            for(let i=0; i<localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if(key.startsWith('chat_history_')) {
+                    await setDoc(doc(db, `users/${currentUserUid}/chats`, key), { data: localStorage.getItem(key) });
+                }
+            }
+            
+            // 3. 장면 연동
+            let scenes = localStorage.getItem('dreamer_scenes') || '[]';
+            await setDoc(doc(db, `users/${currentUserUid}/data`, 'scenes'), { data: scenes });
+
+            alert("모든 데이터(설정, 채팅, 장면)가 서버에 안전하게 백업되었습니다!\n새 앱에서 불러오기를 진행해주세요.");
+        } catch(e) { alert("백업 실패 (Firestore 규칙을 확인하세요): " + e.message); }
+        btn.innerHTML = originalText;
+    };
+
+    document.getElementById('btn-cloud-restore').onclick = async function() {
+        if(!currentUserUid) return alert("로그인이 필요합니다.");
+        if(!confirm("서버의 데이터로 덮어씌웁니다. 기존 대화 내용이 사라질 수 있습니다. 진행할까요?")) return;
+        const btn = document.getElementById('btn-cloud-restore');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 복구 중...';
+        try {
+            // 1. 설정 복원
+            const setSnap = await getDoc(doc(db, `users/${currentUserUid}/data`, 'settings'));
+            if(setSnap.exists()) {
+                const s = setSnap.data();
+                if(s.api_url) localStorage.setItem('dreamer_api_url', s.api_url);
+                if(s.api_key) localStorage.setItem('dreamer_api_key', s.api_key);
+                if(s.nickname) localStorage.setItem('dreamer_nickname', s.nickname);
+                if(s.current_persona) localStorage.setItem('dreamer_current_persona_id', s.current_persona);
+                if(s.model) localStorage.setItem('dreamer_model', s.model);
+            }
+
+            // 2. 대화 기록 복원
+            const chatSnap = await getDocs(collection(db, `users/${currentUserUid}/chats`));
+            chatSnap.forEach(d => { localStorage.setItem(d.id, d.data().data); });
+
+            // 3. 장면 복원
+            const scSnap = await getDoc(doc(db, `users/${currentUserUid}/data`, 'scenes'));
+            if(scSnap.exists()) { localStorage.setItem('dreamer_scenes', scSnap.data().data); }
+
+            alert("데이터 복구가 완료되었습니다! 앱을 재시작합니다.");
+            location.reload();
+        } catch(e) { alert("복구 실패: " + e.message); }
+        btn.innerHTML = originalText;
+    };
+
+
     window.executeFirebaseUpload = async function() {
         const btn = document.getElementById('btn-upload-notice');
         
@@ -1305,6 +1385,7 @@ You must completely immerse yourself in the character of {{char}}. Do not break 
         if (user) {
             currentUserUid = user.uid;
             try {
+                // 캐릭터 동기화
                 const cSnap = await getDocs(collection(db, `users/${user.uid}/characters`));
                 let cList = []; cSnap.forEach(d => { cList.push({ id: d.id, ...d.data() }) });
                 if(cList.length > 0) {
@@ -1315,6 +1396,7 @@ You must completely immerse yourself in the character of {{char}}. Do not break 
                     window.renderData(); 
                 }
 
+                // 페르소나 동기화
                 const pSnap = await getDocs(collection(db, `users/${user.uid}/personas`));
                 let pList = []; pSnap.forEach(d => { pList.push({ id: d.id, ...d.data() }) });
                 if(pList.length > 0) { 
@@ -1324,7 +1406,7 @@ You must completely immerse yourself in the character of {{char}}. Do not break 
                     localStorage.setItem('dreamer_personas', JSON.stringify(Array.from(localMap.values()))); 
                     window.renderData(); 
                 }
-            } catch(e) { console.warn("서버 동기화 지연됨"); }
+            } catch(e) { console.warn("서버 자동 동기화 지연됨"); }
             window.fetchGlobalNotice();
         }
     });
