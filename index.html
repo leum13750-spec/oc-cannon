@@ -76,7 +76,7 @@
         .persona-img { border-radius: 50%; }
         .list-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
         .list-title { font-size: 16px; font-weight: 700; color: white; margin-bottom: 4px; }
-        .list-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .list-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .edit-btn { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--text-secondary); font-size: 16px; cursor: pointer; padding: 4px; }
         
         .editor-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); z-index: var(--z-editor); display: flex; flex-direction: column; transition: 0.3s; }
@@ -784,12 +784,20 @@
                 $(`edit-char-${field}`).value = data[field] || '';
             });
             $('edit-char-language').value = data.language || 'English';
+            window.tempCharImage = data.photoUrl || null;
+            if (data.photoUrl) {
+                const preview = $('edit-char-img-preview');
+                preview.innerHTML = `<img src="${data.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            }
             title.textContent = '캐릭터 수정';
         } else {
             ['name', 'sub', 'greeting', 'profile', 'relation', 'story'].forEach(field => {
                 $(`edit-char-${field}`).value = '';
             });
             $('edit-char-language').value = 'English';
+            window.tempCharImage = null;
+            const preview = $('edit-char-img-preview');
+            preview.innerHTML = '+ 사진 추가';
             title.textContent = '새 캐릭터 만들기';
         }
         
@@ -808,7 +816,8 @@
             profile: $('edit-char-profile').value.trim(),
             relation: $('edit-char-relation').value.trim(),
             story: $('edit-char-story').value.trim(),
-            language: $('edit-char-language').value
+            language: $('edit-char-language').value,
+            photoUrl: window.tempCharImage || null
         };
         
         let chars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
@@ -836,12 +845,20 @@
                 $(`edit-persona-${field}`).value = data[field] || '';
             });
             $('edit-persona-default').checked = data.isDefault || false;
+            window.tempPersonaImage = data.photoUrl || null;
+            if (data.photoUrl) {
+                const preview = $('edit-persona-img-preview');
+                preview.innerHTML = `<img src="${data.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            }
             title.textContent = '페르소나 수정';
         } else {
             ['name', 'appearance', 'bg'].forEach(field => {
                 $(`edit-persona-${field}`).value = '';
             });
             $('edit-persona-default').checked = false;
+            window.tempPersonaImage = null;
+            const preview = $('edit-persona-img-preview');
+            preview.innerHTML = '+ 사진 추가';
             title.textContent = '새 페르소나 만들기';
         }
         
@@ -857,7 +874,8 @@
             name: name,
             appearance: $('edit-persona-appearance').value.trim(),
             bg: $('edit-persona-bg').value.trim(),
-            isDefault: $('edit-persona-default').checked
+            isDefault: $('edit-persona-default').checked,
+            photoUrl: window.tempPersonaImage || null
         };
         
         let personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
@@ -1005,6 +1023,26 @@
         });
     };
     
+    // 드림 이미지 토글
+    window.toggleDreamImages = function() {
+        const count = $('edit-dream-count').value;
+        const type = $('edit-dream-type').value;
+        const wrapper2 = $('dream-img2-wrapper');
+        
+        if (count === '3') {
+            wrapper2.style.display = 'flex';
+        } else {
+            wrapper2.style.display = 'none';
+        }
+        
+        const symbol1 = $('dream-symbol1');
+        const symbol2 = $('dream-symbol2');
+        symbol1.textContent = type === 'cp' ? 'X' : '&';
+        if (wrapper2.style.display !== 'none') {
+            symbol2.textContent = type === 'cp' ? 'X' : '&';
+        }
+    };
+    
     // 드림 이미지 처리
     window.handleDreamImg = function(idx, el) {
         if(el.files[0]) {
@@ -1053,6 +1091,15 @@
         const name = $('edit-dream-name').value.trim();
         if (!name) return await dAlert('페어 이름을 입력해주세요.');
         
+        // 배경 이미지 처리
+        let bgImg = null;
+        const bgImgFile = $('edit-dream-bgimg').files[0];
+        if (bgImgFile) {
+            bgImg = await new Promise(resolve => {
+                compressImage(bgImgFile, resolve);
+            });
+        }
+        
         let dreams = JSON.parse(localStorage.getItem('dreamer_dreams') || '[]');
         const dreamData = {
             id: window.editingDreamId || Date.now().toString(),
@@ -1060,6 +1107,8 @@
             sub: $('edit-dream-sub').value.trim(),
             short: $('edit-dream-short').value.trim(),
             long: $('edit-dream-long').value.trim(),
+            bgColor: $('edit-dream-bgcolor').value,
+            bgImg: bgImg,
             images: {
                 1: window.tempDreamImages[1],
                 2: window.tempDreamImages[2],
@@ -1092,6 +1141,41 @@
         $('dream-detail-sub').innerText = d.sub || '';
         $('dream-detail-short').innerText = d.short || '';
         $('dream-detail-long').innerText = d.long || '';
+        
+        // 이미지 렌더링
+        const imagesContainer = $('dream-detail-images');
+        imagesContainer.innerHTML = '';
+        
+        if (d.images) {
+            for(let i = 1; i <= 3; i++) {
+                if (d.images[i]) {
+                    const img = document.createElement('img');
+                    img.src = d.images[i];
+                    img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent-color);';
+                    imagesContainer.appendChild(img);
+                    
+                    if (i < 3 && d.images[i+1]) {
+                        const symbol = document.createElement('div');
+                        symbol.style.cssText = 'font-weight: bold; font-size: 24px; color: var(--accent-color); margin: 0 8px;';
+                        symbol.textContent = 'X';
+                        imagesContainer.appendChild(symbol);
+                    }
+                }
+            }
+        }
+        
+        // 배경 이미지 설정
+        const detailScreen = $('dream-detail-screen');
+        if (d.bgImg) {
+            detailScreen.style.backgroundImage = `url(${d.bgImg})`;
+        } else if (d.bgColor) {
+            detailScreen.style.backgroundImage = 'none';
+            detailScreen.style.backgroundColor = d.bgColor;
+        } else {
+            detailScreen.style.backgroundImage = 'none';
+            detailScreen.style.backgroundColor = 'var(--bg-main)';
+        }
+        
         $('btn-edit-dream').onclick = () => {
             $('dream-detail-screen').classList.add('hidden');
             openDreamEditor(d.id, d);
@@ -1551,6 +1635,28 @@
         textarea.style.height = 'auto';
         textarea.style.height = Math.min(textarea.scrollHeight, 140) + 'px';
     }
+    
+    // 캐릭터 이미지 처리
+    $('edit-char-img-input').onchange = function(e) {
+        if(e.target.files[0]) {
+            compressImage(e.target.files[0], b64 => {
+                window.tempCharImage = b64;
+                const preview = $('edit-char-img-preview');
+                preview.innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            });
+        }
+    };
+    
+    // 페르소나 이미지 처리
+    $('edit-persona-img-input').onchange = function(e) {
+        if(e.target.files[0]) {
+            compressImage(e.target.files[0], b64 => {
+                window.tempPersonaImage = b64;
+                const preview = $('edit-persona-img-preview');
+                preview.innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            });
+        }
+    };
     
     // 이벤트 핸들러 설정
     ['btn-open-sidebar', 'btn-close-sidebar'].forEach(id => {
