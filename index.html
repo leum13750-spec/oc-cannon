@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#0a0a0a">
     
     <!-- Appwrite SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/appwrite.min.js"></script>
     <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><text x='50' y='55' font-size='40' font-family='sans-serif' font-weight='bold' fill='%23d8b4fe' text-anchor='middle' alignment-baseline='middle'>D</text></svg>">
     <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;dreamer.ai&quot;,&quot;short_name&quot;:&quot;dreamer.ai&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;background_color&quot;:&quot;#0a0a0a&quot;,&quot;theme_color&quot;:&quot;#0a0a0a&quot;}">
     <title>dreamer.ai</title>
@@ -154,6 +154,10 @@
         .auto-resize-textarea { resize: none; overflow-y: auto; min-height: 20px; }
         
         .section-title { font-size: 16px; color: white; margin-bottom: 12px; }
+        
+        .ca-action-btn { width: 100%; padding: 16px; background: transparent; border: none; color: white; text-align: left; cursor: pointer; border-radius: 8px; margin-bottom: 8px; font-size: 15px; display: flex; align-items: center; gap: 12px; }
+        .ca-action-btn:hover { background: rgba(255, 255, 255, 0.1); }
+        .ca-action-btn:active { background: rgba(255, 255, 255, 0.2); }
     </style>
     <script>
         if (localStorage.getItem('dreamer_logged_in') === 'true') {
@@ -601,7 +605,7 @@
         <h3 style="color: white; font-size: 16px;">메시지 옵션</h3>
         <button onclick="closeActionSheet()" style="background: none; border: none; color: #8e8e93; font-size: 20px; cursor: pointer;"><i class="fas fa-times"></i></button>
     </div>
-    <button class="ca-action-btn" onclick="doTogglePinMessage()"><i class="fas fa-thumbtack"></i> 고정/해제</button>
+    <button class="ca-action-btn" onclick="doTogglePinMessage()"><i class="fas fa-thumb-tack"></i> 고정/해제</button>
     <button class="ca-action-btn" onclick="doEditMessage()"><i class="fas fa-edit"></i> 메시지 수정</button>
     <button class="ca-action-btn" onclick="doCopyMessage()"><i class="fas fa-copy"></i> 복사</button>
     <button class="ca-action-btn" onclick="doRewindMessage()"><i class="fas fa-undo"></i> 이 메시지부터 되감기</button>
@@ -1236,14 +1240,14 @@
         
         let targetScenes = sList.filter(s => (s.folderId || null) === window.currentSceneFolderId);
         if (fList.length === 0 && targetScenes.length === 0) {
-            sBox.innerHTML = '<p class="empty-text">저장된 폴더 및 장면이 없습니다.</p>';
+            sBox.innerHTML = '<p style="color:gray;">저장된 폴더 및 장면이 없습니다.</p>';
             return;
         }
         
         targetScenes.forEach(s => {
             const w = document.createElement('div');
             w.className = 'swipe-container';
-            w.innerHTML = `<div class="delete-btn-bg" onclick="executeDelete('${s.id}', '${s.name}', 'scenes')"><i class="fas fa-trash"></i></div><div class="list-card swipe-card"><div class="list-info"><div style="font-weight:bold; color:white; margin-bottom:4px; font-size:16px;">${s.name}</div><div style="font-size:12px; color:var(--text-secondary);">${s.charName} · ${s.date || new Date().toLocaleDateString()} · 메시지 ${s.history ? s.history.length : 0}개</div></div></div>`;
+            w.innerHTML = `<div class="delete-btn-bg" onclick="executeDelete('${s.id}', '${s.name}', 'scenes')"><i class="fas fa-trash"></i></div><div class="list-card swipe-card"><div class="list-info"><div style="font-weight:bold; color:white; margin-bottom:4px; font-size:16px;">${s.name}</div><div style="color:gray; font-size:12px;">${s.charName} · ${s.date || new Date().toLocaleDateString()} · 메시지 ${s.history ? s.history.length : 0}개</div></div></div>`;
             const card = w.querySelector('.swipe-card');
             attachSwipeEvents(card);
             card.onclick = () => OpenChat(false, s);
@@ -1416,7 +1420,7 @@
             if (msg.pinned) block.classList.add('pinned-msg');
             
             const senderName = msg.role === 'char' ? (msg.name || "캐릭터") : "나";
-            const pinIcon = msg.pinned ? '<i class="fas fa-thumbtack pinned-icon"></i>' : '';
+            const pinIcon = msg.pinned ? '<i class="fas fa-thumb-tack pinned-icon"></i>' : '';
             
             block.innerHTML = `<div class="msg-header">${senderName} ${pinIcon}</div><div class="msg-content">${msg.content}</div><div class="msg-separator"></div>`;
             
@@ -1700,16 +1704,187 @@
         }
     });
     
-    // Appwrite 클라이언트 설정
-    const client = new Client()
-        .setEndpoint('https://cloud.appwrite.io/v1')
-        .setProject('66f8b7d1000385d5c2a8')
-        .setKey('66f8b7d1000c6a5e4f966f8b7d1000385d5c2a8b5c0a1a4a3a2a1a0a9a8a7a6');
-
-    const databases = new Databases(client);
+    // Appwrite 클라이언트 설정 (에러 방지)
+    let client, databases;
+    try {
+        if (typeof Appwrite !== 'undefined') {
+            client = new Appwrite.Client()
+                .setEndpoint('https://cloud.appwrite.io/v1')
+                .setProject('66f8b7d1000385d5c2a8')
+                .setKey('66f8b7d1000c6a5e4f966f8b7d1000385d5c2a8b5c0a1a4a3a2a1a0a9a8a7a6');
+            
+            databases = new Appwrite.Databases(client);
+        }
+    } catch (error) {
+        console.warn('Appwrite SDK 로드 실패:', error);
+    }
+    
     const databaseId = '66f8b7d1000c6a5e4f96';
     const collectionId = '66f8b7d1000c6a5e4f966f8b7d1000385d5c2a8b5c0a1a4a3a2a1a0a9a8a7a6';
 
     // Appwrite 백업 기능
     window.backupData = async function() {
         try {
+            const backup = {
+                characters: localStorage.getItem('dreamer_characters'),
+                personas: localStorage.getItem('dreamer_personas'),
+                dreams: localStorage.getItem('dreamer_dreams'),
+                scenes: localStorage.getItem('dreamer_scenes'),
+                scene_folders: localStorage.getItem('dreamer_scene_folders'),
+                chat_history: localStorage.getItem('dreamer_chat_history'),
+                timestamp: new Date().toISOString()
+            };
+            
+            // Appwrite에 저장 (SDK가 있을 경우만)
+            if (databases && client) {
+                try {
+                    const document = await databases.createDocument(
+                        databaseId,
+                        collectionId,
+                        'backup_' + Date.now(),
+                        {
+                            userId: localStorage.getItem('dreamer_handle') || 'anonymous',
+                            backupData: JSON.stringify(backup),
+                            timestamp: new Date().toISOString(),
+                            backupType: 'manual'
+                        }
+                    );
+                    await dAlert('Appwrite에 백업되었습니다!');
+                } catch (appwriteError) {
+                    console.warn('Appwrite 백업 실패, 로컬로 전환:', appwriteError);
+                    throw appwriteError;
+                }
+            }
+            
+            // 로컬 다운로드도 제공
+            const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dreamer-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+        } catch (error) {
+            console.error('백업 실패:', error);
+            
+            // Appwrite 실패 시 로컬 다운로드로 fallback
+            const backup = {
+                characters: localStorage.getItem('dreamer_characters'),
+                personas: localStorage.getItem('dreamer_personas'),
+                dreams: localStorage.getItem('dreamer_dreams'),
+                scenes: localStorage.getItem('dreamer_scenes'),
+                scene_folders: localStorage.getItem('dreamer_scene_folders'),
+                chat_history: localStorage.getItem('dreamer_chat_history'),
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dreamer-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            await dAlert('로컬로 백업되었습니다. (Appwrite 연결 실패)');
+        }
+    };
+    
+    // Appwrite 복구 기능
+    window.restoreData = async function() {
+        try {
+            // Appwrite에서 최신 백업 가져오기 (SDK가 있을 경우만)
+            if (databases && client && typeof Appwrite !== 'undefined') {
+                try {
+                    const response = await databases.listDocuments(
+                        databaseId,
+                        collectionId,
+                        [
+                            Appwrite.Query.orderDesc('timestamp'),
+                            Appwrite.Query.limit(1)
+                        ]
+                    );
+                    
+                    if (response.documents.length > 0) {
+                        const latestBackup = response.documents[0];
+                        const backupData = JSON.parse(latestBackup.backupData);
+                        
+                        Object.keys(backupData).forEach(key => {
+                            if (key !== 'timestamp' && backupData[key]) {
+                                localStorage.setItem(`dreamer_${key}`, backupData[key]);
+                            }
+                        });
+                        
+                        renderData();
+                        await dAlert('Appwrite에서 데이터 복구되었습니다!');
+                        return;
+                    } else {
+                        await dAlert('Appwrite에 백업된 데이터가 없습니다.');
+                    }
+                } catch (appwriteError) {
+                    console.warn('Appwrite 복구 실패, 파일 선택으로 전환:', appwriteError);
+                    throw appwriteError;
+                }
+            }
+        } catch (error) {
+            console.error('복구 실패:', error);
+            
+            // Appwrite 실패 시 파일 선택으로 fallback
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const backup = JSON.parse(event.target.result);
+                        Object.keys(backup).forEach(key => {
+                            if (key !== 'timestamp' && backup[key]) {
+                                localStorage.setItem(`dreamer_${key}`, backup[key]);
+                            }
+                        });
+                        renderData();
+                        dAlert('파일에서 데이터 복구되었습니다!');
+                    } catch (error) {
+                        dAlert('백업 파일을 읽을 수 없습니다.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+    };
+    
+    // 초기화
+    window.addEventListener('DOMContentLoaded', () => {
+        renderData();
+        
+        const savedHandle = localStorage.getItem('dreamer_handle');
+        if (savedHandle === 'ReschaRiley') {
+            localStorage.setItem('dreamer_is_admin', 'true');
+            $('btn-admin-panel').style.display = 'block';
+        }
+        
+        ['api-url', 'api-key', 'nickname', 'handle', 'supabase-key'].forEach(field => {
+            const element = $(`settings-${field}`);
+            if (element) {
+                const value = localStorage.getItem(`dreamer_${field}`) || 
+                    (field === 'api-url' ? 'https://api.totalgpt.ai/v1' : '');
+                element.value = value;
+            }
+        });
+        
+        const savedTab = localStorage.getItem('dreamer_current_tab');
+        if (savedTab && savedTab !== 'dream') {
+            const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
+            if (tabBtn) tabBtn.click();
+        }
+        
+        setTimeout(() => fetchGlobalNotice(), 1500);
+    });
+</script>
+
+</body>
+</html>
