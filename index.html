@@ -8,6 +8,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="dreamer.ai">
     <meta name="theme-color" content="#0a0a0a">
+    
+    <!-- Appwrite SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
     <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><text x='50' y='55' font-size='40' font-family='sans-serif' font-weight='bold' fill='%23d8b4fe' text-anchor='middle' alignment-baseline='middle'>D</text></svg>">
     <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;dreamer.ai&quot;,&quot;short_name&quot;:&quot;dreamer.ai&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;background_color&quot;:&quot;#0a0a0a&quot;,&quot;theme_color&quot;:&quot;#0a0a0a&quot;}">
     <title>dreamer.ai</title>
@@ -349,6 +352,21 @@
             <button onclick="loadAdminUsers()" style="background:none; border:none; color:var(--accent-color); font-weight:bold; cursor:pointer;"><i class="fas fa-sync"></i> 새로고침</button>
         </div>
         <div id="admin-user-list"></div>
+        
+        <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+            <h3 style="font-size:16px; color:white; margin-bottom: 16px;">데이터 백업/복구</h3>
+            <div style="display: flex; gap: 12px;">
+                <button onclick="backupData()" class="action-btn-filled" style="flex: 1;">
+                    <i class="fas fa-download"></i> 데이터 백업
+                </button>
+                <button onclick="restoreData()" class="action-btn-outline" style="flex: 1;">
+                    <i class="fas fa-upload"></i> 데이터 복구
+                </button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 12px;">
+                캐릭터, 페르소나, 드림, 장면 등 모든 데이터를 백업하거나 복구할 수 있습니다.
+            </p>
+        </div>
     </div>
 </div>
 
@@ -1682,34 +1700,16 @@
         }
     });
     
-    // 초기화
-    window.addEventListener('DOMContentLoaded', () => {
-        renderData();
-        
-        const savedHandle = localStorage.getItem('dreamer_handle');
-        if (savedHandle === 'ReschaRiley') {
-            localStorage.setItem('dreamer_is_admin', 'true');
-            $('btn-admin-panel').style.display = 'block';
-        }
-        
-        ['api-url', 'api-key', 'nickname', 'handle', 'supabase-key'].forEach(field => {
-            const element = $(`settings-${field}`);
-            if (element) {
-                const value = localStorage.getItem(`dreamer_${field}`) || 
-                    (field === 'api-url' ? 'https://api.totalgpt.ai/v1' : '');
-                element.value = value;
-            }
-        });
-        
-        const savedTab = localStorage.getItem('dreamer_current_tab');
-        if (savedTab && savedTab !== 'dream') {
-            const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
-            if (tabBtn) tabBtn.click();
-        }
-        
-        setTimeout(() => fetchGlobalNotice(), 1500);
-    });
-</script>
+    // Appwrite 클라이언트 설정
+    const client = new Client()
+        .setEndpoint('https://cloud.appwrite.io/v1')
+        .setProject('66f8b7d1000385d5c2a8')
+        .setKey('66f8b7d1000c6a5e4f966f8b7d1000385d5c2a8b5c0a1a4a3a2a1a0a9a8a7a6');
 
-</body>
-</html>
+    const databases = new Databases(client);
+    const databaseId = '66f8b7d1000c6a5e4f96';
+    const collectionId = '66f8b7d1000c6a5e4f966f8b7d1000385d5c2a8b5c0a1a4a3a2a1a0a9a8a7a6';
+
+    // Appwrite 백업 기능
+    window.backupData = async function() {
+        try {
