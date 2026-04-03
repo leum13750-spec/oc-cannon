@@ -145,14 +145,6 @@
         .ca-action-btn:hover { background: rgba(255, 255, 255, 0.1); }
         .ca-action-btn:active { background: rgba(255, 255, 255, 0.2); }
     </style>
-    <script>
-        if (localStorage.getItem('dreamer_logged_in') === 'true') {
-            const hideStyle = document.createElement('style');
-            hideStyle.innerHTML = '#login-screen { display: none !important; }';
-            document.head.appendChild(hideStyle);
-        }
-    </script>
-</head>
 <body>
 
     <!-- 커스텀 모달 -->
