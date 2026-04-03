@@ -76,7 +76,7 @@
         .persona-img { border-radius: 50%; }
         .list-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
         .list-title { font-size: 16px; font-weight: 700; color: white; margin-bottom: 4px; }
-        .list-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .list-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .edit-btn { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--text-secondary); font-size: 16px; cursor: pointer; padding: 4px; }
         
         .editor-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); z-index: var(--z-editor); display: flex; flex-direction: column; transition: 0.3s; }
@@ -1053,6 +1053,15 @@
         const name = $('edit-dream-name').value.trim();
         if (!name) return await dAlert('페어 이름을 입력해주세요.');
         
+        // 배경 이미지 처리
+        let bgImg = null;
+        const bgImgFile = $('edit-dream-bgimg').files[0];
+        if (bgImgFile) {
+            bgImg = await new Promise(resolve => {
+                compressImage(bgImgFile, resolve);
+            });
+        }
+        
         let dreams = JSON.parse(localStorage.getItem('dreamer_dreams') || '[]');
         const dreamData = {
             id: window.editingDreamId || Date.now().toString(),
@@ -1060,6 +1069,8 @@
             sub: $('edit-dream-sub').value.trim(),
             short: $('edit-dream-short').value.trim(),
             long: $('edit-dream-long').value.trim(),
+            bgColor: $('edit-dream-bgcolor').value,
+            bgImg: bgImg,
             images: {
                 1: window.tempDreamImages[1],
                 2: window.tempDreamImages[2],
@@ -1092,6 +1103,41 @@
         $('dream-detail-sub').innerText = d.sub || '';
         $('dream-detail-short').innerText = d.short || '';
         $('dream-detail-long').innerText = d.long || '';
+        
+        // 이미지 렌더링
+        const imagesContainer = $('dream-detail-images');
+        imagesContainer.innerHTML = '';
+        
+        if (d.images) {
+            for(let i = 1; i <= 3; i++) {
+                if (d.images[i]) {
+                    const img = document.createElement('img');
+                    img.src = d.images[i];
+                    img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent-color);';
+                    imagesContainer.appendChild(img);
+                    
+                    if (i < 3 && d.images[i+1]) {
+                        const symbol = document.createElement('div');
+                        symbol.style.cssText = 'font-weight: bold; font-size: 24px; color: var(--accent-color); margin: 0 8px;';
+                        symbol.textContent = 'X';
+                        imagesContainer.appendChild(symbol);
+                    }
+                }
+            }
+        }
+        
+        // 배경 이미지 설정
+        const detailScreen = $('dream-detail-screen');
+        if (d.bgImg) {
+            detailScreen.style.backgroundImage = `url(${d.bgImg})`;
+        } else if (d.bgColor) {
+            detailScreen.style.backgroundImage = 'none';
+            detailScreen.style.backgroundColor = d.bgColor;
+        } else {
+            detailScreen.style.backgroundImage = 'none';
+            detailScreen.style.backgroundColor = 'var(--bg-main)';
+        }
+        
         $('btn-edit-dream').onclick = () => {
             $('dream-detail-screen').classList.add('hidden');
             openDreamEditor(d.id, d);
