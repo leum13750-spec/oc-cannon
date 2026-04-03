@@ -15,6 +15,17 @@
     <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;dreamer.ai&quot;,&quot;short_name&quot;:&quot;dreamer.ai&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;background_color&quot;:&quot;#0a0a0a&quot;,&quot;theme_color&quot;:&quot;#0a0a0a&quot;}">
     <title>dreamer.ai</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        // 로그인 상태 유지 스크립트
+        if (localStorage.getItem('dreamer_logged_in') === 'true') {
+            document.addEventListener('DOMContentLoaded', function() {
+                const loginScreen = document.getElementById('login-screen');
+                if (loginScreen) {
+                    loginScreen.style.display = 'none';
+                }
+            });
+        }
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap');
         
