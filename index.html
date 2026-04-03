@@ -132,20 +132,6 @@
         .pinned-msg { border-left: 3px solid #fcc419; background: rgba(252, 196, 25, 0.05); }
         .pinned-icon { color: #fcc419; font-size: 12px; }
         
-        .dream-font { font-family: 'Nanum Myeongjo', serif; }
-        
-        .dream-feed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px; }
-        .dream-feed-item { aspect-ratio: 1; border-radius: 12px; overflow: hidden; position: relative; cursor: pointer; background: var(--bg-surface); }
-        .dream-feed-item img { width: 100%; height: 100%; object-fit: cover; }
-        .dream-feed-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 8px; color: white; font-size: 12px; font-weight: bold; }
-        .dream-feed-name { font-family: 'Nanum Myeongjo', serif; font-size: 13px; }
-        .dream-feed-sub { font-size: 10px; opacity: 0.8; margin-top: 2px; }
-        
-        .talk-maker-section { padding: 16px; border-top: 1px solid var(--border-color); }
-        .talk-maker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .talk-maker-title { font-size: 16px; font-weight: bold; color: white; }
-        .talk-maker-help { color: var(--text-secondary); font-size: 12px; cursor: pointer; }
-        
         button:disabled { opacity: 0.5; cursor: not-allowed !important; }
         
         #real-chat-screen { display: none; flex-direction: column; background-color: #121212; z-index: var(--z-chat); }
@@ -209,7 +195,6 @@
             <li id="btn-go-home"><i class="fas fa-home"></i> 홈 (메인 화면)</li>
             <li id="btn-open-gen-settings"><i class="fas fa-sliders-h"></i> 출력 관리</li>
             <li id="btn-open-chat-history"><i class="fas fa-history"></i> 과거 채팅 내역 확인</li>
-            <li id="btn-open-dream"><i class="fas fa-heart"></i> 드림</li>
             <li class="logout-menu" id="btn-logout" style="color:var(--danger-color);"><i class="fas fa-sign-out-alt"></i> 로그아웃</li>
         </ul>
     </div>
@@ -368,7 +353,7 @@
                 </button>
             </div>
             <p style="font-size: 12px; color: var(--text-secondary); margin-top: 12px;">
-                캐릭터, 페르소나, 드림, 장면 등 모든 데이터를 백업하거나 복구할 수 있습니다.
+                캐릭터, 페르소나, 장면 등 모든 데이터를 백업하거나 복구할 수 있습니다.
             </p>
         </div>
     </div>
@@ -435,48 +420,6 @@
     </div>
 </div>
 
-<div id="dream-editor-screen" class="editor-screen hidden">
-    <header class="editor-header">
-        <button class="close-editor-btn" onclick="closeEditor('dream')"><i class="fas fa-arrow-left"></i></button>
-        <strong style="font-size: 16px;" id="dream-editor-title">새 드림 만들기</strong>
-        <button class="save-editor-btn" onclick="saveDream()">저장</button>
-    </header>
-    <div class="editor-body">
-        <div class="form-group"><label>인원 설정</label><select id="edit-dream-count" onchange="toggleDreamImages()"><option value="2">2인</option><option value="3">3인</option></select></div>
-        <div class="form-group"><label>관계 타입</label><select id="edit-dream-type" onchange="toggleDreamImages()"><option value="cp">CP (X 표시)</option><option value="ncp">NCP (& 표시)</option></select></div>
-        <div style="display:flex; justify-content:center; align-items:center; gap: 12px; margin-bottom: 24px;" id="dream-images-container">
-            <div id="dream-img1-preview" onclick="document.getElementById('edit-dream-img1').click()" style="width:70px; height:70px; border-radius:50%; background:var(--bg-surface-light); border:2px dashed var(--border-color); display:flex; justify-content:center; align-items:center; cursor:pointer; overflow:hidden; font-size:10px; color:var(--text-secondary);">사진1</div><input type="file" id="edit-dream-img1" accept="image/*" style="display: none;" onchange="handleDreamImg(1, this)">
-            <div id="dream-symbol1" style="font-weight:bold; font-size:18px; color:var(--accent-color);">X</div>
-            <div id="dream-img2-wrapper" style="display:none; align-items:center; gap:12px;">
-                <div id="dream-img2-preview" onclick="document.getElementById('edit-dream-img2').click()" style="width:70px; height:70px; border-radius:50%; background:var(--bg-surface-light); border:2px dashed var(--border-color); display:flex; justify-content:center; align-items:center; cursor:pointer; overflow:hidden; font-size:10px; color:var(--text-secondary);">사진2</div><input type="file" id="edit-dream-img2" accept="image/*" style="display: none;" onchange="handleDreamImg(2, this)">
-                <div id="dream-symbol2" style="font-weight:bold; font-size:18px; color:var(--accent-color);">X</div>
-            </div>
-            <div id="dream-img3-preview" onclick="document.getElementById('edit-dream-img3').click()" style="width:70px; height:70px; border-radius:50%; background:var(--bg-surface-light); border:2px dashed var(--border-color); display:flex; justify-content:center; align-items:center; cursor:pointer; overflow:hidden; font-size:10px; color:var(--text-secondary);">사진3</div><input type="file" id="edit-dream-img3" accept="image/*" style="display: none;" onchange="handleDreamImg(3, this)">
-        </div>
-        <div class="form-group"><label class="required">페어 이름</label><input type="text" id="edit-dream-name" class="dream-font" placeholder="예: 해리말포이" style="font-size:18px;"></div>
-        <div class="form-group"><label>캐치프레이즈 (한 줄 소개)</label><input type="text" id="edit-dream-sub"></div>
-        <div class="form-group"><label>짧은 설명</label><textarea id="edit-dream-short" class="auto-resize-textarea" rows="2"></textarea></div>
-        <div class="form-group"><label>긴 설명 (선택)</label><textarea id="edit-dream-long" class="auto-resize-textarea" rows="4"></textarea></div>
-        <div class="form-group"><label>배경 색상 지정</label><input type="color" id="edit-dream-bgcolor" value="#151515" style="padding:0; height: 40px; border:none; cursor:pointer;"></div>
-        <div class="form-group"><label>또는 배경 사진 업로드</label><input type="file" id="edit-dream-bgimg" accept="image/*" style="font-size:12px;"></div>
-    </div>
-</div>
-
-<div id="dream-detail-screen" class="editor-screen hidden" style="z-index: var(--z-detail); background-size: cover; background-position: center;">
-    <div id="dream-detail-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index: -1;"></div>
-    <header class="editor-header" style="background:rgba(0,0,0,0.8); border:none;">
-        <button class="close-editor-btn" onclick="document.getElementById('dream-detail-screen').classList.add('hidden');"><i class="fas fa-arrow-left"></i></button>
-        <button class="save-editor-btn" id="btn-edit-dream" style="color:white;"><i class="fas fa-edit"></i></button>
-    </header>
-    <div class="editor-body" style="display:flex; flex-direction:column; align-items:center; padding-top:40px;">
-        <div id="dream-detail-images" style="display:flex; justify-content:center; align-items:center; gap: 16px; margin-bottom:30px;"></div>
-        <h1 id="dream-detail-name" class="dream-font" style="font-size:32px; color:white; margin-bottom:12px; text-align:center;"></h1>
-        <div id="dream-detail-sub" style="font-size:16px; color:var(--accent-color); font-weight:bold; margin-bottom:24px; text-align:center;"></div>
-        <div id="dream-detail-short" style="font-size:15px; color:#e0e0e0; margin-bottom:24px; text-align:center; line-height:1.6; max-width:80%;"></div>
-        <div id="dream-detail-long" style="font-size:14px; color:#ccc; text-align:center; line-height:1.6; max-width:90%; white-space:pre-wrap;"></div>
-    </div>
-</div>
-
 <div id="character-detail-screen" class="editor-screen hidden" style="z-index: var(--z-detail);">
     <header class="editor-header">
         <button class="close-editor-btn" onclick="document.getElementById('character-detail-screen').classList.add('hidden'); localStorage.removeItem('current_screen');"><i class="fas fa-arrow-left"></i></button>
@@ -504,34 +447,6 @@
     </div>
 </div>
 
-<div id="dream-screen" class="editor-screen hidden">
-    <header class="editor-header">
-        <button class="close-editor-btn" onclick="document.getElementById('dream-screen').classList.add('hidden')"><i class="fas fa-arrow-left"></i></button>
-        <strong style="font-size: 16px;">드림</strong>
-        <button class="save-editor-btn" onclick="openDreamEditor()"><i class="fas fa-plus"></i> 새 드림</button>
-    </header>
-    <div class="editor-body" style="padding: 0;">
-        <div class="dream-feed-grid" id="dream-feed-grid">
-        </div>
-        <div class="talk-maker-section">
-            <div class="talk-maker-header">
-                <div class="talk-maker-title">수동 대화 백업</div>
-                <div class="talk-maker-help" onclick="dAlert('AI 없이 수동으로 기록하고 싶은 대화를 저장하는 창구입니다.', '안내')">
-                    <i class="fas fa-question-circle"></i>
-                </div>
-            </div>
-            <div id="talk-maker-chat" style="flex: 1; overflow-y: auto; padding: 16px; background: var(--bg-main); border-radius: 12px; margin-bottom: 16px; max-height: 300px;">
-                <div style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">이곳에서 양쪽의 대화를 수동으로 작성하여 백업 화면을 만들 수 있습니다.</div>
-            </div>
-            <textarea id="tm-msg-input" class="auto-resize-textarea" rows="2" placeholder="메시지를 입력하세요..." style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg-surface-light); color: white; margin-bottom: 8px; resize: none; outline: none; max-height: 120px; overflow-y: auto;"></textarea>
-            <div style="display: flex; gap: 8px;">
-                <button onclick="addTalkMakerMsg('char')" style="flex: 1; padding: 14px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer;">캐릭터 전송</button>
-                <button onclick="addTalkMakerMsg('user')" style="flex: 1; padding: 14px; border-radius: 8px; border: none; background: var(--accent-color); color: black; font-weight: bold; cursor: pointer;">내 전송</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- 진짜 채팅방 화면 -->
 <div id="real-chat-screen" class="editor-screen" style="display: none; flex-direction: column; background-color: #121212; z-index: var(--z-chat);">
     <div id="scene-selection-bar" style="display:none; position:absolute; top:0; left:0; width:100%; height:65px; background:var(--accent-color); color:black; z-index:calc(var(--z-chat) + 1); justify-content:space-between; align-items:center; padding: 0 16px; font-weight: bold;">
@@ -556,8 +471,9 @@
         </div>
     </header>
     <div id="chat-log" style="flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; background: #121212;"></div>
-    <footer id="chat-footer" style="padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: var(--z-sidebar);">
-        <div style="display: flex; align-items: flex-end; background: #252525; border-radius: 20px; padding: 10px 16px; border: 1px solid #444;">
+   
+    <footer id="chat-footer">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; background: #252525; border-radius: 20px; padding: 10px 16px; border: 1px solid #444;">
             <button id="btn-chat-feedback" onclick="sendFeedbackOOC()" style="background: none; border: none; color: #999; font-size: 18px; cursor: pointer; margin-right: 12px; padding-bottom: 2px;" title="봇에게 피드백 보내기"><i class="fas fa-magic"></i></button>
             <textarea id="chat-input" class="auto-resize-textarea" placeholder="메시지 입력..." rows="1" style="flex: 1; max-height: 140px; background: none; border: none; color: white; outline: none; resize: none; font-size: 15px; line-height: 1.4; overflow-y: auto;"></textarea>
             <button id="btn-chat-send" onclick="sendChatMessage()" style="background: none; border: none; color: #d8b4fe; font-weight: bold; font-size: 18px; cursor: pointer; margin-left: 12px; padding-bottom: 2px;"><i class="fas fa-paper-plane"></i></button>
@@ -778,7 +694,6 @@
         const storageKeys = {
             characters: 'dreamer_characters',
             personas: 'dreamer_personas',
-            dreams: 'dreamer_dreams',
             scenes: 'dreamer_scenes'
         };
         const storageKey = storageKeys[type];
@@ -791,7 +706,6 @@
         const renderFunctions = {
             characters: renderData,
             personas: renderData,
-            dreams: renderDreamFeed,
             scenes: renderScenes
         };
         if (renderFunctions[type]) renderFunctions[type]();
@@ -1010,215 +924,6 @@
         dAlert('초기화되었습니다.');
     };
     
-    // 드림 화면 열기
-    $('btn-open-dream').onclick = () => {
-        $('dream-screen').classList.remove('hidden');
-        renderDreamFeed();
-        toggleSidebar();
-    };
-    
-    // 드림 피드 렌더링
-    window.renderDreamFeed = function() {
-        const feedGrid = $('dream-feed-grid');
-        const dList = JSON.parse(localStorage.getItem('dreamer_dreams') || '[]');
-        
-        if (dList.length === 0) {
-            feedGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px;">저장된 드림이 없습니다.<br>새 드림을 만들어보세요!</div>';
-            return;
-        }
-        
-        feedGrid.innerHTML = '';
-        dList.forEach(d => {
-            const item = document.createElement('div');
-            item.className = 'dream-feed-item';
-            
-            let imageSrc = '';
-            if (d.bgImg) {
-                imageSrc = d.bgImg;
-            } else if (d.images && d.images[1]) {
-                imageSrc = d.images[1];
-            } else {
-                imageSrc = defaultImg;
-            }
-            
-            item.innerHTML = `
-                <img src="${imageSrc}" onerror="this.src='${defaultImg}'">
-                <div class="dream-feed-overlay">
-                    <div class="dream-feed-name">${d.name}</div>
-                    <div class="dream-feed-sub">${d.sub || d.short || ''}</div>
-                </div>
-            `;
-            
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                openDreamDetail(d);
-            });
-            
-            feedGrid.appendChild(item);
-        });
-    };
-    
-    // 드림 이미지 토글
-    window.toggleDreamImages = function() {
-        const count = $('edit-dream-count').value;
-        const type = $('edit-dream-type').value;
-        const wrapper2 = $('dream-img2-wrapper');
-        
-        if (count === '3') {
-            wrapper2.style.display = 'flex';
-        } else {
-            wrapper2.style.display = 'none';
-        }
-        
-        const symbol1 = $('dream-symbol1');
-        const symbol2 = $('dream-symbol2');
-        symbol1.textContent = type === 'cp' ? 'X' : '&';
-        if (wrapper2.style.display !== 'none') {
-            symbol2.textContent = type === 'cp' ? 'X' : '&';
-        }
-    };
-    
-    // 드림 이미지 처리
-    window.handleDreamImg = function(idx, el) {
-        if(el.files[0]) {
-            compressImage(el.files[0], b64 => {
-                window.tempDreamImages[idx] = b64;
-                const preview = $(`dream-img${idx}-preview`);
-                preview.innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-            });
-        }
-    };
-    
-    window.openDreamEditor = function(id = null, data = null) {
-        window.editingDreamId = id;
-        window.tempDreamImages = {1: null, 2: null, 3: null};
-        $('dream-editor-title').textContent = id ? '드림 수정' : '새 드림 만들기';
-        
-        if (data) {
-            ['name', 'sub', 'short', 'long'].forEach(field => {
-                $(`edit-dream-${field}`).value = data[field] || '';
-            });
-            
-            if (data.images) {
-                for(let i = 1; i <= 3; i++) {
-                    if (data.images[i]) {
-                        window.tempDreamImages[i] = data.images[i];
-                        const preview = $(`dream-img${i}-preview`);
-                        preview.innerHTML = `<img src="${data.images[i]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-                    }
-                }
-            }
-        } else {
-            ['name', 'sub', 'short', 'long'].forEach(field => {
-                $(`edit-dream-${field}`).value = '';
-            });
-            
-            for(let i = 1; i <= 3; i++) {
-                const preview = $(`dream-img${i}-preview`);
-                preview.innerHTML = `사진${i}`;
-            }
-        }
-        
-        $('dream-editor-screen').classList.remove('hidden');
-    };
-    
-    window.saveDream = async function() {
-        const name = $('edit-dream-name').value.trim();
-        if (!name) return await dAlert('페어 이름을 입력해주세요.');
-        
-        // 배경 이미지 처리
-        let bgImg = null;
-        const bgImgFile = $('edit-dream-bgimg').files[0];
-        if (bgImgFile) {
-            bgImg = await new Promise(resolve => {
-                compressImage(bgImgFile, resolve);
-            });
-        }
-        
-        let dreams = JSON.parse(localStorage.getItem('dreamer_dreams') || '[]');
-        const dreamData = {
-            id: window.editingDreamId || Date.now().toString(),
-            name: name,
-            sub: $('edit-dream-sub').value.trim(),
-            short: $('edit-dream-short').value.trim(),
-            long: $('edit-dream-long').value.trim(),
-            bgColor: $('edit-dream-bgcolor').value,
-            bgImg: bgImg,
-            images: {
-                1: window.tempDreamImages[1],
-                2: window.tempDreamImages[2],
-                3: window.tempDreamImages[3]
-            }
-        };
-        
-        if (window.editingDreamId) {
-            const index = dreams.findIndex(d => d.id === window.editingDreamId);
-            if (index !== -1) {
-                for(let i = 1; i <= 3; i++) {
-                    if (!dreamData.images[i] && dreams[index].images && dreams[index].images[i]) {
-                        dreamData.images[i] = dreams[index].images[i];
-                    }
-                }
-                dreams[index] = dreamData;
-            }
-        } else {
-            dreams.unshift(dreamData);
-        }
-        
-        localStorage.setItem('dreamer_dreams', JSON.stringify(dreams));
-        closeEditor('dream');
-        renderDreamFeed();
-        await dAlert('드림이 저장되었습니다.');
-    };
-    
-    window.openDreamDetail = function(d) {
-        $('dream-detail-name').innerText = d.name;
-        $('dream-detail-sub').innerText = d.sub || '';
-        $('dream-detail-short').innerText = d.short || '';
-        $('dream-detail-long').innerText = d.long || '';
-        
-        // 이미지 렌더링
-        const imagesContainer = $('dream-detail-images');
-        imagesContainer.innerHTML = '';
-        
-        if (d.images) {
-            for(let i = 1; i <= 3; i++) {
-                if (d.images[i]) {
-                    const img = document.createElement('img');
-                    img.src = d.images[i];
-                    img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent-color);';
-                    imagesContainer.appendChild(img);
-                    
-                    if (i < 3 && d.images[i+1]) {
-                        const symbol = document.createElement('div');
-                        symbol.style.cssText = 'font-weight: bold; font-size: 24px; color: var(--accent-color); margin: 0 8px;';
-                        symbol.textContent = 'X';
-                        imagesContainer.appendChild(symbol);
-                    }
-                }
-            }
-        }
-        
-        // 배경 이미지 설정
-        const detailScreen = $('dream-detail-screen');
-        if (d.bgImg) {
-            detailScreen.style.backgroundImage = `url(${d.bgImg})`;
-        } else if (d.bgColor) {
-            detailScreen.style.backgroundImage = 'none';
-            detailScreen.style.backgroundColor = d.bgColor;
-        } else {
-            detailScreen.style.backgroundImage = 'none';
-            detailScreen.style.backgroundColor = 'var(--bg-main)';
-        }
-        
-        $('btn-edit-dream').onclick = () => {
-            $('dream-detail-screen').classList.add('hidden');
-            openDreamEditor(d.id, d);
-        };
-        $('dream-detail-screen').classList.remove('hidden');
-    };
-    
     // 장면 시스템
     window.createSceneFolder = async function() {
         const fname = await dPrompt('새 폴더 이름을 입력하세요:');
@@ -1359,41 +1064,12 @@
         };
     });
     
-    // 톡썰메이커
-    window.clearTalkMaker = async function() {
-        if (!await dConfirm('모든 대화 내용을 지우시겠습니까?')) return;
-        $('talk-maker-chat').innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">이곳에서 양쪽의 대화를 수동으로 작성하여 백업 화면을 만들 수 있습니다.</div>';
-    };
-    
-    window.addTalkMakerMsg = function(type) {
-        const chatBox = $('talk-maker-chat');
-        const msgInput = $('tm-msg-input');
-        const text = msgInput.value.trim();
-        if (!text) return;
-        
-        const bubble = document.createElement('div');
-        bubble.className = 'msg-block';
-        bubble.style.marginBottom = '16px';
-        
-        if (type === 'char') {
-            bubble.style.alignItems = 'flex-start';
-            bubble.innerHTML = `<div class="msg-header">캐릭터</div><div class="msg-content">${text}</div><div class="msg-separator"></div>`;
-        } else {
-            bubble.style.alignItems = 'flex-end';
-            bubble.innerHTML = `<div class="msg-header">나</div><div class="msg-content">${text}</div><div class="msg-separator"></div>`;
-        }
-        
-        chatBox.appendChild(bubble);
-        msgInput.value = '';
-        chatBox.scrollTop = chatBox.scrollHeight;
-    };
-    
     // 채팅 기능
     window.selectedCharId = null;
     window.currentChatHistory = [];
     window.isGenerating = false;
     
-    window.OpenChat = function(isNew = false, readOnlyData = null) {
+    window.OpenChat = function(isNew = true, readOnlyData = null) {
         $('character-detail-screen').classList.add('hidden');
         const chatScreen = $('real-chat-screen');
         chatScreen.style.display = 'flex';
@@ -1742,7 +1418,6 @@
             const backup = {
                 characters: localStorage.getItem('dreamer_characters'),
                 personas: localStorage.getItem('dreamer_personas'),
-                dreams: localStorage.getItem('dreamer_dreams'),
                 scenes: localStorage.getItem('dreamer_scenes'),
                 scene_folders: localStorage.getItem('dreamer_scene_folders'),
                 chat_history: localStorage.getItem('dreamer_chat_history'),
@@ -1786,7 +1461,6 @@
             const backup = {
                 characters: localStorage.getItem('dreamer_characters'),
                 personas: localStorage.getItem('dreamer_personas'),
-                dreams: localStorage.getItem('dreamer_dreams'),
                 scenes: localStorage.getItem('dreamer_scenes'),
                 scene_folders: localStorage.getItem('dreamer_scene_folders'),
                 chat_history: localStorage.getItem('dreamer_chat_history'),
@@ -1892,7 +1566,7 @@
         });
         
         const savedTab = localStorage.getItem('dreamer_current_tab');
-        if (savedTab && savedTab !== 'dream') {
+        if (savedTab) {
             const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
             if (tabBtn) tabBtn.click();
         }
