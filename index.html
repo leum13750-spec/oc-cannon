@@ -895,6 +895,14 @@
         let set = Object.assign({}, defaultGenSettings, JSON.parse(localStorage.getItem('dreamer_gen_settings') || '{}'));
         set[key] = val;
         localStorage.setItem('dreamer_gen_settings', JSON.stringify(set));
+        // 저장 피드백 추가
+        const element = document.getElementById('gen-' + key);
+        if(element) {
+            element.style.borderColor = 'var(--accent-color)';
+            setTimeout(() => {
+                element.style.borderColor = 'var(--border-color)';
+            }, 500);
+        }
     };
     
     window.resetGenSettings = function() {
@@ -907,6 +915,11 @@
         loadGenSettings();
         document.getElementById('gen-settings-screen').classList.remove('hidden');
         toggleSidebar();
+    };
+    
+    // 출력 관리 닫기 버튼 추가
+    document.querySelector('#gen-settings-screen .close-editor-btn').onclick = () => {
+        document.getElementById('gen-settings-screen').classList.add('hidden');
     };
     
     // 톡썰메이커
@@ -946,10 +959,52 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     };
     
-    // 드림 시스템 (기본 구조만)
+    // 드림 이미지 처리
+    window.handleDreamImg = function(idx, el) {
+        if(el.files[0]) {
+            compressImage(el.files[0], b64 => {
+                window.tempDreamImages[idx] = b64;
+                const preview = document.getElementById(`dream-img${idx}-preview`);
+                preview.innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            });
+        }
+    };
+    
     window.openDreamEditor = function(id = null, data = null) {
         window.editingDreamId = id;
+        window.tempDreamImages = {1: null, 2: null, 3: null}; // 이미지 초기화
         document.getElementById('dream-editor-title').textContent = id ? '드림 수정' : '새 드림 만들기';
+        
+        if (data) {
+            document.getElementById('edit-dream-name').value = data.name || '';
+            document.getElementById('edit-dream-sub').value = data.sub || '';
+            document.getElementById('edit-dream-short').value = data.short || '';
+            document.getElementById('edit-dream-long').value = data.long || '';
+            
+            // 이미지 복원
+            if (data.images) {
+                for(let i = 1; i <= 3; i++) {
+                    if (data.images[i]) {
+                        window.tempDreamImages[i] = data.images[i];
+                        const preview = document.getElementById(`dream-img${i}-preview`);
+                        preview.innerHTML = `<img src="${data.images[i]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                    }
+                }
+            }
+        } else {
+            // 새 드림일 경우 초기화
+            document.getElementById('edit-dream-name').value = '';
+            document.getElementById('edit-dream-sub').value = '';
+            document.getElementById('edit-dream-short').value = '';
+            document.getElementById('edit-dream-long').value = '';
+            
+            // 이미지 프리뷰 초기화
+            for(let i = 1; i <= 3; i++) {
+                const preview = document.getElementById(`dream-img${i}-preview`);
+                preview.innerHTML = `사진${i}`;
+            }
+        }
+        
         document.getElementById('dream-editor-screen').classList.remove('hidden');
     };
     
@@ -963,12 +1018,29 @@
             name: name,
             sub: document.getElementById('edit-dream-sub').value.trim(),
             short: document.getElementById('edit-dream-short').value.trim(),
-            long: document.getElementById('edit-dream-long').value.trim()
+            long: document.getElementById('edit-dream-long').value.trim(),
+            images: {
+                1: window.tempDreamImages[1],
+                2: window.tempDreamImages[2],
+                3: window.tempDreamImages[3]
+            }
         };
         
         if (window.editingDreamId) {
             const index = dreams.findIndex(d => d.id === window.editingDreamId);
-            if (index !== -1) dreams[index] = dreamData;
+            if (index !== -1) {
+                // 기존 이미지 유지
+                if (!dreamData.images[1] && dreams[index].images && dreams[index].images[1]) {
+                    dreamData.images[1] = dreams[index].images[1];
+                }
+                if (!dreamData.images[2] && dreams[index].images && dreams[index].images[2]) {
+                    dreamData.images[2] = dreams[index].images[2];
+                }
+                if (!dreamData.images[3] && dreams[index].images && dreams[index].images[3]) {
+                    dreamData.images[3] = dreams[index].images[3];
+                }
+                dreams[index] = dreamData;
+            }
         } else {
             dreams.unshift(dreamData);
         }
@@ -987,7 +1059,16 @@
         dList.forEach(d => {
             const w = document.createElement('div');
             w.className = 'swipe-container';
-            w.innerHTML = `<div class="delete-btn-bg" onclick="executeDelete('${d.id}', '${d.name}', 'dreams')"><i class="fas fa-trash"></i></div><div class="list-card swipe-card"><div class="list-info"><span class="list-title dream-font">${d.name}</span><span class="list-sub">${d.sub || d.short}</span></div><button class="edit-btn"><i class="fas fa-edit"></i></button></div>`;
+            
+            // 이미지 표시 로직 개선
+            let imageHtml = '';
+            if (d.images && d.images[1]) {
+                imageHtml = `<img src="${d.images[1]}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-color);">`;
+            } else {
+                imageHtml = `<div style="width:48px;height:48px;border-radius:50%;background:var(--bg-surface-light);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;"><i class="fas fa-image"></i></div>`;
+            }
+            
+            w.innerHTML = `<div class="delete-btn-bg" onclick="executeDelete('${d.id}', '${d.name}', 'dreams')"><i class="fas fa-trash"></i></div><div class="list-card swipe-card">${imageHtml}<div class="list-info"><span class="list-title dream-font">${d.name}</span><span class="list-sub">${d.sub || d.short}</span></div><button class="edit-btn"><i class="fas fa-edit"></i></button></div>`;
             const card = w.querySelector('.swipe-card');
             attachSwipeEvents(card);
             card.onclick = () => openDreamDetail(d);
@@ -1082,9 +1163,22 @@
     // 공지사항
     window.openNoticeScreen = function() {
         document.getElementById('notice-screen').classList.remove('hidden');
+        // 관리자인지 확인하고 수정 버튼 표시
+        const handle = localStorage.getItem('dreamer_handle');
+        const editBtn = document.getElementById('btn-edit-notice');
+        if (handle === 'ReschaRiley') {
+            editBtn.style.display = 'block';
+        } else {
+            editBtn.style.display = 'none';
+        }
     };
     
     window.openNoticeEditScreen = function() {
+        // 현재 공지 내용 불러오기
+        const currentTitle = localStorage.getItem('dreamer_notice_title') || '';
+        const currentContent = localStorage.getItem('dreamer_notice_content') || '';
+        document.getElementById('notice-edit-title').value = currentTitle;
+        document.getElementById('notice-edit-content').value = currentContent;
         document.getElementById('notice-edit-screen').classList.remove('hidden');
     };
     
@@ -1093,13 +1187,17 @@
         const content = document.getElementById('notice-edit-content').value.trim();
         if (!title || !content) return await dAlert('제목과 내용을 모두 입력해주세요.');
         
-        // 로컬에 저장 (실제로는 Supabase에 저장)
+        // 로컬에 저장
         localStorage.setItem('dreamer_notice_title', title);
         localStorage.setItem('dreamer_notice_content', content);
         
+        // 즉시 반영
+        document.getElementById('main-notice-title').innerText = title;
+        document.getElementById('notice-read-title').innerText = title;
+        document.getElementById('notice-read-content').innerText = content;
+        
         document.getElementById('notice-edit-screen').classList.add('hidden');
         await dAlert('공지사항이 저장되었습니다.');
-        fetchGlobalNotice();
     };
     
     window.fetchGlobalNotice = function() {
