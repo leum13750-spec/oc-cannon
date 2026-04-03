@@ -647,8 +647,10 @@
         if (!id || !pw) return await dAlert('아이디와 비밀번호를 입력해주세요.');
         localStorage.setItem('dreamer_logged_in', 'true');
         localStorage.setItem('dreamer_handle', id);
+        localStorage.setItem('dreamer_nickname', id); // 닉네임 저장 추가
         $('login-screen').classList.add('hidden');
         $('settings-handle').value = id;
+        $('settings-nickname').value = id; // 닉네임 필드에도 설정
         await dAlert(`${id}님 환영합니다!`);
         renderData();
     };
@@ -659,6 +661,7 @@
             if (await dConfirm('로그아웃하시겠습니까?')) {
                 localStorage.removeItem('dreamer_logged_in');
                 localStorage.removeItem('dreamer_handle');
+                localStorage.removeItem('dreamer_nickname'); // 닉네임도 제거
                 location.reload();
             }
         };
@@ -1567,6 +1570,12 @@
                 element.value = value;
             }
         });
+        
+        // 채팅 헤더에 핸들 표시
+        const chatHeaderHandle = $('chat-header-handle');
+        if (chatHeaderHandle && savedHandle) {
+            chatHeaderHandle.textContent = `By @${savedHandle}`;
+        }
         
         const savedTab = localStorage.getItem('dreamer_current_tab');
         if (savedTab) {
