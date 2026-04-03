@@ -619,6 +619,15 @@
     const SUPABASE_URL = 'https://your-project.supabase.co';
     const defaultGenSettings = { temp: 0.65, rep: 1.00, freq: 1.00, pres: 1.00, topp: 0.99, topk: 49, maxt: 600, ctx: 8000 };
     
+    // 로그인 상태 확인 및 유지
+    function checkLoginState() {
+        const isLoggedIn = localStorage.getItem('dreamer_logged_in') === 'true';
+        const loginScreen = $('login-screen');
+        if (isLoggedIn && loginScreen) {
+            loginScreen.style.display = 'none';
+        }
+    }
+    
     // DOM 캐싱
     const domCache = {};
     function $(id) {
@@ -1022,7 +1031,6 @@
         dList.forEach(d => {
             const item = document.createElement('div');
             item.className = 'dream-feed-item';
-            item.onclick = () => openDreamDetail(d);
             
             let imageSrc = '';
             if (d.bgImg) {
@@ -1040,6 +1048,12 @@
                     <div class="dream-feed-sub">${d.sub || d.short || ''}</div>
                 </div>
             `;
+            
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openDreamDetail(d);
+            });
             
             feedGrid.appendChild(item);
         });
@@ -1859,6 +1873,7 @@
     
     // 초기화
     window.addEventListener('DOMContentLoaded', () => {
+        checkLoginState(); // 로그인 상태 확인 추가
         renderData();
         
         const savedHandle = localStorage.getItem('dreamer_handle');
