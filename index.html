@@ -637,6 +637,7 @@
             this.classList.add('active');
             $(`tab-${this.dataset.tab}`).classList.add('active');
             localStorage.setItem('dreamer_current_tab', this.dataset.tab);
+            localStorage.setItem('current_screen', this.dataset.tab); // 추가 저장
         });
     });
     
@@ -1097,6 +1098,13 @@
             
             $('chat-header-name').innerText = nameVal;
             window.currentChatHistory = [{ id: Date.now(), role: 'char', name: nameVal, content: greetingVal }];
+        }
+        
+        // 채팅 헤더에 핸들 표시 업데이트
+        const savedHandle = localStorage.getItem('dreamer_handle');
+        const chatHeaderHandle = $('chat-header-handle');
+        if (chatHeaderHandle && savedHandle) {
+            chatHeaderHandle.textContent = `By @${savedHandle}`;
         }
         
         renderChatLog();
@@ -1565,9 +1573,11 @@
         ['api-url', 'api-key', 'nickname', 'handle', 'supabase-key'].forEach(field => {
             const element = $(`settings-${field}`);
             if (element) {
-                const value = localStorage.getItem(`dreamer_${field}`) || 
-                    (field === 'api-url' ? 'https://api.totalgpt.ai/v1' : '');
-                element.value = value;
+                let value = localStorage.getItem(`dreamer_${field}`);
+                if (field === 'api-url' && !value) {
+                    value = 'https://api.totalgpt.ai/v1';
+                }
+                element.value = value || '';
             }
         });
         
@@ -1577,7 +1587,7 @@
             chatHeaderHandle.textContent = `By @${savedHandle}`;
         }
         
-        const savedTab = localStorage.getItem('dreamer_current_tab');
+        const savedTab = localStorage.getItem('dreamer_current_tab') || localStorage.getItem('current_screen');
         if (savedTab) {
             const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
             if (tabBtn) tabBtn.click();
