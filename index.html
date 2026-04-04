@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         if (localStorage.getItem('dreamer_logged_in') === 'true') {
+            document.documentElement.style.setProperty('--login-display', 'none');
             document.addEventListener('DOMContentLoaded', function() {
                 const loginScreen = document.getElementById('login-screen');
                 if (loginScreen) loginScreen.style.display = 'none';
@@ -101,6 +102,8 @@
         .primary-btn { width: 100%; padding: 16px; background: var(--text-primary); color: black; border: none; border-radius: 30px; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 24px; }
         .login-links { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); }
         
+        #login-screen { display: var(--login-display, flex) !important; }
+
         .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg-surface); z-index: var(--z-sidebar); transition: left 0.3s; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
         .sidebar.open { left: 0; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); }
@@ -1183,6 +1186,7 @@
         if (readOnlyData) {
             $('chat-footer').style.display = 'none';
             window.currentChatHistory = readOnlyData.history || [];
+            $('chat-header-name').innerText = readOnlyData.charName;
         } else {
             $('chat-footer').style.display = 'block';
             let nameVal = "캐릭터", greetingVal = "*미소지으며* 반가워요.";
