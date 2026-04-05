@@ -120,7 +120,6 @@
         .talk-maker-title { font-size: 16px; font-weight: bold; color: white; }
         .talk-maker-help { color: var(--text-secondary); font-size: 12px; cursor: pointer; }
         button:disabled { opacity: 0.5; cursor: not-allowed !important; }
-        #real-chat-screen { display: none; flex-direction: column; background-color: #121212; z-index: var(--z-chat); position: fixed; top:0; left:0; width:100%; height:100%; }
         #chat-log { flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; background: #121212; }
         #chat-footer { padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: var(--z-sidebar); }
         .auto-resize-textarea { resize: none; overflow-y: auto; min-height: 20px; }
@@ -256,7 +255,7 @@
                 <div class="content-list" id="persona-list-container"></div>
             </div>
 
-            <!-- 탭 4: API (새로 분리됨) -->
+            <!-- 탭 4: API -->
             <div id="tab-api" class="tab-pane">
                 <div class="settings-profile">
                     <h3 style="font-size: 18px; margin-bottom: 16px; color: white;">API 연결 설정</h3>
@@ -314,7 +313,7 @@
     <button class="bug-report-btn" onclick="dAlert('버그 리포트는 공식 채널을 이용해주세요.')"><i class="fas fa-bug"></i></button>
 
 <!-- 모달창 및 에디터 UI -->
-<div id="edit-message-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: var(--z-alert); align-items: center; justify-content: center; padding: 20px; flex-direction: column;">
+<div id="edit-message-overlay" class="editor-screen hidden" style="background: rgba(0,0,0,0.8); z-index: var(--z-alert); align-items: center; justify-content: center; padding: 20px;">
     <div style="width: 100%; max-width: 500px; background: #1c1c1e; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 24px; border: 1px solid #333;">
         <textarea id="edit-message-textarea" class="auto-resize-textarea" style="width: 100%; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.5; resize: none; outline: none; min-height: 100px; max-height: 50vh; overflow-y: auto; font-family: inherit;"></textarea>
         <div style="display: flex; gap: 16px; align-items: center; justify-content: flex-start;">
@@ -326,7 +325,7 @@
 
 <div id="notice-screen" class="editor-screen hidden" style="z-index: var(--z-notice);">
     <header class="editor-header">
-        <button class="close-editor-btn" onclick="document.getElementById('notice-screen').classList.add('hidden')"><i class="fas fa-arrow-left"></i></button>
+        <button class="close-editor-btn" onclick="closeEditor('notice')"><i class="fas fa-arrow-left"></i></button>
         <strong style="font-size: 16px;">안내 및 공지</strong>
         <button id="btn-edit-notice" class="save-editor-btn" style="display:none;" onclick="openNoticeEditScreen()">수정</button>
     </header>
@@ -338,7 +337,7 @@
 
 <div id="notice-edit-screen" class="editor-screen hidden" style="z-index: calc(var(--z-notice) + 1);">
     <header class="editor-header">
-        <button class="close-editor-btn" onclick="document.getElementById('notice-edit-screen').classList.add('hidden')"><i class="fas fa-times"></i></button>
+        <button class="close-editor-btn" onclick="closeEditor('notice-edit')"><i class="fas fa-times"></i></button>
         <strong style="font-size: 16px;">공지사항 작성 (관리자)</strong>
         <button id="btn-upload-notice" class="save-editor-btn" onclick="executeNoticeUpload()">업로드</button>
     </header>
@@ -350,7 +349,7 @@
 
 <div id="admin-screen" class="editor-screen hidden" style="z-index: var(--z-notice);">
     <header class="editor-header">
-        <button class="close-editor-btn" onclick="document.getElementById('admin-screen').classList.add('hidden')"><i class="fas fa-arrow-left"></i></button>
+        <button class="close-editor-btn" onclick="closeEditor('admin')"><i class="fas fa-arrow-left"></i></button>
         <strong style="font-size: 16px;">관리자 패널</strong>
         <div style="width: 24px;"></div>
     </header>
@@ -454,7 +453,7 @@
 <div id="dream-detail-screen" class="editor-screen hidden" style="z-index: var(--z-detail); background-size: cover; background-position: center;">
     <div id="dream-detail-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index: -1;"></div>
     <header class="editor-header" style="background:transparent; border:none;">
-        <button class="close-editor-btn" onclick="document.getElementById('dream-detail-screen').classList.add('hidden');"><i class="fas fa-arrow-left"></i></button>
+        <button class="close-editor-btn" onclick="closeEditor('dream-detail')"><i class="fas fa-arrow-left"></i></button>
         <button class="save-editor-btn" id="btn-edit-dream" style="color:white;"><i class="fas fa-edit"></i></button>
     </header>
     <div class="editor-body" style="display:flex; flex-direction:column; align-items:center; padding-top:40px;">
@@ -469,7 +468,7 @@
 
 <div id="character-detail-screen" class="editor-screen hidden" style="z-index: var(--z-detail);">
     <header class="editor-header">
-        <button class="close-editor-btn" onclick="document.getElementById('character-detail-screen').classList.add('hidden'); localStorage.removeItem('current_screen');"><i class="fas fa-arrow-left"></i></button>
+        <button class="close-editor-btn" onclick="closeEditor('character-detail')"><i class="fas fa-arrow-left"></i></button>
         <strong style="font-size: 16px;">캐릭터 프로필</strong><div style="width: 24px;"></div>
     </header>
     <div class="editor-body" style="padding-top: 32px;">
@@ -496,7 +495,7 @@
 
 <div id="dream-screen" class="editor-screen hidden">
     <header class="editor-header">
-        <button class="close-editor-btn" onclick="document.getElementById('dream-screen').classList.add('hidden')"><i class="fas fa-arrow-left"></i></button>
+        <button class="close-editor-btn" onclick="closeEditor('dream')"><i class="fas fa-arrow-left"></i></button>
         <strong style="font-size: 16px;">드림</strong>
         <button class="save-editor-btn" onclick="openDreamEditor()"><i class="fas fa-plus"></i> 새 드림</button>
     </header>
@@ -521,8 +520,8 @@
     </div>
 </div>
 
-<!-- 진짜 채팅방 화면 -->
-<div id="real-chat-screen" class="editor-screen" style="display: none; flex-direction: column; background-color: #121212; z-index: var(--z-chat);">
+<!-- ⭐ 변경점: 진짜 채팅방 화면의 렌더링 글리치 방지를 위해 hidden 클래스 방식으로 통일했습니다. -->
+<div id="real-chat-screen" class="editor-screen hidden" style="background-color: #121212; z-index: var(--z-chat);">
     <div id="scene-selection-bar" style="display:none; position:absolute; top:0; left:0; width:100%; height:65px; background:var(--accent-color); color:black; z-index:calc(var(--z-chat) + 1); justify-content:space-between; align-items:center; padding: 0 16px; font-weight: bold;">
         <span>장면으로 저장할 메시지 선택 중...</span>
         <div style="display: flex; gap: 10px;">
@@ -532,7 +531,8 @@
     </div>
     <header class="editor-header" style="border-bottom: 1px solid #222; background: #181818; display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; height: 65px;">
         <div style="display: flex; align-items: center; gap: 14px;">
-            <button onclick="goHomeFromChat()" style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 0;"><i class="fas fa-arrow-left"></i></button>
+            <!-- ⭐ 변경점: 뒤로가기 버튼의 터치 패딩을 확대하여 터치 삑사리를 방지했습니다. -->
+            <button onclick="goHomeFromChat()" style="background: transparent; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 10px 15px 10px 0;"><i class="fas fa-arrow-left"></i></button>
             <img id="chat-header-img" src="" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #444;">
             <div style="display: flex; flex-direction: column; justify-content: center;">
                 <strong id="chat-header-name" style="color: #fff; font-size: 16px; margin-bottom: 2px;">이름</strong>
@@ -603,7 +603,6 @@
 <div id="action-sheet-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: calc(var(--z-action)); opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;" onclick="closeActionSheet()"></div>
 
 <script>
-    // 1. [버그 수정] 쌍따옴표 충돌을 막기 위해 기본 이미지는 홑따옴표로 정의합니다.
     const defaultImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 24 24' fill='%23666'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
     window.isSceneSelectionMode = false;
     
@@ -681,7 +680,6 @@
         });
     };
     
-    // 2. [버그 수정] 캐릭터/페르소나 이미지 업로드 함수
     window.handleImageUpload = function(inputEl, previewId, type) {
         if(inputEl.files[0]) {
             compressImage(inputEl.files[0], b64 => {
@@ -693,7 +691,6 @@
         }
     };
 
-    // 사이드바 동작
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
@@ -713,12 +710,12 @@
     document.getElementById('btn-go-home').onclick = () => {
         toggleSidebar();
         document.querySelector('.tab-btn[data-tab="character"]').click();
+        // ⭐ 변경점: 닫기 방식을 .classList.add('hidden') 로 통일하여 버그 제거
         document.getElementById('character-detail-screen').classList.add('hidden');
         document.getElementById('dream-detail-screen').classList.add('hidden');
-        document.getElementById('real-chat-screen').style.display = 'none';
+        document.getElementById('real-chat-screen').classList.add('hidden');
     };
     
-    // 탭 전환
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -729,7 +726,6 @@
         });
     });
     
-    // 로그인 및 로그아웃
     document.getElementById('btn-login').onclick = async function() {
         const id = document.getElementById('login-id').value.trim();
         const pw = document.getElementById('login-pw').value.trim();
@@ -750,7 +746,6 @@
         }
     };
     
-    // 스와이프 기능
     function attachSwipeEvents(cardElement) {
         let startX = 0, currentX = 0; const threshold = -60;
         cardElement.addEventListener('touchstart', (e) => {
@@ -769,7 +764,6 @@
         });
     }
     
-    // 삭제 공통 기능
     window.executeDelete = async function(id, name, type) {
         if (!await dConfirm(`'${name}'을(를) 삭제하시겠습니까?`)) return;
         let storageKey = type === 'characters' ? 'dreamer_characters' : type === 'personas' ? 'dreamer_personas' : type === 'dreams' ? 'dreamer_dreams' : 'dreamer_scenes';
@@ -785,13 +779,11 @@
         await dAlert('삭제되었습니다.');
     };
     
-    // 창 닫기 공통
     window.closeEditor = function(type) {
         const targetElement = document.getElementById(type + '-editor-screen') || document.getElementById(type + '-screen');
         if(targetElement) targetElement.classList.add('hidden');
     };
     
-    // 캐릭터 에디터
     window.openCharEditor = function(id = null, data = null) {
         window.editingCharId = id;
         const screen = document.getElementById('character-editor-screen');
@@ -861,7 +853,6 @@
         await dAlert('캐릭터가 저장되었습니다.');
     };
     
-    // 페르소나 에디터
     window.openPersonaEditor = function(id = null, data = null) {
         window.editingPersonaId = id;
         const screen = document.getElementById('persona-editor-screen');
@@ -923,7 +914,6 @@
         await dAlert('페르소나가 저장되었습니다.');
     };
     
-    // 데이터 화면 렌더링
     window.renderData = function() {
         const cBox = document.getElementById('character-list-container');
         const pBox = document.getElementById('persona-list-container');
@@ -934,7 +924,6 @@
             const w = document.createElement('div');
             w.className = 'swipe-container';
             const safeName = (c.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            // 홑따옴표와 쌍따옴표 엉킴을 막기 위해 안전한 HTML 삽입 구조 활용
             w.innerHTML = `<div class="delete-btn-bg" onclick="executeDelete('${c.id}', '${safeName}', 'characters')"><i class="fas fa-trash"></i></div>
             <div class="list-card swipe-card">
                 <img src="${c.photoUrl || defaultImg}" class="char-img">
@@ -970,7 +959,6 @@
         });
     };
     
-    // 캐릭터 상세
     window.openCharacterDetail = function(id, data) {
         window.selectedCharId = id;
         document.getElementById('detail-img').src = data.photoUrl || defaultImg;
@@ -983,7 +971,6 @@
         document.getElementById('character-detail-screen').classList.remove('hidden');
     };
     
-    // 출력 관리(Generation Parameters)
     const defaultGenSettings = { temp: 0.65, rep: 1.00, freq: 1.00, pres: 1.00, topp: 0.99, topk: 49, maxt: 600, ctx: 8000 };
     
     window.loadGenSettings = function() {
@@ -1017,7 +1004,6 @@
         toggleSidebar();
     };
     
-    // 드림 관련 함수
     document.getElementById('btn-open-dream').onclick = () => {
         document.getElementById('dream-screen').classList.remove('hidden');
         renderDreamFeed();
@@ -1211,7 +1197,6 @@
         }
     };
     
-    // 장면 시스템
     window.createSceneFolder = async function() {
         const fname = await dPrompt('새 폴더 이름을 입력하세요:');
         if (!fname) return;
@@ -1270,7 +1255,6 @@
         renderScenes();
     };
 
-    // 공지 및 관리자 
     window.openAdminPanel = function() {
         document.getElementById('admin-screen').classList.remove('hidden');
         document.getElementById('admin-user-list').innerHTML = `<div style="background:var(--bg-surface); padding:16px; border-radius:12px; margin-bottom:10px;"><div style="color:white; font-weight:bold; margin-bottom:4px;">테스트 유저 <span style="background:var(--accent-color); color:black; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:6px;">뉴비</span></div><div style="color:gray; font-size:12px; margin-bottom:12px;">UID: SAMPLE123UID456</div><button class="action-btn-outline" style="padding:8px; font-size:12px;" onclick="dAlert('준비 중입니다.')">칭호 수정</button></div>`;
@@ -1285,7 +1269,6 @@
         document.getElementById('notice-edit-screen').classList.remove('hidden');
     };
     
-    // 3. API 설정 저장 (신규 API 탭) 및 테스트 기능
     document.getElementById('btn-save-api').onclick = async function() {
         const apiUrl = document.getElementById('api-url').value.trim();
         const apiKey = document.getElementById('api-key').value.trim();
@@ -1324,14 +1307,12 @@
         }
     };
     
-    // 프로필 설정 저장
     document.getElementById('btn-save-profile').onclick = async function() {
         localStorage.setItem('dreamer_nickname', document.getElementById('settings-nickname').value.trim());
         localStorage.setItem('dreamer_supabase_key', document.getElementById('settings-supabase-key').value.trim());
         await dAlert('프로필 설정이 저장되었습니다.');
     };
     
-    // 4. 진짜 채팅 및 통신 로직 추가
     window.selectedCharId = null;
     window.currentSessionId = null;
     window.currentChatHistory = [];
@@ -1361,17 +1342,17 @@
     
     window.OpenChat = function(isNew = false, sessionData = null) {
         document.getElementById('character-detail-screen').classList.add('hidden');
+        
+        // ⭐ 변경점: flex로 스타일을 덮어씌우지 않고, hidden 클래스만 제거합니다.
         const chatScreen = document.getElementById('real-chat-screen');
-        chatScreen.style.display = 'flex';
+        chatScreen.classList.remove('hidden');
         
         if (sessionData) {
-            // 과거 세션 또는 장면 불러오기
             document.getElementById('chat-footer').style.display = 'block';
             window.currentChatHistory = sessionData.history || [];
             document.getElementById('chat-header-name').innerText = sessionData.charName;
-            window.currentSessionId = sessionData.folderId !== undefined ? null : sessionData.id; // 장면이면 새 세션 취급
+            window.currentSessionId = sessionData.folderId !== undefined ? null : sessionData.id;
         } else {
-            // 새 채팅
             document.getElementById('chat-footer').style.display = 'block';
             let nameVal = "캐릭터", greetingVal = "*미소지며* 반가워요.";
             window.currentSessionId = Date.now().toString();
@@ -1392,9 +1373,15 @@
         renderChatLog();
     };
     
+    // ⭐ 변경점: 뒤로가기 버튼 오작동 방지 (에러가 나도 무조건 닫히게 try-catch 적용 및 hidden 방식 통일)
     window.goHomeFromChat = function() {
-        document.getElementById('real-chat-screen').style.display = 'none';
-        saveCurrentSession();
+        try {
+            if (window.currentSessionId) saveCurrentSession();
+        } catch (e) {
+            console.error("세션 저장 중 오류 발생:", e);
+        } finally {
+            document.getElementById('real-chat-screen').classList.add('hidden');
+        }
     };
     
     function renderChatLog() {
@@ -1430,7 +1417,6 @@
         logBox.scrollTop = logBox.scrollHeight;
     }
     
-    // 핵심 API 호출 로직 적용
     window.sendChatMessage = async function() {
         if (window.isGenerating) return;
         const input = document.getElementById('chat-input');
@@ -1452,7 +1438,6 @@
             
             if (!apiUrl || !apiKey) throw new Error("API 주소나 Key가 설정되지 않았습니다. API 탭에서 저장해주세요.");
 
-            // 프롬프트 조립
             let systemPrompt = "당신은 다음 설정된 캐릭터로서 사용자와 역할극(Roleplay)을 진행합니다. 성격, 말투, 관계를 철저히 지키며, 한국어로 자연스럽게 대답하세요.\n\n[캐릭터 설정]\n";
             if (window.selectedCharId) {
                 const c = JSON.parse(localStorage.getItem('dreamer_characters')||'[]').find(x=>x.id===window.selectedCharId);
@@ -1473,7 +1458,6 @@
 
             const genSet = Object.assign({}, defaultGenSettings, JSON.parse(localStorage.getItem('dreamer_gen_settings') || '{}'));
 
-            // API 통신
             const response = await fetch(`${apiUrl}/chat/completions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
@@ -1517,7 +1501,6 @@
         saveCurrentSession();
     };
     
-    // 액션 시트 및 메시지 관리
     window.toggleRightSidebar = function() {
         const sidebar = document.getElementById('sidebar-right');
         const overlay = document.getElementById('sidebar-overlay');
