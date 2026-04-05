@@ -124,7 +124,6 @@
         .auto-resize-textarea { resize: none; overflow-y: auto; min-height: 20px; }
     </style>
     <script>
-        // 새로고침 시 로그인 유지 처리
         if (localStorage.getItem('dreamer_logged_in') === 'true') {
             const hideStyle = document.createElement('style');
             hideStyle.innerHTML = '#login-screen { display: none !important; }';
@@ -135,7 +134,6 @@
             });
         }
 
-        // Appwrite 글로벌 변수 선언
         let client, databases;
         try {
             if (typeof Appwrite !== 'undefined') {
@@ -153,7 +151,6 @@
 </head>
 <body>
 
-    <!-- 커스텀 모달 래퍼 -->
     <div id="d-modal-overlay" class="screen-overlay hidden" style="z-index: var(--z-alert);">
         <div class="login-container" style="padding: 30px 24px;">
             <h3 id="d-modal-title" style="margin-bottom: 15px; font-size: 18px; color: white;">알림</h3>
@@ -166,7 +163,6 @@
         </div>
     </div>
 
-    <!-- 로그인 화면 -->
     <div id="login-screen" class="screen-overlay" style="z-index: var(--z-overlay);">
         <div class="login-container">
             <h1 class="logo">dreamer.ai</h1>
@@ -183,7 +179,6 @@
         </div>
     </div>
     
-    <!-- 사이드바 -->
     <div id="sidebar" class="sidebar">
         <div class="sidebar-header">
             <h2>메뉴</h2>
@@ -199,7 +194,6 @@
     </div>
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-    <!-- 메인 앱 -->
     <div id="app-content" class="app-content">
         <header class="app-header" style="padding-bottom: 8px;">
             <button class="menu-btn" id="btn-open-sidebar"><i class="fas fa-bars"></i></button>
@@ -227,13 +221,11 @@
         </nav>
 
         <main class="tab-content-area">
-            <!-- 탭 1: 캐릭터 -->
             <div id="tab-character" class="tab-pane active">
                 <button class="create-btn" onclick="openCharEditor()">+ 새 캐릭터 만들기</button>
                 <div class="content-list" id="character-list-container"></div>
             </div>
 
-            <!-- 탭 2: 장면 -->
             <div id="tab-scene" class="tab-pane">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <h3 class="section-title">저장된 장면(Scene)</h3>
@@ -246,13 +238,11 @@
                 <div class="content-list" id="scene-list-container"><p class="empty-text">저장된 장면이 없습니다.</p></div>
             </div>
 
-            <!-- 탭 3: 페르소나 -->
             <div id="tab-persona" class="tab-pane">
                 <button class="create-btn" onclick="openPersonaEditor()">+ 새 페르소나 만들기</button>
                 <div class="content-list" id="persona-list-container"></div>
             </div>
 
-            <!-- 탭 4: API -->
             <div id="tab-api" class="tab-pane">
                 <div class="settings-profile">
                     <h3 style="font-size: 18px; margin-bottom: 16px; color: white;">API 연결 설정</h3>
@@ -273,7 +263,6 @@
                 </div>
             </div>
 
-            <!-- 탭 5: 설정 -->
             <div id="tab-settings" class="tab-pane">
                 <div class="settings-profile">
                     <div class="form-group" style="width: 100%; text-align: left; background: rgba(216, 180, 254, 0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(216, 180, 254, 0.2);">
@@ -309,7 +298,6 @@
 
     <button class="bug-report-btn" onclick="dAlert('버그 리포트는 공식 채널을 이용해주세요.')"><i class="fas fa-bug"></i></button>
 
-<!-- 모달창 및 에디터 UI -->
 <div id="edit-message-overlay" class="editor-screen hidden" style="background: rgba(0,0,0,0.8); z-index: var(--z-alert); align-items: center; justify-content: center; padding: 20px;">
     <div style="width: 100%; max-width: 500px; background: #1c1c1e; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 24px; border: 1px solid #333;">
         <textarea id="edit-message-textarea" class="auto-resize-textarea" style="width: 100%; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.5; resize: none; outline: none; min-height: 100px; max-height: 50vh; overflow-y: auto; font-family: inherit;"></textarea>
@@ -549,8 +537,7 @@
     </footer>
 </div>
 
-<!-- ⭐ 변경점: 독립적인 우측 전용 오버레이 (버그 수정) -->
-<div id="sidebar-right-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: calc(var(--z-action) - 1); opacity: 0; visibility: hidden; transition: 0.3s;" onclick="toggleRightSidebar()"></div>
+<div id="sidebar-right-overlay" class="sidebar-overlay" style="z-index: calc(var(--z-action) - 1);" onclick="toggleRightSidebar()"></div>
 
 <div id="sidebar-right" style="position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #151515; z-index: var(--z-action); transition: right 0.3s; display: flex; flex-direction: column; border-left: 1px solid #222; overflow-y: auto;">
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #222;">
@@ -1275,6 +1262,7 @@
         await dAlert('API 설정이 저장되었습니다.');
     };
     
+    // ⭐ 변경점: fetchModels에 프록시 우회 로직 추가
     window.fetchModels = async function() {
         const url = document.getElementById('api-url').value.trim() || localStorage.getItem('dreamer_api_url');
         const key = document.getElementById('api-key').value.trim() || localStorage.getItem('dreamer_api_key');
@@ -1282,7 +1270,17 @@
         
         try {
             const cleanUrl = url.replace(/\/$/, "");
-            const res = await fetch(`${cleanUrl}/models`, { headers: { 'Authorization': `Bearer ${key}` }});
+            const fetchOptions = { headers: { 'Authorization': `Bearer ${key}` }};
+            let res;
+            
+            try {
+                res = await fetch(`${cleanUrl}/models`, fetchOptions);
+            } catch (err) {
+                console.warn("CORS 에러 감지. 프록시 우회 시도...");
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(cleanUrl + '/models')}`;
+                res = await fetch(proxyUrl, fetchOptions);
+            }
+            
             if(!res.ok) throw new Error(`HTTP Error: ${res.status}`);
             const data = await res.json();
             
@@ -1410,6 +1408,7 @@
         logBox.scrollTop = logBox.scrollHeight;
     }
     
+    // ⭐ 변경점: 채팅 발송 시 프록시 우회 로직 추가
     window.sendChatMessage = async function() {
         if (window.isGenerating) return;
         const input = document.getElementById('chat-input');
@@ -1453,7 +1452,7 @@
 
             const genSet = Object.assign({}, defaultGenSettings, JSON.parse(localStorage.getItem('dreamer_gen_settings') || '{}'));
 
-            const response = await fetch(`${apiUrl}/chat/completions`, {
+            const fetchOptions = {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json', 
@@ -1469,11 +1468,20 @@
                     frequency_penalty: parseFloat(genSet.freq),
                     max_tokens: parseInt(genSet.maxt)
                 })
-            });
+            };
+
+            let response;
+            try {
+                response = await fetch(`${apiUrl}/chat/completions`, fetchOptions);
+            } catch (err) {
+                console.warn("CORS 방화벽 차단 감지됨. 우회 프록시 서버를 통해 재요청합니다...");
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl + '/chat/completions')}`;
+                response = await fetch(proxyUrl, fetchOptions);
+            }
 
             if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.error?.message || `통신 실패 (${response.status})`);
+                const errData = await response.json();
+                throw new Error(errData.error?.message || `통신 실패 (${response.status})`);
             }
 
             const data = await response.json();
@@ -1504,7 +1512,6 @@
         saveCurrentSession();
     };
     
-    // ⭐ 변경점: 독립적인 오버레이 동작 제어
     window.toggleRightSidebar = function() {
         const sidebar = document.getElementById('sidebar-right');
         const overlay = document.getElementById('sidebar-right-overlay');
