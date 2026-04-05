@@ -12,7 +12,6 @@
     <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;dreamer.ai&quot;,&quot;short_name&quot;:&quot;dreamer.ai&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;background_color&quot;:&quot;#0a0a0a&quot;,&quot;theme_color&quot;:&quot;#0a0a0a&quot;}">
     <title>dreamer.ai</title>
     
-    <!-- Appwrite SDK -->
     <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/appwrite.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -148,8 +147,6 @@
         } catch (error) {
             console.warn('Appwrite SDK 로드 실패:', error);
         }
-        
-        // 데이터베이스 세팅 정보
         const databaseId = '69d1e3790019b7d3754e';
         const collectionId = 'backups';
     </script>
@@ -520,7 +517,6 @@
     </div>
 </div>
 
-<!-- 진짜 채팅방 화면 -->
 <div id="real-chat-screen" class="editor-screen hidden" style="background-color: #121212; z-index: var(--z-chat);">
     <div id="scene-selection-bar" style="display:none; position:absolute; top:0; left:0; width:100%; height:65px; background:var(--accent-color); color:black; z-index:calc(var(--z-chat) + 1); justify-content:space-between; align-items:center; padding: 0 16px; font-weight: bold;">
         <span>장면으로 저장할 메시지 선택 중...</span>
@@ -553,10 +549,9 @@
     </footer>
 </div>
 
-<!-- ⭐ 변경점: 우측 전용 오버레이 추가 -->
-<div id="sidebar-right-overlay" class="sidebar-overlay" style="z-index: calc(var(--z-action) - 1);" onclick="toggleRightSidebar()"></div>
+<!-- ⭐ 변경점: 독립적인 우측 전용 오버레이 (버그 수정) -->
+<div id="sidebar-right-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: calc(var(--z-action) - 1); opacity: 0; visibility: hidden; transition: 0.3s;" onclick="toggleRightSidebar()"></div>
 
-<!-- 우측 사이드바 -->
 <div id="sidebar-right" style="position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #151515; z-index: var(--z-action); transition: right 0.3s; display: flex; flex-direction: column; border-left: 1px solid #222; overflow-y: auto;">
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #222;">
         <h2 style="font-size: 18px; color: white;">채팅 설정</h2>
@@ -590,7 +585,6 @@
     </div>
 </div>
 
-<!-- 액션 시트 -->
 <div id="action-sheet" style="position: fixed; bottom: -400px; left: 0; width: 100%; background: #1c1c1e; z-index: calc(var(--z-action) + 1); border-radius: 20px 20px 0 0; padding: 20px; transition: bottom 0.3s;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h3 style="color: white; font-size: 16px;">메시지 옵션</h3>
@@ -608,7 +602,6 @@
     const defaultImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 24 24' fill='%23666'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
     window.isSceneSelectionMode = false;
     
-    // 유틸리티 함수 (알림/입력창)
     window.dAlert = async function(msg, title = '알림') {
         return new Promise(resolve => {
             document.getElementById('d-modal-title').innerText = title;
@@ -1288,7 +1281,8 @@
         if (!url || !key) return await dAlert("API 주소와 Key를 먼저 입력 및 저장해주세요.");
         
         try {
-            const res = await fetch(`${url}/models`, { headers: { 'Authorization': `Bearer ${key}` }});
+            const cleanUrl = url.replace(/\/$/, "");
+            const res = await fetch(`${cleanUrl}/models`, { headers: { 'Authorization': `Bearer ${key}` }});
             if(!res.ok) throw new Error(`HTTP Error: ${res.status}`);
             const data = await res.json();
             
@@ -1431,11 +1425,13 @@
         document.getElementById('btn-chat-send').style.opacity = '0.5';
 
         try {
-            const apiUrl = localStorage.getItem('dreamer_api_url');
+            const rawApiUrl = localStorage.getItem('dreamer_api_url');
             const apiKey = localStorage.getItem('dreamer_api_key');
             const model = localStorage.getItem('dreamer_model') || 'gpt-3.5-turbo';
             
-            if (!apiUrl || !apiKey) throw new Error("API 주소나 Key가 설정되지 않았습니다. API 탭에서 저장해주세요.");
+            if (!rawApiUrl || !apiKey) throw new Error("API 주소나 Key가 설정되지 않았습니다.");
+            
+            const apiUrl = rawApiUrl.replace(/\/$/, "");
 
             let systemPrompt = "당신은 다음 설정된 캐릭터로서 사용자와 역할극(Roleplay)을 진행합니다. 성격, 말투, 관계를 철저히 지키며, 한국어로 자연스럽게 대답하세요.\n\n[캐릭터 설정]\n";
             if (window.selectedCharId) {
@@ -1459,7 +1455,11 @@
 
             const response = await fetch(`${apiUrl}/chat/completions`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${apiKey}` 
+                },
                 body: JSON.stringify({
                     model: model,
                     messages: messages,
@@ -1483,7 +1483,11 @@
             
         } catch (error) {
             console.error(error);
-            window.currentChatHistory.push({ id: Date.now(), role: 'char', name: "시스템 에러", content: `(통신 오류: ${error.message})` });
+            let errMsg = error.message;
+            if (errMsg.includes('Load failed') || errMsg.includes('Failed to fetch')) {
+                errMsg = "CORS 방화벽 차단 (API 제공자가 웹 연결을 차단함)";
+            }
+            window.currentChatHistory.push({ id: Date.now(), role: 'char', name: "시스템 에러", content: `(통신 오류: ${errMsg})` });
         } finally {
             window.isGenerating = false;
             document.getElementById('btn-chat-send').style.opacity = '1';
@@ -1500,16 +1504,21 @@
         saveCurrentSession();
     };
     
-    // ⭐ 변경점: 우측 사이드바용 오버레이 동작 연동
+    // ⭐ 변경점: 독립적인 오버레이 동작 제어
     window.toggleRightSidebar = function() {
         const sidebar = document.getElementById('sidebar-right');
         const overlay = document.getElementById('sidebar-right-overlay');
+        
         if (sidebar.style.right === '0px') {
             sidebar.style.right = '-300px';
             overlay.classList.remove('show');
+            overlay.style.opacity = '0';
+            overlay.style.visibility = 'hidden';
         } else {
             sidebar.style.right = '0px';
             overlay.classList.add('show');
+            overlay.style.opacity = '1';
+            overlay.style.visibility = 'visible';
         }
     };
     
