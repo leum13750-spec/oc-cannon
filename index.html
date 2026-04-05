@@ -137,7 +137,7 @@
             });
         }
 
-        // Appwrite 글로벌 변수 선언 (버그 수정: 서버 통신 스코프 문제 해결)
+        // Appwrite 글로벌 변수 선언
         let client, databases;
         try {
             if (typeof Appwrite !== 'undefined') {
@@ -593,7 +593,6 @@
 <script>
     // 전역 변수
     const defaultImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-    const SUPABASE_URL = 'https://your-project.supabase.co'; // 사용자가 입력해야 함
     window.isSceneSelectionMode = false;
     
     // 유틸리티 함수
@@ -969,7 +968,7 @@
         let set = Object.assign({}, defaultGenSettings, JSON.parse(localStorage.getItem('dreamer_gen_settings') || '{}'));
         set[key] = val;
         localStorage.setItem('dreamer_gen_settings', JSON.stringify(set));
-        // 저장 피드백 추가
+        
         const element = document.getElementById('gen-' + key);
         if(element) {
             element.style.borderColor = 'var(--accent-color)';
@@ -991,7 +990,6 @@
         toggleSidebar();
     };
     
-    // 출력 관리 닫기 버튼 추가
     document.querySelector('#gen-settings-screen .close-editor-btn').onclick = () => {
         document.getElementById('gen-settings-screen').classList.add('hidden');
     };
@@ -1019,7 +1017,6 @@
             item.className = 'dream-feed-item';
             item.onclick = () => openDreamDetail(d);
             
-            // 헤더 이미지 또는 기본 이미지
             let imageSrc = '';
             if (d.bgImg) {
                 imageSrc = d.bgImg;
@@ -1041,7 +1038,7 @@
         });
     };
     
-    // 톡썰메이커 (드림 화면 내에서만 작동)
+    // 톡썰메이커
     window.clearTalkMaker = async function() {
         if (!await dConfirm('모든 대화 내용을 지우시겠습니까?')) return;
         document.getElementById('talk-maker-chat').innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">이곳에서 양쪽의 대화를 수동으로 작성하여 백업 화면을 만들 수 있습니다.</div>';
@@ -1116,7 +1113,7 @@
     
     window.openDreamEditor = function(id = null, data = null) {
         window.editingDreamId = id;
-        window.tempDreamImages = {1: null, 2: null, 3: null}; // 이미지 초기화
+        window.tempDreamImages = {1: null, 2: null, 3: null};
         window.tempDreamBgImg = null;
         document.getElementById('dream-editor-title').textContent = id ? '드림 수정' : '새 드림 만들기';
         
@@ -1129,10 +1126,8 @@
             document.getElementById('edit-dream-long').value = data.long || '';
             document.getElementById('edit-dream-bgcolor').value = data.bgColor || '#151515';
             
-            // 배경 이미지 복원
             if (data.bgImg) window.tempDreamBgImg = data.bgImg;
             
-            // 이미지 복원
             if (data.images) {
                 for(let i = 1; i <= 3; i++) {
                     if (data.images[i]) {
@@ -1142,9 +1137,8 @@
                     }
                 }
             }
-            toggleDreamImages(); // 상태 반영
+            toggleDreamImages();
         } else {
-            // 새 드림일 경우 초기화
             document.getElementById('edit-dream-name').value = '';
             document.getElementById('edit-dream-count').value = '2';
             document.getElementById('edit-dream-type').value = 'cp';
@@ -1153,7 +1147,6 @@
             document.getElementById('edit-dream-long').value = '';
             document.getElementById('edit-dream-bgcolor').value = '#151515';
             
-            // 이미지 프리뷰 초기화
             for(let i = 1; i <= 3; i++) {
                 const preview = document.getElementById(`dream-img${i}-preview`);
                 preview.innerHTML = `사진${i}`;
@@ -1217,7 +1210,6 @@
     window.openDreamDetail = function(d) {
         window.editingDreamId = d.id;
         
-        // 배경 이미지 및 색상 적용
         const screen = document.getElementById('dream-detail-screen');
         if (d.bgImg) {
             screen.style.backgroundImage = `url(${d.bgImg})`;
@@ -1227,7 +1219,6 @@
             screen.style.backgroundColor = d.bgColor || '#151515';
         }
 
-        // 이미지 프로필 나열
         const imgContainer = document.getElementById('dream-detail-images');
         let sym = d.type === 'ncp' ? '&' : 'X';
         
@@ -1240,7 +1231,6 @@
         html += `<img src="${d.images && d.images[3] ? d.images[3] : defaultImg}" style="width:80px;height:80px;border-radius:50%;object-fit:cover; border:2px solid var(--border-color);">`;
         imgContainer.innerHTML = html;
 
-        // 텍스트 정보 표시
         document.getElementById('dream-detail-name').innerText = d.name;
         document.getElementById('dream-detail-sub').innerText = d.sub || '';
         document.getElementById('dream-detail-short').innerText = d.short || '';
@@ -1265,7 +1255,7 @@
         }
     };
     
-    // 장면 시스템 (기본 구조만)
+    // 장면 시스템
     window.createSceneFolder = async function() {
         const fname = await dPrompt('새 폴더 이름을 입력하세요:');
         if (!fname) return;
@@ -1335,10 +1325,9 @@
         box.innerHTML = `<div style="background:var(--bg-surface); padding:16px; border-radius:12px; margin-bottom:10px;"><div style="color:white; font-weight:bold; margin-bottom:4px;">테스트 유저 <span style="background:var(--accent-color); color:black; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:6px;">뉴비</span></div><div style="color:gray; font-size:12px; margin-bottom:12px;">UID: SAMPLE123UID456</div><button class="action-btn-outline" style="padding:8px; font-size:12px;" onclick="dAlert('UI 데모: 칭호 수정 준비 중입니다.')">칭호 수정</button></div>`;
     };
     
-    // 버그 수정: Appwrite 통신을 위한 공지사항 함수
+    // 공지사항
     window.openNoticeScreen = function() {
         document.getElementById('notice-screen').classList.remove('hidden');
-        // 관리자인지 확인하고 수정 버튼 표시
         const handle = localStorage.getItem('dreamer_handle');
         const editBtn = document.getElementById('btn-edit-notice');
         if (handle === 'ReschaRiley') {
@@ -1363,17 +1352,14 @@
         
         try {
             if (typeof Appwrite !== 'undefined' && databases && client) {
-                // 서버에 저장 (모든 유저에게 동기화)
-                await databases.createDocument(databaseId, 'notices', 'notice_' + Date.now(), {
+                await databases.createDocument(databaseId, 'notice_ices', 'notice_' + Date.now(), {
                     title: title,
                     content: content
                 });
                 
-                // 로컬에도 캐싱
                 localStorage.setItem('dreamer_notice_title', title);
                 localStorage.setItem('dreamer_notice_content', content);
                 
-                // 즉시 반영
                 document.getElementById('main-notice-title').innerText = title;
                 document.getElementById('notice-read-title').innerText = title;
                 document.getElementById('notice-read-content').innerText = content;
@@ -1387,7 +1373,6 @@
             console.error('공지사항 업로드 오류:', error);
             await dAlert('서버 연결에 실패하여 로컬에만 임시 저장됩니다.');
             
-            // 로컬 폴백
             localStorage.setItem('dreamer_notice_title', title);
             localStorage.setItem('dreamer_notice_content', content);
             document.getElementById('main-notice-title').innerText = title;
@@ -1400,8 +1385,7 @@
     window.fetchGlobalNotice = async function() {
         try {
             if (typeof Appwrite !== 'undefined' && databases && client) {
-                // 서버에서 최신 공지 불러오기
-                const response = await databases.listDocuments(databaseId, 'notices', [
+                const response = await databases.listDocuments(databaseId, 'notice_ices', [
                     Appwrite.Query.orderDesc('$createdAt'),
                     Appwrite.Query.limit(1)
                 ]);
@@ -1409,21 +1393,19 @@
                 if (response.documents.length > 0) {
                     const notice = response.documents[0];
                     
-                    // 로컬 스토리지 업데이트 (캐싱)
                     localStorage.setItem('dreamer_notice_title', notice.title);
                     localStorage.setItem('dreamer_notice_content', notice.content);
                     
                     document.getElementById('main-notice-title').innerText = notice.title;
                     document.getElementById('notice-read-title').innerText = notice.title;
                     document.getElementById('notice-read-content').innerText = notice.content;
-                    return; // 성공 시 종료
+                    return; 
                 }
             }
         } catch (error) {
             console.warn('서버 공지사항 로드 실패, 로컬 캐시 사용:', error);
         }
         
-        // 서버에서 못 불러오면 로컬 정보 노출
         const title = localStorage.getItem('dreamer_notice_title') || '유저 가이드 및 공지사항';
         const content = localStorage.getItem('dreamer_notice_content') || '공지 내용이 없습니다.';
         
@@ -1447,7 +1429,7 @@
         await dAlert('설정이 저장되었습니다.');
     };
     
-    // 채팅 기능 (기본 구조만)
+    // 채팅 기능
     window.selectedCharId = null;
     window.currentChatHistory = [];
     window.isGenerating = false;
@@ -1458,12 +1440,10 @@
         chatScreen.style.display = 'flex';
         
         if (readOnlyData) {
-            // 읽기 전용 모드
             document.getElementById('chat-footer').style.display = 'none';
             window.currentChatHistory = readOnlyData.history || [];
             document.getElementById('chat-header-name').innerText = readOnlyData.charName;
         } else {
-            // 일반 채팅 모드
             document.getElementById('chat-footer').style.display = 'block';
             let nameVal = "캐릭터", greetingVal = "*미소지며* 반가워요.";
             
@@ -1538,7 +1518,6 @@
         input.value = '';
         renderChatLog();
         
-        // AI 응답 시뮬레이션
         window.isGenerating = true;
         setTimeout(() => {
             const reply = "*(AI 응답 시뮬레이션)*\n\n안녕하세요! 이것은 AI 응답의 예시입니다. 실제 응답을 받으려면 API 설정을 완료해주세요.";
@@ -1569,7 +1548,7 @@
         }
     };
     
-    // 모델 관리 (기본 구조만)
+    // 모델 관리
     window.fetchModels = async function(event) {
         await dAlert('모델 목록을 가져오려면 API 설정이 필요합니다.');
     };
@@ -1658,7 +1637,7 @@
         closeActionSheet();
     };
     
-    // 장면 저장 기능
+    // 장면 저장
     window.startSceneSelection = function() {
         toggleRightSidebar();
         window.isSceneSelectionMode = true; 
@@ -1696,7 +1675,7 @@
         cancelSceneSave();
     };
     
-    // 세션 관리 (기본 구조만)
+    // 세션 관리
     window.openSessionListModal = function() {
         if (!window.selectedCharId) return;
         
@@ -1771,82 +1750,6 @@
         }
     });
 
-    // Appwrite 백업 통신 스크립트
-    document.getElementById('btn-cloud-backup').onclick = async function() {
-        const backup = {
-            characters: localStorage.getItem('dreamer_characters'),
-            personas: localStorage.getItem('dreamer_personas'),
-            scenes: localStorage.getItem('dreamer_scenes'),
-            scene_folders: localStorage.getItem('dreamer_scene_folders'),
-            chat_history: localStorage.getItem('dreamer_chat_history'),
-            timestamp: new Date().toISOString()
-        };
-        
-        try {
-            if (typeof Appwrite !== 'undefined' && databases && client) {
-                await databases.createDocument(databaseId, collectionId, 'backup_' + Date.now(), {
-                    userId: localStorage.getItem('dreamer_handle') || 'anonymous',
-                    backupData: JSON.stringify(backup),
-                    timestamp: new Date().toISOString(),
-                    backupType: 'manual'
-                });
-                await dAlert('Appwrite에 백업되었습니다!');
-            } else {
-                throw new Error("Appwrite is offline");
-            }
-        } catch (error) {
-            console.warn('Appwrite 백업 실패, 로컬로 전환:', error);
-            const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `dreamer-backup-${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            await dAlert('로컬로 백업되었습니다. (Appwrite 연결 실패)');
-        }
-    };
-    
-    document.getElementById('btn-cloud-restore').onclick = async function() {
-        try {
-            if (typeof Appwrite !== 'undefined' && databases && client) {
-                const response = await databases.listDocuments(databaseId, collectionId, [
-                    Appwrite.Query.orderDesc('$createdAt'), Appwrite.Query.limit(1)
-                ]);
-                if (response.documents.length > 0) {
-                    const backupData = JSON.parse(response.documents[0].backupData);
-                    Object.keys(backupData).forEach(key => {
-                        if (key !== 'timestamp' && backupData[key]) localStorage.setItem(`dreamer_${key}`, backupData[key]);
-                    });
-                    renderData();
-                    return await dAlert('Appwrite에서 데이터 복구되었습니다!');
-                }
-            }
-            throw new Error("Appwrite Offline or Empty");
-        } catch (error) {
-            console.warn('복구 실패, 파일 선택 전환:', error);
-            const input = document.createElement('input');
-            input.type = 'file'; input.accept = '.json';
-            input.onchange = function(e) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    try {
-                        const backup = JSON.parse(event.target.result);
-                        Object.keys(backup).forEach(key => {
-                            if (key !== 'timestamp' && backup[key]) localStorage.setItem(`dreamer_${key}`, backup[key]);
-                        });
-                        renderData();
-                        dAlert('파일에서 데이터 복구되었습니다!');
-                    } catch (err) {
-                        dAlert('백업 파일을 읽을 수 없습니다.');
-                    }
-                };
-                reader.readAsText(e.target.files[0]);
-            };
-            input.click();
-        }
-    };
-    
     // 초기화
     window.addEventListener('DOMContentLoaded', () => {
         renderData();
