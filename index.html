@@ -287,6 +287,20 @@
                     </div>
                     <button class="primary-btn" id="btn-save-profile" style="margin-bottom: 0;">프로필 설정 저장</button>
                     <button class="action-btn-outline" id="btn-admin-panel" style="display:none; margin-top:20px; border-color:#fcc419; color:#fcc419;" onclick="openAdminPanel()"><i class="fas fa-crown"></i> 관리자 패널 진입</button>
+                    <hr style="width: 100%; border-color: var(--border-color); margin: 20px 0;">
+
+                    <!-- 로컬 백업/복원 -->
+                    <div class="form-group" style="width: 100%; text-align: left; background: rgba(252, 196, 25, 0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(252, 196, 25, 0.2);">
+                        <label style="color: #fcc419; font-size: 13px; font-weight: 700; margin-bottom: 4px; display: block;"><i class="fas fa-hdd"></i> 로컬 데이터 백업 / 복원</label>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5;">캐릭터, 페르소나, 설정 등 모든 데이터를 파일로 저장하거나 불러옵니다.</div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="exportLocalBackup()" style="flex: 1; padding: 12px; background: #fcc419; color: black; border: none; border-radius: 10px; font-weight: bold; font-size: 14px; cursor: pointer;"><i class="fas fa-download"></i> 파일로 내보내기</button>
+                            <button onclick="document.getElementById('local-backup-input').click()" style="flex: 1; padding: 12px; background: transparent; color: #fcc419; border: 1px solid #fcc419; border-radius: 10px; font-weight: bold; font-size: 14px; cursor: pointer;"><i class="fas fa-upload"></i> 파일에서 불러오기</button>
+                        </div>
+                        <input type="file" id="local-backup-input" accept=".json" style="display:none;" onchange="importLocalBackup(this)">
+                        <div id="local-backup-status" style="display:none; margin-top: 10px; font-size: 12px; padding: 8px 12px; border-radius: 8px;"></div>
+                    </div>
+
                     <hr style="width: 100%; border-color: var(--border-color); margin: 16px 0;">
                     <button class="sub-btn danger-text" id="btn-settings-logout" style="width:100%; padding: 16px; border-radius: 12px; background: transparent; border: 1px solid var(--danger-color); color: var(--danger-color); font-weight: bold; font-size: 15px; cursor: pointer;">로그아웃</button>
                 </div>
@@ -1332,6 +1346,87 @@
         return localStorage.getItem('dreamer_global_char_prompt') || '';
     }
     
+    function exportLocalBackup() {
+        const backup = { _version: 1, _date: new Date().toISOString(), data: {} };
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('dreamer_')) {
+                backup.data[key] = localStorage.getItem(key);
+            }
+        }
+        if (Object.keys(backup.data).length === 0) {
+            dAlert('저장된 데이터가 없습니다.');
+            return;
+        }
+        const json = JSON.stringify(backup, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStr = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `dreamer-backup-${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        const status = $('local-backup-status');
+        if (status) {
+            status.style.display = 'block';
+            status.style.background = 'rgba(34,197,94,0.15)';
+            status.style.color = '#4ade80';
+            status.style.border = '1px solid rgba(34,197,94,0.3)';
+            status.textContent = `✓ ${Object.keys(backup.data).length}개 항목 내보내기 완료 (${dateStr})`;
+        }
+    }
+
+    async function importLocalBackup(input) {
+        const file = input.files[0];
+        if (!file) return;
+        input.value = '';
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const backup = JSON.parse(e.target.result);
+                if (!backup.data || typeof backup.data !== 'object') {
+                    throw new Error('올바르지 않은 백업 파일 형식입니다.');
+                }
+                const count = Object.keys(backup.data).length;
+                const confirmed = await dConfirm(
+                    `백업 파일에서 ${count}개 항목을 불러옵니다.\n현재 데이터는 덮어씌워집니다. 계속하시겠습니까?`,
+                    '데이터 복원'
+                );
+                if (!confirmed) return;
+                for (const [key, value] of Object.entries(backup.data)) {
+                    if (key.startsWith('dreamer_')) {
+                        localStorage.setItem(key, value);
+                    }
+                }
+                const status = $('local-backup-status');
+                if (status) {
+                    status.style.display = 'block';
+                    status.style.background = 'rgba(34,197,94,0.15)';
+                    status.style.color = '#4ade80';
+                    status.style.border = '1px solid rgba(34,197,94,0.3)';
+                    const dateLabel = backup._date ? ` (${backup._date.slice(0,10)} 백업본)` : '';
+                    status.textContent = `✓ ${count}개 항목 복원 완료${dateLabel}`;
+                }
+                await dAlert(`복원 완료! ${count}개 항목을 불러왔습니다.\n페이지를 새로고침합니다.`, '복원 완료');
+                location.reload();
+            } catch (err) {
+                const status = $('local-backup-status');
+                if (status) {
+                    status.style.display = 'block';
+                    status.style.background = 'rgba(255,107,107,0.15)';
+                    status.style.color = '#ff6b6b';
+                    status.style.border = '1px solid rgba(255,107,107,0.3)';
+                    status.textContent = `✗ 오류: ${err.message}`;
+                }
+                await dAlert(`파일 불러오기 실패: ${err.message}`);
+            }
+        };
+        reader.readAsText(file, 'utf-8');
+    }
+
     function openActionSheet() {
         // 액션 시트 열기
         console.log('액션 시트 열기');
