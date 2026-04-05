@@ -137,12 +137,12 @@
             });
         }
 
-        // Appwrite 글로벌 변수 선언
+        // Appwrite 글로벌 변수 선언 (⭐ sfo 전용 서버 주소 반영 완료!)
         let client, databases;
         try {
             if (typeof Appwrite !== 'undefined') {
                 client = new Appwrite.Client()
-                    .setEndpoint('https://cloud.appwrite.io/v1')
+                    .setEndpoint('https://sfo.cloud.appwrite.io/v1')
                     .setProject('69d1e0d700248782d789');
                 databases = new Appwrite.Databases(client);
             }
@@ -150,6 +150,7 @@
             console.warn('Appwrite SDK 로드 실패:', error);
         }
         
+        // 데이터베이스 세팅 정보
         const databaseId = '69d1e3790019b7d3754e';
         const collectionId = 'backups';
     </script>
@@ -1325,7 +1326,6 @@
         box.innerHTML = `<div style="background:var(--bg-surface); padding:16px; border-radius:12px; margin-bottom:10px;"><div style="color:white; font-weight:bold; margin-bottom:4px;">테스트 유저 <span style="background:var(--accent-color); color:black; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:6px;">뉴비</span></div><div style="color:gray; font-size:12px; margin-bottom:12px;">UID: SAMPLE123UID456</div><button class="action-btn-outline" style="padding:8px; font-size:12px;" onclick="dAlert('UI 데모: 칭호 수정 준비 중입니다.')">칭호 수정</button></div>`;
     };
     
-    // 공지사항
     window.openNoticeScreen = function() {
         document.getElementById('notice-screen').classList.remove('hidden');
         const handle = localStorage.getItem('dreamer_handle');
