@@ -120,7 +120,8 @@
         .talk-maker-help { color: var(--text-secondary); font-size: 12px; cursor: pointer; }
         button:disabled { opacity: 0.5; cursor: not-allowed !important; }
         #chat-log { flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; background: #121212; }
-        #chat-footer { padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: var(--z-sidebar); }
+        /* ⭐ 변경점: z-index 충돌 방지를 위해 하향 조정 */
+        #chat-footer { padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: 10; }
         .auto-resize-textarea { resize: none; overflow-y: auto; min-height: 20px; }
     </style>
     <script>
@@ -130,7 +131,7 @@
             document.head.appendChild(hideStyle);
             document.addEventListener('DOMContentLoaded', function() {
                 const loginScreen = document.getElementById('login-screen');
-                if (loginScreen) loginScreen.style.display = 'none';
+                if (loginScreen) loginScreen.classList.add('hidden');
             });
         }
 
@@ -151,6 +152,7 @@
 </head>
 <body>
 
+    <!-- 커스텀 모달 -->
     <div id="d-modal-overlay" class="screen-overlay hidden" style="z-index: var(--z-alert);">
         <div class="login-container" style="padding: 30px 24px;">
             <h3 id="d-modal-title" style="margin-bottom: 15px; font-size: 18px; color: white;">알림</h3>
@@ -163,6 +165,7 @@
         </div>
     </div>
 
+    <!-- 로그인 -->
     <div id="login-screen" class="screen-overlay" style="z-index: var(--z-overlay);">
         <div class="login-container">
             <h1 class="logo">dreamer.ai</h1>
@@ -179,6 +182,7 @@
         </div>
     </div>
     
+    <!-- 메인 왼쪽 사이드바 -->
     <div id="sidebar" class="sidebar">
         <div class="sidebar-header">
             <h2>메뉴</h2>
@@ -194,6 +198,7 @@
     </div>
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
+    <!-- 앱 메인 콘텐츠 -->
     <div id="app-content" class="app-content">
         <header class="app-header" style="padding-bottom: 8px;">
             <button class="menu-btn" id="btn-open-sidebar"><i class="fas fa-bars"></i></button>
@@ -298,6 +303,7 @@
 
     <button class="bug-report-btn" onclick="dAlert('버그 리포트는 공식 채널을 이용해주세요.')"><i class="fas fa-bug"></i></button>
 
+<!-- ⭐ 유일한 에디터 및 오버레이 블록 (중복 제거됨) -->
 <div id="edit-message-overlay" class="editor-screen hidden" style="background: rgba(0,0,0,0.8); z-index: var(--z-alert); align-items: center; justify-content: center; padding: 20px;">
     <div style="width: 100%; max-width: 500px; background: #1c1c1e; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 24px; border: 1px solid #333;">
         <textarea id="edit-message-textarea" class="auto-resize-textarea" style="width: 100%; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.5; resize: none; outline: none; min-height: 100px; max-height: 50vh; overflow-y: auto; font-family: inherit;"></textarea>
@@ -528,7 +534,7 @@
         </div>
     </header>
     <div id="chat-log" style="flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; background: #121212;"></div>
-    <footer id="chat-footer" style="padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: var(--z-sidebar);">
+    <footer id="chat-footer" style="padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: 10;">
         <div style="display: flex; align-items: flex-end; background: #252525; border-radius: 20px; padding: 10px 16px; border: 1px solid #444;">
             <button id="btn-chat-feedback" onclick="sendFeedbackOOC()" style="background: none; border: none; color: #999; font-size: 18px; cursor: pointer; margin-right: 12px; padding-bottom: 2px;" title="봇에게 피드백 보내기"><i class="fas fa-magic"></i></button>
             <textarea id="chat-input" class="auto-resize-textarea" placeholder="메시지 입력..." rows="1" style="flex: 1; max-height: 140px; background: none; border: none; color: white; outline: none; resize: none; font-size: 15px; line-height: 1.4; overflow-y: auto;"></textarea>
@@ -1262,7 +1268,6 @@
         await dAlert('API 설정이 저장되었습니다.');
     };
     
-    // ⭐ 변경점: fetchModels에 프록시 우회 로직 추가
     window.fetchModels = async function() {
         const url = document.getElementById('api-url').value.trim() || localStorage.getItem('dreamer_api_url');
         const key = document.getElementById('api-key').value.trim() || localStorage.getItem('dreamer_api_key');
@@ -1408,7 +1413,6 @@
         logBox.scrollTop = logBox.scrollHeight;
     }
     
-    // ⭐ 변경점: 채팅 발송 시 프록시 우회 로직 추가
     window.sendChatMessage = async function() {
         if (window.isGenerating) return;
         const input = document.getElementById('chat-input');
