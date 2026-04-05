@@ -419,6 +419,8 @@
         <div id="dream-detail-sub" style="font-size:16px; color:var(--accent-color); font-weight:bold; margin-bottom:24px; text-align:center;"></div>
         <div id="dream-detail-short" style="font-size:15px; color:#e0e0e0; margin-bottom:24px; text-align:center; line-height:1.6; max-width:80%;"></div>
         <div id="dream-detail-long" style="font-size:14px; color:#ccc; text-align:center; line-height:1.6; max-width:90%; white-space:pre-wrap;"></div>
+        <!-- 삭제 버튼 추가됨 -->
+        <button class="action-btn-outline" style="background: var(--danger-color); border: 1px solid var(--danger-color); color: white; margin-top: 30px; width: 150px;" onclick="deleteCurrentDream()"><i class="fas fa-trash"></i> 삭제</button>
     </div>
 </div>
 
@@ -566,6 +568,7 @@
     // 전역 변수
     const defaultImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
     const SUPABASE_URL = 'https://your-project.supabase.co'; // 사용자가 입력해야 함
+    window.isSceneSelectionMode = false; // 버그 수정: 전역 변수로 선언
     
     // 유틸리티 함수
     window.dAlert = async function(msg, title = '알림') {
@@ -725,10 +728,22 @@
         
         if (type === 'characters') renderData();
         else if (type === 'personas') renderData();
-        else if (type === 'dreams') renderDreams();
+        else if (type === 'dreams') renderDreamFeed(); // 버그 수정: 올바른 렌더링 함수 호출
         else if (type === 'scenes') renderScenes();
         
         await dAlert('삭제되었습니다.');
+    };
+    
+    // 드림 상세화면용 별도 삭제 로직
+    window.deleteCurrentDream = async function() {
+        if (window.editingDreamId) {
+            const dList = JSON.parse(localStorage.getItem('dreamer_dreams') || '[]');
+            const d = dList.find(x => x.id === window.editingDreamId);
+            if (d) {
+                await executeDelete(d.id, d.name, 'dreams');
+                document.getElementById('dream-detail-screen').classList.add('hidden');
+            }
+        }
     };
     
     // 에디터 관리
@@ -750,6 +765,11 @@
             document.getElementById('edit-char-relation').value = data.relation || '';
             document.getElementById('edit-char-story').value = data.story || '';
             document.getElementById('edit-char-language').value = data.language || 'English';
+            window.tempCharImage = data.photoUrl || null;
+            if (data.photoUrl) {
+                const preview = document.getElementById('edit-char-img-preview');
+                preview.innerHTML = `<img src="${data.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            }
             title.textContent = '캐릭터 수정';
         } else {
             document.getElementById('edit-char-name').value = '';
@@ -759,6 +779,8 @@
             document.getElementById('edit-char-relation').value = '';
             document.getElementById('edit-char-story').value = '';
             document.getElementById('edit-char-language').value = 'English';
+            window.tempCharImage = null;
+            document.getElementById('edit-char-img-preview').innerHTML = '+ 사진 추가';
             title.textContent = '새 캐릭터 만들기';
         }
         
@@ -777,13 +799,19 @@
             profile: document.getElementById('edit-char-profile').value.trim(),
             relation: document.getElementById('edit-char-relation').value.trim(),
             story: document.getElementById('edit-char-story').value.trim(),
-            language: document.getElementById('edit-char-language').value
+            language: document.getElementById('edit-char-language').value,
+            photoUrl: window.tempCharImage || defaultImg
         };
         
         let chars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
         if (window.editingCharId) {
             const index = chars.findIndex(c => c.id === window.editingCharId);
-            if (index !== -1) chars[index] = charData;
+            if (index !== -1) {
+                if (!window.tempCharImage && chars[index].photoUrl) {
+                    charData.photoUrl = chars[index].photoUrl;
+                }
+                chars[index] = charData;
+            }
         } else {
             chars.unshift(charData);
         }
@@ -805,12 +833,19 @@
             document.getElementById('edit-persona-appearance').value = data.appearance || '';
             document.getElementById('edit-persona-bg').value = data.bg || '';
             document.getElementById('edit-persona-default').checked = data.isDefault || false;
+            window.tempPersonaImage = data.photoUrl || null;
+            if (data.photoUrl) {
+                const preview = document.getElementById('edit-persona-img-preview');
+                preview.innerHTML = `<img src="${data.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            }
             title.textContent = '페르소나 수정';
         } else {
             document.getElementById('edit-persona-name').value = '';
             document.getElementById('edit-persona-appearance').value = '';
             document.getElementById('edit-persona-bg').value = '';
             document.getElementById('edit-persona-default').checked = false;
+            window.tempPersonaImage = null;
+            document.getElementById('edit-persona-img-preview').innerHTML = '+ 사진 추가';
             title.textContent = '새 페르소나 만들기';
         }
         
@@ -826,13 +861,19 @@
             name: name,
             appearance: document.getElementById('edit-persona-appearance').value.trim(),
             bg: document.getElementById('edit-persona-bg').value.trim(),
-            isDefault: document.getElementById('edit-persona-default').checked
+            isDefault: document.getElementById('edit-persona-default').checked,
+            photoUrl: window.tempPersonaImage || defaultImg
         };
         
         let personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
         if (window.editingPersonaId) {
             const index = personas.findIndex(p => p.id === window.editingPersonaId);
-            if (index !== -1) personas[index] = personaData;
+            if (index !== -1) {
+                if (!window.tempPersonaImage && personas[index].photoUrl) {
+                    personaData.photoUrl = personas[index].photoUrl;
+                }
+                personas[index] = personaData;
+            }
         } else {
             personas.unshift(personaData);
         }
@@ -985,6 +1026,7 @@
             feedGrid.appendChild(item);
         });
     };
+    
     // 톡썰메이커 (드림 화면 내에서만 작동)
     window.clearTalkMaker = async function() {
         if (!await dConfirm('모든 대화 내용을 지우시겠습니까?')) return;
@@ -1022,13 +1064,41 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     };
     
+    // 버그 수정: 드림 에디터의 toggleDreamImages 함수 구현
+    window.toggleDreamImages = function() {
+        const count = document.getElementById('edit-dream-count').value;
+        const type = document.getElementById('edit-dream-type').value;
+        const img2Wrapper = document.getElementById('dream-img2-wrapper');
+        const symbol1 = document.getElementById('dream-symbol1');
+        const symbol2 = document.getElementById('dream-symbol2');
+
+        const sym = type === 'cp' ? 'X' : '&';
+        symbol1.innerText = sym;
+        if (symbol2) symbol2.innerText = sym;
+
+        if (count === '3') {
+            img2Wrapper.style.display = 'flex';
+        } else {
+            img2Wrapper.style.display = 'none';
+        }
+    };
+    
+    // 버그 수정: 배경 사진 업로드 처리
+    document.getElementById('edit-dream-bgimg').onchange = function(e) {
+        if(e.target.files[0]) {
+            compressImage(e.target.files[0], b64 => {
+                window.tempDreamBgImg = b64;
+            });
+        }
+    };
+    
     // 드림 이미지 처리
     window.handleDreamImg = function(idx, el) {
         if(el.files[0]) {
             compressImage(el.files[0], b64 => {
                 window.tempDreamImages[idx] = b64;
                 const preview = document.getElementById(`dream-img${idx}-preview`);
-                preview.innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                preview.innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%; border:none;">`;
             });
         }
     };
@@ -1036,13 +1106,20 @@
     window.openDreamEditor = function(id = null, data = null) {
         window.editingDreamId = id;
         window.tempDreamImages = {1: null, 2: null, 3: null}; // 이미지 초기화
+        window.tempDreamBgImg = null;
         document.getElementById('dream-editor-title').textContent = id ? '드림 수정' : '새 드림 만들기';
         
         if (data) {
             document.getElementById('edit-dream-name').value = data.name || '';
+            document.getElementById('edit-dream-count').value = data.count || '2';
+            document.getElementById('edit-dream-type').value = data.type || 'cp';
             document.getElementById('edit-dream-sub').value = data.sub || '';
             document.getElementById('edit-dream-short').value = data.short || '';
             document.getElementById('edit-dream-long').value = data.long || '';
+            document.getElementById('edit-dream-bgcolor').value = data.bgColor || '#151515';
+            
+            // 배경 이미지 복원
+            if (data.bgImg) window.tempDreamBgImg = data.bgImg;
             
             // 이미지 복원
             if (data.images) {
@@ -1050,22 +1127,27 @@
                     if (data.images[i]) {
                         window.tempDreamImages[i] = data.images[i];
                         const preview = document.getElementById(`dream-img${i}-preview`);
-                        preview.innerHTML = `<img src="${data.images[i]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                        preview.innerHTML = `<img src="${data.images[i]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%; border:none;">`;
                     }
                 }
             }
+            toggleDreamImages();
         } else {
             // 새 드림일 경우 초기화
             document.getElementById('edit-dream-name').value = '';
+            document.getElementById('edit-dream-count').value = '2';
+            document.getElementById('edit-dream-type').value = 'cp';
             document.getElementById('edit-dream-sub').value = '';
             document.getElementById('edit-dream-short').value = '';
             document.getElementById('edit-dream-long').value = '';
+            document.getElementById('edit-dream-bgcolor').value = '#151515';
             
             // 이미지 프리뷰 초기화
             for(let i = 1; i <= 3; i++) {
                 const preview = document.getElementById(`dream-img${i}-preview`);
                 preview.innerHTML = `사진${i}`;
             }
+            toggleDreamImages();
         }
         
         document.getElementById('dream-editor-screen').classList.remove('hidden');
@@ -1079,9 +1161,13 @@
         const dreamData = {
             id: window.editingDreamId || Date.now().toString(),
             name: name,
+            count: document.getElementById('edit-dream-count').value,
+            type: document.getElementById('edit-dream-type').value,
             sub: document.getElementById('edit-dream-sub').value.trim(),
             short: document.getElementById('edit-dream-short').value.trim(),
             long: document.getElementById('edit-dream-long').value.trim(),
+            bgColor: document.getElementById('edit-dream-bgcolor').value,
+            bgImg: window.tempDreamBgImg || null,
             images: {
                 1: window.tempDreamImages[1],
                 2: window.tempDreamImages[2],
@@ -1092,7 +1178,7 @@
         if (window.editingDreamId) {
             const index = dreams.findIndex(d => d.id === window.editingDreamId);
             if (index !== -1) {
-                // 기존 이미지 유지
+                // 기존 이미지 유지 (새로 업로드 안했을 시)
                 if (!dreamData.images[1] && dreams[index].images && dreams[index].images[1]) {
                     dreamData.images[1] = dreams[index].images[1];
                 }
@@ -1102,6 +1188,9 @@
                 if (!dreamData.images[3] && dreams[index].images && dreams[index].images[3]) {
                     dreamData.images[3] = dreams[index].images[3];
                 }
+                if (!dreamData.bgImg && dreams[index].bgImg) {
+                    dreamData.bgImg = dreams[index].bgImg;
+                }
                 dreams[index] = dreamData;
             }
         } else {
@@ -1110,46 +1199,48 @@
         
         localStorage.setItem('dreamer_dreams', JSON.stringify(dreams));
         closeEditor('dream');
-        renderDreams();
+        renderDreamFeed();
         await dAlert('드림이 저장되었습니다.');
     };
     
-    window.renderDreams = function() {
-        const box = document.getElementById('dream-list-container');
-        const dList = JSON.parse(localStorage.getItem('dreamer_dreams') || '[]');
-        box.innerHTML = dList.length === 0 ? '<p class="empty-text">저장된 드림이 없습니다.</p>' : '';
-        
-        dList.forEach(d => {
-            const w = document.createElement('div');
-            w.className = 'swipe-container';
-            
-            // 이미지 표시 로직 개선
-            let imageHtml = '';
-            if (d.images && d.images[1]) {
-                imageHtml = `<img src="${d.images[1]}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-color);">`;
-            } else {
-                imageHtml = `<div style="width:48px;height:48px;border-radius:50%;background:var(--bg-surface-light);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;"><i class="fas fa-image"></i></div>`;
-            }
-            
-            w.innerHTML = `<div class="delete-btn-bg" onclick="executeDelete('${d.id}', '${d.name}', 'dreams')"><i class="fas fa-trash"></i></div><div class="list-card swipe-card">${imageHtml}<div class="list-info"><span class="list-title dream-font">${d.name}</span><span class="list-sub">${d.sub || d.short}</span></div><button class="edit-btn"><i class="fas fa-edit"></i></button></div>`;
-            const card = w.querySelector('.swipe-card');
-            attachSwipeEvents(card);
-            card.onclick = () => openDreamDetail(d);
-            w.querySelector('.edit-btn').onclick = (e) => { e.stopPropagation(); openDreamEditor(d.id, d); };
-            box.appendChild(w);
-        });
-    };
-    
+    // 버그 수정: 드림 상세 페이지를 그리는 로직 보완
     window.openDreamDetail = function(d) {
-        // 드림 상세 화면 기본 구조
+        window.editingDreamId = d.id;
+        
+        // 배경 이미지 및 색상 적용
+        const screen = document.getElementById('dream-detail-screen');
+        if (d.bgImg) {
+            screen.style.backgroundImage = `url(${d.bgImg})`;
+            screen.style.backgroundColor = d.bgColor || '#151515';
+        } else {
+            screen.style.backgroundImage = 'none';
+            screen.style.backgroundColor = d.bgColor || '#151515';
+        }
+
+        // 이미지 프로필 나열
+        const imgContainer = document.getElementById('dream-detail-images');
+        let sym = d.type === 'ncp' ? '&' : 'X';
+        
+        let html = `<img src="${d.images[1] || defaultImg}" style="width:80px;height:80px;border-radius:50%;object-fit:cover; border:2px solid var(--border-color);">`;
+        if (d.count === '3') {
+            html += `<span style="font-weight:bold;color:var(--accent-color);font-size:24px;">${sym}</span>`;
+            html += `<img src="${d.images[2] || defaultImg}" style="width:80px;height:80px;border-radius:50%;object-fit:cover; border:2px solid var(--border-color);">`;
+        }
+        html += `<span style="font-weight:bold;color:var(--accent-color);font-size:24px;">${sym}</span>`;
+        html += `<img src="${d.images[3] || defaultImg}" style="width:80px;height:80px;border-radius:50%;object-fit:cover; border:2px solid var(--border-color);">`;
+        imgContainer.innerHTML = html;
+
+        // 텍스트 정보 표시
         document.getElementById('dream-detail-name').innerText = d.name;
         document.getElementById('dream-detail-sub').innerText = d.sub || '';
         document.getElementById('dream-detail-short').innerText = d.short || '';
         document.getElementById('dream-detail-long').innerText = d.long || '';
+        
         document.getElementById('btn-edit-dream').onclick = () => {
             document.getElementById('dream-detail-screen').classList.add('hidden');
             openDreamEditor(d.id, d);
         };
+        
         document.getElementById('dream-detail-screen').classList.remove('hidden');
     };
     
@@ -1318,6 +1409,7 @@
             // 읽기 전용 모드
             document.getElementById('chat-footer').style.display = 'none';
             window.currentChatHistory = readOnlyData.history || [];
+            document.getElementById('chat-header-name').innerText = readOnlyData.charName; // 버그 수정: 장면 이름 표시 오류 수정
         } else {
             // 일반 채팅 모드
             document.getElementById('chat-footer').style.display = 'block';
@@ -1350,6 +1442,25 @@
             const block = document.createElement('div');
             block.className = 'msg-block';
             if (msg.pinned) block.classList.add('pinned-msg');
+            
+            // 버그 수정: 장면 선택 모드일 때의 CSS 및 클릭 이벤트 추가
+            block.onclick = () => {
+                if (window.isSceneSelectionMode) {
+                    if (window.selectedSceneIds.has(msg.id)) {
+                        window.selectedSceneIds.delete(msg.id);
+                        block.style.border = 'none';
+                    } else {
+                        window.selectedSceneIds.add(msg.id);
+                        block.style.border = '1px solid var(--accent-color)';
+                    }
+                } else {
+                    openActionSheet(index);
+                }
+            };
+            
+            if (window.isSceneSelectionMode && window.selectedSceneIds.has(msg.id)) {
+                block.style.border = '1px solid var(--accent-color)';
+            }
             
             const senderName = msg.role === 'char' ? (msg.name || "캐릭터") : "나";
             const pinIcon = msg.pinned ? '<i class="fas fa-thumbtack pinned-icon"></i>' : '';
@@ -1496,17 +1607,17 @@
         closeActionSheet();
     };
     
-    // 장면 저장 기능
+    // 장면 저장 기능 (버그 수정: 로컬 선언(const)을 window로 변경)
     window.startSceneSelection = function() {
         toggleRightSidebar();
-        const isSceneSelectionMode = true;
+        window.isSceneSelectionMode = true; 
         window.selectedSceneIds = new Set();
         document.getElementById('scene-selection-bar').style.display = 'flex';
         renderChatLog();
     };
     
     window.cancelSceneSave = function() {
-        const isSceneSelectionMode = false;
+        window.isSceneSelectionMode = false;
         document.getElementById('scene-selection-bar').style.display = 'none';
         renderChatLog();
     };
@@ -1626,7 +1737,7 @@
         document.getElementById('settings-supabase-key').value = localStorage.getItem('dreamer_supabase_key') || '';
         
         const savedTab = localStorage.getItem('dreamer_current_tab');
-        if (savedTab && savedTab !== 'dream') { // 드림 탭은 더 이상 존재하지 않으므로 건너뛰기
+        if (savedTab && savedTab !== 'dream') { 
             const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
             if (tabBtn) tabBtn.click();
         }
