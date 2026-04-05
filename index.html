@@ -116,6 +116,19 @@
         /* ⭐ 변경점: z-index 충돌 방지를 위해 하향 조정 */
         #chat-footer { padding: 15px 15px 40px 15px; background: #121212; border-top: 1px solid #222; position: relative; z-index: 10; }
         .auto-resize-textarea { resize: none; overflow-y: auto; min-height: 20px; }
+        .swipe-container { position: relative; overflow: hidden; border-radius: 14px; margin-bottom: 10px; }
+        .delete-btn-bg { position: absolute; right: 0; top: 0; height: 100%; width: 80px; background: var(--danger-color); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; cursor: pointer; border-radius: 0 14px 14px 0; }
+        .list-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--bg-surface); border-radius: 14px; cursor: pointer; transition: transform 0.25s ease; position: relative; z-index: 1; }
+        .list-card:active { background: var(--bg-surface-light); }
+        .list-card.swiped { transform: translateX(-80px); }
+        .char-img, .persona-img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--bg-surface-light); }
+        .list-info { flex: 1; min-width: 0; }
+        .list-title { font-size: 15px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .list-sub { font-size: 12px; color: var(--text-secondary); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .edit-btn { background: none; border: none; color: var(--text-secondary); font-size: 16px; cursor: pointer; padding: 8px; flex-shrink: 0; }
+        .empty-text { text-align: center; color: var(--text-secondary); font-size: 14px; padding: 40px 0; }
+        .content-list { padding: 0 4px; }
+        .create-btn { width: 100%; padding: 14px; background: transparent; border: 1px dashed var(--border-color); border-radius: 14px; color: var(--accent-color); font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 16px; }
     </style>
     <script>
         if (localStorage.getItem('dreamer_logged_in') === 'true') {
@@ -128,8 +141,8 @@
             });
         }
 
-        let client, databases;
-        try {
+    let client, databases;
+    try {
             if (typeof Appwrite !== 'undefined') {
                 client = new Appwrite.Client()
                     .setEndpoint('https://sfo.cloud.appwrite.io/v1')
@@ -793,6 +806,36 @@
             await dAlert('프로필 설정이 저장되었습니다.');
         };
         
+        // auto-resize textarea
+        document.querySelectorAll('.auto-resize-textarea').forEach(el => {
+            el.addEventListener('input', () => adjustTextareaHeight(el));
+            adjustTextareaHeight(el);
+        });
+
+        // 캐릭터 에디터 글자수 카운터
+        [['edit-char-name', 25], ['edit-char-sub', 40], ['edit-char-greeting', 4096]].forEach(([id, max]) => {
+            const el = $(id);
+            if (!el) return;
+            el.addEventListener('input', () => {
+                const counter = el.parentElement.querySelector('.char-count');
+                if (counter) counter.textContent = `${el.value.length} / ${max}`;
+            });
+        });
+
+        // 과거 채팅 내역 버튼
+        $('btn-open-chat-history').onclick = function() {
+            toggleSidebar();
+            openSessionListModal();
+        };
+
+        // API 탭 입력값 로드
+        const savedApiUrl = localStorage.getItem('dreamer_api_url');
+        const savedApiKey = localStorage.getItem('dreamer_api_key');
+        const savedApiModel = localStorage.getItem('dreamer_model');
+        if (savedApiUrl) $('api-url').value = savedApiUrl;
+        if (savedApiKey) $('api-key').value = savedApiKey;
+        if (savedApiModel) $('api-model').value = savedApiModel;
+
         // 초기화
         checkLoginState();
         renderData();
@@ -829,55 +872,246 @@
         }
     });
     
-    // 나머지 함수들...
     function renderData() {
-        // 데이터 렌더링 로직
-        console.log('데이터 렌더링 완료');
+        renderCharacterList();
+        renderPersonaList();
     }
-    
-    function fetchModels() {
-        // 모델 가져오기 로직
-        console.log('모델 가져오기');
+
+    function renderCharacterList() {
+        const characters = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
+        const container = $('character-list-container');
+        if (!container) return;
+        container.innerHTML = '';
+        if (characters.length === 0) {
+            container.innerHTML = '<p class="empty-text">아직 캐릭터가 없습니다.</p>';
+            return;
+        }
+        characters.forEach(char => {
+            const swipe = document.createElement('div');
+            swipe.className = 'swipe-container';
+            swipe.innerHTML = `
+                <div class="delete-btn-bg" onclick="deleteCharacter('${char.id}')"><i class="fas fa-trash"></i></div>
+                <div class="list-card" onclick="openCharacterDetail('${char.id}')">
+                    <img src="${char.img || defaultImg}" class="char-img" alt="" onerror="this.src='${defaultImg}'">
+                    <div class="list-info">
+                        <div class="list-title">${char.name}</div>
+                        <div class="list-sub">${char.sub || ''}</div>
+                    </div>
+                    <button class="edit-btn" onclick="event.stopPropagation(); openCharEditor('${char.id}')"><i class="fas fa-edit"></i></button>
+                </div>`;
+            attachSwipeEvents(swipe.querySelector('.list-card'));
+            container.appendChild(swipe);
+        });
     }
-    
-    function openCharEditor() {
-        // 캐릭터 에디터 열기
-        console.log('캐릭터 에디터 열기');
+
+    function renderPersonaList() {
+        const personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+        const container = $('persona-list-container');
+        if (!container) return;
+        container.innerHTML = '';
+        if (personas.length === 0) {
+            container.innerHTML = '<p class="empty-text">아직 페르소나가 없습니다.</p>';
+            return;
+        }
+        personas.forEach(p => {
+            const swipe = document.createElement('div');
+            swipe.className = 'swipe-container';
+            const badge = p.isDefault ? ' <span style="font-size:10px;background:var(--accent-color);color:black;padding:2px 6px;border-radius:10px;">기본</span>' : '';
+            swipe.innerHTML = `
+                <div class="delete-btn-bg" onclick="deletePersona('${p.id}')"><i class="fas fa-trash"></i></div>
+                <div class="list-card">
+                    <img src="${p.img || defaultImg}" class="persona-img" alt="" onerror="this.src='${defaultImg}'">
+                    <div class="list-info">
+                        <div class="list-title">${p.name}${badge}</div>
+                        <div class="list-sub">${p.appearance || ''}</div>
+                    </div>
+                    <button class="edit-btn" onclick="event.stopPropagation(); openPersonaEditor('${p.id}')"><i class="fas fa-edit"></i></button>
+                </div>`;
+            attachSwipeEvents(swipe.querySelector('.list-card'));
+            container.appendChild(swipe);
+        });
     }
-    
-    function saveCharacter() {
-        // 캐릭터 저장
-        console.log('캐릭터 저장');
+
+    async function fetchModels() {
+        const apiUrl = ($('api-url').value || localStorage.getItem('dreamer_api_url') || '').trim();
+        const apiKey = ($('api-key').value || localStorage.getItem('dreamer_api_key') || '').trim();
+        if (!apiUrl || !apiKey) { await dAlert('API URL과 Key를 먼저 입력해주세요.'); return; }
+        try {
+            const res = await fetch(`${apiUrl.replace(/\/$/, '')}/models`, {
+                headers: { 'Authorization': `Bearer ${apiKey}` }
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const models = (data.data || data.models || []).map(m => m.id || m.name).filter(Boolean);
+            if (models.length > 0) {
+                const sel = $('chat-model-select');
+                if (sel) {
+                    sel.innerHTML = '<option value="">모델 선택...</option>';
+                    models.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
+                    const saved = localStorage.getItem('dreamer_model');
+                    if (saved) sel.value = saved;
+                }
+                await dAlert(`연결 성공! ${models.length}개 모델:\n${models.slice(0,10).join('\n')}`);
+            } else {
+                await dAlert('연결 성공! 모델 목록을 가져올 수 없습니다.');
+            }
+        } catch(e) { await dAlert(`연결 실패: ${e.message}`); }
     }
-    
-    function openPersonaEditor() {
-        // 페르소나 에디터 열기
-        console.log('페르소나 에디터 열기');
+
+    let _editingCharId = null;
+
+    function openCharEditor(charId) {
+        _editingCharId = charId || null;
+        $('char-editor-title').textContent = charId ? '캐릭터 수정' : '새 캐릭터 만들기';
+        const preview = $('edit-char-img-preview');
+        preview.innerHTML = '+ 사진 추가';
+        preview.style.backgroundImage = '';
+        preview.dataset.img = '';
+        ['edit-char-name','edit-char-sub','edit-char-greeting','edit-char-profile','edit-char-relation','edit-char-story'].forEach(id => { $(id).value = ''; });
+        $('edit-char-language').value = 'English';
+        if (charId) {
+            const char = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').find(c => c.id === charId);
+            if (char) {
+                $('edit-char-name').value = char.name || '';
+                $('edit-char-sub').value = char.sub || '';
+                $('edit-char-greeting').value = char.greeting || '';
+                $('edit-char-profile').value = char.profile || '';
+                $('edit-char-relation').value = char.relation || '';
+                $('edit-char-story').value = char.story || '';
+                $('edit-char-language').value = char.language || 'English';
+                if (char.img) { preview.innerHTML = ''; preview.style.backgroundImage = `url(${char.img})`; preview.style.backgroundSize='cover'; preview.style.backgroundPosition='center'; preview.dataset.img = char.img; }
+            }
+        }
+        updateCharCounts();
+        $('character-editor-screen').classList.remove('hidden');
     }
-    
-    function savePersona() {
-        // 페르소나 저장
-        console.log('페르소나 저장');
+
+    function updateCharCounts() {
+        const fields = [
+            { input: 'edit-char-name', max: 25 },
+            { input: 'edit-char-sub', max: 40 },
+            { input: 'edit-char-greeting', max: 4096 }
+        ];
+        fields.forEach(f => {
+            const el = $(f.input);
+            if (!el) return;
+            const counter = el.parentElement.querySelector('.char-count');
+            if (counter) counter.textContent = `${el.value.length} / ${f.max}`;
+        });
     }
-    
-    function renderScenes() {
-        // 장면 렌더링
-        console.log('장면 렌더링');
+
+    async function saveCharacter() {
+        const name = $('edit-char-name').value.trim();
+        const greeting = $('edit-char-greeting').value.trim();
+        if (!name) { await dAlert('캐릭터 이름을 입력해주세요.'); return; }
+        if (!greeting) { await dAlert('Greeting을 입력해주세요.'); return; }
+        const characters = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
+        const img = $('edit-char-img-preview').dataset.img || '';
+        const charData = {
+            id: _editingCharId || `char_${Date.now()}`,
+            name, img,
+            sub: $('edit-char-sub').value.trim(),
+            greeting,
+            profile: $('edit-char-profile').value.trim(),
+            relation: $('edit-char-relation').value.trim(),
+            story: $('edit-char-story').value.trim(),
+            language: $('edit-char-language').value
+        };
+        if (_editingCharId) {
+            const idx = characters.findIndex(c => c.id === _editingCharId);
+            if (idx !== -1) characters[idx] = charData; else characters.push(charData);
+        } else {
+            characters.push(charData);
+        }
+        localStorage.setItem('dreamer_characters', JSON.stringify(characters));
+        closeEditor('character');
+        renderData();
+        await dAlert('캐릭터가 저장되었습니다.');
     }
-    
-    function createSceneFolder() {
-        // 장면 폴더 생성
-        console.log('장면 폴더 생성');
+
+    async function deleteCharacter(charId) {
+        if (await dConfirm('이 캐릭터를 삭제하시겠습니까?')) {
+            const chars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').filter(c => c.id !== charId);
+            localStorage.setItem('dreamer_characters', JSON.stringify(chars));
+            renderData();
+        }
     }
-    
-    function openSceneFolder() {
-        // 장면 폴더 열기
-        console.log('장면 폴더 열기');
+
+    function openCharacterDetail(charId) {
+        const char = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').find(c => c.id === charId);
+        if (!char) return;
+        $('detail-img').src = char.img || defaultImg;
+        $('detail-name').textContent = char.name;
+        $('detail-sub').textContent = char.sub || '';
+        const screen = $('character-detail-screen');
+        screen.dataset.charId = charId;
+        $('btn-detail-edit').onclick = () => { closeEditor('character-detail'); openCharEditor(charId); };
+        screen.classList.remove('hidden');
     }
-    
+
+    let _editingPersonaId = null;
+
+    function openPersonaEditor(personaId) {
+        _editingPersonaId = personaId || null;
+        $('persona-editor-title').textContent = personaId ? '페르소나 수정' : '새 페르소나 만들기';
+        const preview = $('edit-persona-img-preview');
+        preview.innerHTML = '+ 사진 추가';
+        preview.style.backgroundImage = '';
+        preview.dataset.img = '';
+        ['edit-persona-name','edit-persona-appearance','edit-persona-bg'].forEach(id => { $(id).value = ''; });
+        $('edit-persona-default').checked = false;
+        if (personaId) {
+            const p = JSON.parse(localStorage.getItem('dreamer_personas') || '[]').find(p => p.id === personaId);
+            if (p) {
+                $('edit-persona-name').value = p.name || '';
+                $('edit-persona-appearance').value = p.appearance || '';
+                $('edit-persona-bg').value = p.bg || '';
+                $('edit-persona-default').checked = !!p.isDefault;
+                if (p.img) { preview.innerHTML = ''; preview.style.backgroundImage = `url(${p.img})`; preview.style.backgroundSize='cover'; preview.style.backgroundPosition='center'; preview.dataset.img = p.img; }
+            }
+        }
+        $('persona-editor-screen').classList.remove('hidden');
+    }
+
+    async function savePersona() {
+        const name = $('edit-persona-name').value.trim();
+        if (!name) { await dAlert('페르소나 이름을 입력해주세요.'); return; }
+        let personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+        const isDefault = $('edit-persona-default').checked;
+        if (isDefault) personas.forEach(p => { p.isDefault = false; });
+        const img = $('edit-persona-img-preview').dataset.img || '';
+        const pData = {
+            id: _editingPersonaId || `persona_${Date.now()}`,
+            name, img, isDefault,
+            appearance: $('edit-persona-appearance').value.trim(),
+            bg: $('edit-persona-bg').value.trim()
+        };
+        if (_editingPersonaId) {
+            const idx = personas.findIndex(p => p.id === _editingPersonaId);
+            if (idx !== -1) personas[idx] = pData; else personas.push(pData);
+        } else {
+            personas.push(pData);
+        }
+        localStorage.setItem('dreamer_personas', JSON.stringify(personas));
+        closeEditor('persona');
+        renderData();
+        await dAlert('페르소나가 저장되었습니다.');
+    }
+
+    async function deletePersona(personaId) {
+        if (await dConfirm('이 페르소나를 삭제하시겠습니까?')) {
+            const ps = JSON.parse(localStorage.getItem('dreamer_personas') || '[]').filter(p => p.id !== personaId);
+            localStorage.setItem('dreamer_personas', JSON.stringify(ps));
+            renderData();
+        }
+    }
+
+    function renderScenes() { $('scene-list-container').innerHTML = '<p class="empty-text">저장된 장면이 없습니다.</p>'; }
+    function createSceneFolder() { dAlert('장면 폴더 기능은 준비 중입니다.'); }
+    function openSceneFolder() {}
+
     function openNoticeScreen() {
-        // 공지 화면 열기
-        console.log('공지 화면 열기');
+        $('notice-screen').classList.remove('hidden');
     }
     
     function closeEditor(screenId) {
@@ -902,98 +1136,168 @@
     }
     
     function openAdminPanel() {
-        // 관리자 패널 열기
-        console.log('관리자 패널 열기');
+        $('admin-screen').classList.remove('hidden');
     }
-    
-    function OpenChat() {
-        // 채팅 열기
-        console.log('채팅 열기');
+
+    function OpenChat(isNew) {
+        const screen = $('real-chat-screen');
+        if (isNew) {
+            $('chat-log').innerHTML = '';
+        }
+        const charId = $('character-detail-screen').dataset.charId;
+        if (charId) {
+            const char = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').find(c => c.id === charId);
+            if (char) {
+                $('chat-header-img').src = char.img || defaultImg;
+                $('chat-header-name').textContent = char.name;
+            }
+        }
+        loadChatPersonas();
+        screen.classList.remove('hidden');
     }
-    
+
     function goHomeFromChat() {
-        // 채팅에서 홈으로
-        console.log('채팅에서 홈으로');
+        $('real-chat-screen').classList.add('hidden');
     }
-    
+
     function sendChatMessage() {
-        // 채팅 메시지 전송
-        console.log('채팅 메시지 전송');
+        dAlert('채팅 AI 연동은 준비 중입니다.');
     }
-    
+
     function toggleRightSidebar() {
-        // 우측 사이드바 토글
-        console.log('우측 사이드바 토글');
+        const sidebar = $('sidebar-right');
+        const overlay = $('sidebar-right-overlay');
+        const isOpen = sidebar.style.right === '0px';
+        sidebar.style.right = isOpen ? '-300px' : '0px';
+        overlay.classList.toggle('show', !isOpen);
     }
-    
+
+    let _selectedMsgIndex = null;
+
     function doTogglePinMessage() {
-        // 메시지 고정 토글
-        console.log('메시지 고정 토글');
+        closeActionSheet();
+        dAlert('메시지 고정 기능은 준비 중입니다.');
     }
-    
+
     function doEditMessage() {
-        // 메시지 편집
-        console.log('메시지 편집');
+        closeActionSheet();
+        const overlay = $('edit-message-overlay');
+        overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
     }
-    
-    function doCopyMessage() {
-        // 메시지 복사
-        console.log('메시지 복사');
+
+    async function doCopyMessage() {
+        closeActionSheet();
+        const textarea = $('edit-message-textarea');
+        const text = textarea ? textarea.value : '';
+        if (text && navigator.clipboard) {
+            await navigator.clipboard.writeText(text).catch(() => {});
+        }
+        await dAlert('백업 복사는 준비 중입니다.');
     }
-    
+
     function doRewindMessage() {
-        // 메시지 되감기
-        console.log('메시지 되감기');
+        closeActionSheet();
+        dAlert('되감기 기능은 준비 중입니다.');
     }
-    
+
     function doBranchMessage() {
-        // 대화 분기
-        console.log('대화 분기');
+        closeActionSheet();
+        dAlert('분기 기능은 준비 중입니다.');
     }
-    
+
     function startSceneSelection() {
-        // 장면 선택 시작
-        console.log('장면 선택 시작');
+        closeActionSheet();
+        dAlert('장면 저장 기능은 준비 중입니다.');
     }
-    
+
     function closeActionSheet() {
-        // 액션 시트 닫기
-        console.log('액션 시트 닫기');
+        const sheet = $('action-sheet');
+        const overlay = $('action-sheet-overlay');
+        if (sheet) sheet.style.bottom = '-400px';
+        if (overlay) overlay.classList.remove('show');
     }
-    
-    function sendFeedbackOOC() {
-        // OOC 피드백 전송
-        console.log('OOC 피드백 전송');
+
+    async function sendFeedbackOOC() {
+        const msg = await dPrompt('AI에게 OOC 피드백을 입력하세요:', 'OOC 피드백');
+        if (msg) await dAlert('주세요! (AI 채팅 연동 시 적용됩니다)');
     }
-    
+
     function cancelEditMessage() {
-        // 메시지 편집 취소
-        console.log('메시지 편집 취소');
+        const overlay = $('edit-message-overlay');
+        overlay.classList.add('hidden');
+        overlay.style.display = '';
     }
-    
-    function saveEditMessage() {
-        // 메시지 편집 저장
-        console.log('메시지 편집 저장');
+
+    async function saveEditMessage() {
+        cancelEditMessage();
+        await dAlert('메시지 수정 기능은 AI 연동 시 적용됩니다.');
     }
-    
+
     function confirmSceneSave() {
-        // 장면 저장 확인
-        console.log('장면 저장 확인');
+        dAlert('장면 저장 기능은 준비 중입니다.');
     }
-    
+
     function cancelSceneSave() {
-        // 장면 저장 취소
-        console.log('장면 저장 취소');
+        const bar = $('scene-selection-bar');
+        if (bar) bar.style.display = 'none';
+        document.querySelectorAll('.msg-block.scene-selectable').forEach(el => el.classList.remove('scene-selectable', 'scene-selected'));
     }
-    
+
     function openSessionListModal() {
-        // 세션 목록 모달 열기
-        console.log('세션 목록 모달 열기');
+        const modal = $('session-list-modal');
+        if (!modal) return;
+        const content = $('session-list-content');
+        const charId = $('character-detail-screen').dataset.charId;
+        const sessions = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(`dreamer_session_${charId}_`)) sessions.push(key);
+        }
+        if (sessions.length === 0) {
+            content.innerHTML = '<p style="color:var(--text-secondary); font-size:14px; text-align:center; padding: 20px;">저장된 채팅이 없습니다.</p>';
+        } else {
+            content.innerHTML = sessions.map(s => {
+                const ts = s.split('_').pop();
+                const date = ts ? new Date(parseInt(ts)).toLocaleString('ko-KR') : s;
+                return `<div style="padding: 14px; border-bottom: 1px solid var(--border-color); cursor:pointer; font-size:14px;" onclick="loadSession('${s}')">채팅 - ${date}</div>`;
+            }).join('');
+        }
+        modal.classList.remove('hidden');
     }
-    
-    function handleImageUpload() {
-        // 이미지 업로드 처리
-        console.log('이미지 업로드 처리');
+
+    function loadSession(key) {
+        $('session-list-modal').classList.add('hidden');
+        OpenChat(false);
+    }
+
+    function handleImageUpload(input, previewId, type) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const maxSize = 400;
+                let w = img.width, h = img.height;
+                if (w > h) { if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; } }
+                else { if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; } }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const compressed = canvas.toDataURL('image/jpeg', 0.75);
+                const preview = $(previewId);
+                if (preview) {
+                    preview.innerHTML = '';
+                    preview.style.backgroundImage = `url(${compressed})`;
+                    preview.style.backgroundSize = 'cover';
+                    preview.style.backgroundPosition = 'center';
+                    preview.dataset.img = compressed;
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     }
     
     let talkMakerMessages = [];
@@ -1123,68 +1427,68 @@
     }
     
     function loadAdminUsers() {
-        // 관리자 유저 로드
-        console.log('관리자 유저 로드');
+        const list = $('admin-user-list');
+        if (list) list.innerHTML = '<p style="color:var(--text-secondary); font-size:13px;">서버 연동 전입니다.</p>';
     }
-    
-    function executeNoticeUpload() {
-        // 공지 업로드 실행
-        console.log('공지 업로드 실행');
-    }
-    
+
+    function executeNoticeUpload() { dAlert('서버 연동 전 사용 불가'); }
+    function fetchGlobalNotice() {}
+    function executeDelete() {}
+
     function openNoticeEditScreen() {
-        // 공지 편집 화면 열기
-        console.log('공지 편집 화면 열기');
+        $('notice-edit-screen').classList.remove('hidden');
     }
-    
-    function fetchGlobalNotice() {
-        // 전역 공지 가져오기
-        console.log('전역 공지 가져오기');
+
+    function backupData() { exportLocalBackup(); }
+    function restoreData() { $('local-backup-input').click(); }
+
+    function compressImage(dataUrl, maxSize, quality) {
+        return new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width, h = img.height;
+                if (w > h) { if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; } }
+                else { if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; } }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', quality || 0.75));
+            };
+            img.src = dataUrl;
+        });
     }
-    
-    function executeDelete() {
-        // 삭제 실행
-        console.log('삭제 실행');
+
+    function adjustTextareaHeight(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 300) + 'px';
     }
-    
-    function backupData() {
-        // 데이터 백업
-        console.log('데이터 백업');
-    }
-    
-    function restoreData() {
-        // 데이터 복원
-        console.log('데이터 복원');
-    }
-    
-    function compressImage() {
-        // 이미지 압축
-        console.log('이미지 압축');
-    }
-    
-    function adjustTextareaHeight() {
-        // 텍스트에리어 높이 조정
-        console.log('텍스트에리어 높이 조정');
-    }
-    
-    function renderChatLog() {
-        // 채팅 로그 렌더링
-        console.log('채팅 로그 렌더링');
-    }
-    
+
+    function renderChatLog() {}
+
     function changeModel() {
-        // 모델 변경
-        console.log('모델 변경');
+        const sel = $('chat-model-select');
+        if (sel && sel.value) localStorage.setItem('dreamer_model', sel.value);
     }
-    
+
     function changePersona() {
-        // 페르소나 변경
-        console.log('페르소나 변경');
+        const sel = $('chat-persona-select');
+        if (sel && sel.value) localStorage.setItem('dreamer_active_persona', sel.value);
     }
-    
+
     function loadChatPersonas() {
-        // 채팅 페르소나 로드
-        console.log('채팅 페르소나 로드');
+        const sel = $('chat-persona-select');
+        if (!sel) return;
+        const personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+        sel.innerHTML = '<option value="">페르소나 선택...</option>';
+        personas.forEach(p => {
+            const o = document.createElement('option');
+            o.value = p.id;
+            o.textContent = p.name + (p.isDefault ? ' (기본)' : '');
+            sel.appendChild(o);
+        });
+        const saved = localStorage.getItem('dreamer_active_persona');
+        if (saved) sel.value = saved;
     }
     
     // 캐릭터별 프롬프트 시스템
