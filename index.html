@@ -73,7 +73,7 @@
         .list-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding-right: 36px; }
         .list-title { font-size: 16px; font-weight: 700; color: white; margin-bottom: 4px; display:flex; align-items:center; }
         .list-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .edit-btn { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--text-secondary); font-size: 16px; cursor: pointer; padding: 4px; z-index: 5; }
+        .edit-btn { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--text-secondary); font-size: 16px; cursor: pointer; padding: 4px; }
         
         .editor-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); z-index: var(--z-editor); display: flex; flex-direction: column; transition: 0.3s; }
         .editor-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -607,7 +607,6 @@
         };
     });
     
-    // ★ 개선된 스와이프 기능 (가장 자연스러운 CAI 스타일 구현, 클릭 방해 없음)
     let isSwiping = false;
     function attachSwipeEvents(cardElement) {
         let startX = 0, currentX = 0, threshold = -60;
@@ -617,9 +616,8 @@
         cardElement.addEventListener('touchmove', (e) => {
             if (!startX) return;
             currentX = e.touches[0].clientX - startX;
-            // 상하 스크롤과 구분하기 위해 좌우 이동이 15px 이상일 때만 스와이프 판정
-            if (Math.abs(currentX) > 15) { isSwiping = true; }
-            if (currentX < 0 && currentX > -100 && isSwiping) { cardElement.style.transform = `translateX(${currentX}px)`; }
+            if (Math.abs(currentX) > 10) isSwiping = true;
+            if (currentX < 0 && currentX > -100) cardElement.style.transform = `translateX(${currentX}px)`;
         }, {passive: true});
         cardElement.addEventListener('touchend', () => {
             if (!startX) return;
@@ -627,7 +625,7 @@
             if (currentX < threshold) cardElement.style.transform = `translateX(-80px)`;
             else cardElement.style.transform = `translateX(0px)`;
             startX = 0; currentX = 0;
-            setTimeout(() => { isSwiping = false; }, 100); // 클릭 방지 딜레이
+            setTimeout(() => { isSwiping = false; }, 50);
         });
     }
     
@@ -725,7 +723,7 @@
         closeEditor('persona'); renderData(); loadChatPersonas(); dAlert('저장되었습니다.');
     };
     
-    // ★ 렌더링 로직 (최근 대화순 및 설명 강제 고정) ★
+    // ★ 최근 대화 순 정렬 및 렌더링 업데이트 ★
     window.renderData = function() { renderCharacters(); renderPersonas(); };
     function escHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     
@@ -734,23 +732,18 @@
         let characters = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
         if (characters.length === 0) return container.innerHTML = '<p class="empty-text">캐릭터가 없습니다.</p>';
         
-        // 최근 접속(터치) 또는 대화 기록으로 무조건 1등으로 오게끔 정렬값 추출
+        // 최근 대화 데이터 매핑 및 정렬
         characters.forEach(char => {
             const chatData = JSON.parse(localStorage.getItem(`dreamer_current_chat_${char.id}`) || '[]');
-            // 캐릭터별 마지막 터치/통신 기록 호출
-            const lastAccess = parseInt(localStorage.getItem(`dreamer_last_access_${char.id}`) || '0');
-            
-            // 대화가 있거나 클릭한 기록 중 가장 최신 시간을 lastChatTime으로 씀
             if (chatData.length > 0) {
                 const lastMsg = chatData[chatData.length - 1];
-                char.lastChatTime = Math.max(lastMsg.id, lastAccess);
+                char.lastChatTime = lastMsg.id; 
+                char.displaySub = (lastMsg.role === 'user' ? '나: ' : '') + lastMsg.content;
             } else {
-                char.lastChatTime = Math.max(parseInt(char.id), lastAccess);
+                char.lastChatTime = parseInt(char.id); // 생성시간 기준 fallback
+                char.displaySub = char.sub || char.greeting;
             }
-            // ★ 카드의 서브 텍스트는 첫마디가 아니라 무조건 캐릭터의 Tagline(sub)으로 고정! ★
-            char.displaySub = char.sub || char.greeting;
         });
-        
         characters.sort((a, b) => b.lastChatTime - a.lastChatTime);
 
         container.innerHTML = '';
@@ -768,13 +761,7 @@
             div.querySelector('.delete-btn-bg').onclick = () => executeDelete(char.id, char.name, 'characters');
             div.querySelector('.edit-btn').onclick = e => { e.stopPropagation(); openCharEditor(char.id, char); };
             const card = div.querySelector('.list-card');
-            
-            // 누를 때마다 lastAccess 저장하여 무조건 맨 위로 오도록 갱신
-            card.onclick = () => { 
-                if(isSwiping) return; 
-                localStorage.setItem(`dreamer_last_access_${char.id}`, Date.now().toString());
-                openCharDetail(char.id); 
-            };
+            card.onclick = () => { if(!isSwiping) openCharDetail(char.id); };
             container.appendChild(div); attachSwipeEvents(card);
         });
     }
@@ -785,6 +772,7 @@
         container.innerHTML = '';
         [...personas].sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0)).forEach(p => {
             const safeImg = (p.photoUrl && !p.photoUrl.includes('<svg xmlns=')) ? p.photoUrl : defaultImg;
+            // Default 표기를 라벨 형태로 변경
             const defTag = p.isDefault ? '<span style="color: var(--bg-main); background: var(--accent-color); font-size: 10px; font-weight: bold; padding: 2px 5px; border-radius: 6px; margin-left: 8px; vertical-align: middle;">Default</span>' : '';
             const div = document.createElement('div'); div.className = 'swipe-container';
             div.innerHTML = `
@@ -847,6 +835,7 @@
     window.createSceneFolder = function() { dPrompt('폴더 이름을 입력하세요:').then(name => { if (!name) return; let folders = JSON.parse(localStorage.getItem('dreamer_scene_folders') || '[]'); folders.push({ id: Date.now().toString(), name: name, parentId: window.currentSceneFolderId || null }); localStorage.setItem('dreamer_scene_folders', JSON.stringify(folders)); renderScenes(); }); };
     window.openSceneFolder = function(folderId) { window.currentSceneFolderId = folderId; renderScenes(); };
 
+    // API 및 Appwrite 연동 수정 (텍스트 Supabase -> Appwrite 통일)
     $('btn-save-api').onclick = async function() { localStorage.setItem('dreamer_api_url', $('api-url').value.trim()); localStorage.setItem('dreamer_api_key', $('api-key').value.trim()); localStorage.setItem('dreamer_global_prompt', $('api-global-prompt').value.trim()); await dAlert('API 설정이 저장되었습니다.'); };
     $('btn-save-profile').onclick = async function() { localStorage.setItem('dreamer_nickname', $('settings-nickname').value.trim()); localStorage.setItem('dreamer_supabase_key', $('settings-supabase-key').value.trim()); await dAlert('프로필 설정이 저장되었습니다.'); };
 
@@ -879,7 +868,7 @@
     window.executeNoticeUpload = async function() { const title = $('notice-edit-title').value.trim(); const content = $('notice-edit-content').value.trim(); if (!title || !content) return dAlert('제목과 내용을 모두 입력해주세요.'); try { if (databases && client) { await databases.createDocument(dbId, 'notices', 'unique()', { title, content }); await dAlert('클라우드에 공지가 배포되었습니다.'); } else { throw new Error("No SDK"); } } catch (e) { await dAlert('로컬 전용으로 공지가 저장되었습니다.'); } localStorage.setItem('dreamer_global_notice', JSON.stringify({ title, content })); $('notice-edit-screen').classList.add('hidden'); $('main-notice-title').innerText = title; $('main-notice-sub').innerText = content.substring(0, 50) + '...'; };
     window.openAdminPanel = function() { $('admin-screen').classList.remove('hidden'); };
 
-    // ★ 채팅 시스템 로직 ★
+    // ★ 채팅 시스템 ★
     window.currentChatHistory = [];
     window.isGenerating = false;
     window.isSceneSelectionMode = false;
@@ -937,13 +926,13 @@
         renderChatLog();
     };
     
-    // ★ 채팅방 나가기 (최근 대화 갱신되도록)
+    // ★ 채팅방 나가기 (최근 대화 갱신)
     window.goHomeFromChat = () => {
         saveCurrentChatToLocal();
         $('real-chat-screen').style.display = 'none';
         localStorage.removeItem('dreamer_current_screen');
         localStorage.removeItem('dreamer_chat_char_id');
-        renderData(); // 메인 목록 정렬 갱신
+        renderData(); // 메인 목록 정렬 및 텍스트 갱신
     };
     
     function renderChatLog() {
@@ -976,18 +965,12 @@
         logBox.scrollTop = logBox.scrollHeight;
     }
     
-    // API 통신 
     window.sendChatMessage = async function() {
         if (window.isGenerating) return;
         const input = $('chat-input'); const text = input.value.trim(); if (!text) return;
         
         window.currentChatHistory.push({ id: Date.now(), role: 'user', content: text });
-        saveCurrentChatToLocal(); 
-        
-        // ★ 대화를 치는 순간, 최근 대화 1등으로 올라오도록 시간 갱신
-        localStorage.setItem(`dreamer_last_access_${window.selectedCharId}`, Date.now().toString());
-
-        input.value = ''; input.style.height = 'auto'; renderChatLog();
+        saveCurrentChatToLocal(); input.value = ''; input.style.height = 'auto'; renderChatLog();
         
         window.isGenerating = true; const loadingId = Date.now() + 1;
         window.currentChatHistory.push({ id: loadingId, role: 'char', name: $('chat-header-name').innerText, content: "..." });
@@ -1062,7 +1045,7 @@
     document.addEventListener('input', e => { if (e.target.classList.contains('auto-resize-textarea')) { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; } });
     $('chat-log').addEventListener('click', function() { const sidebar = $('sidebar-right'); if (sidebar.style.right === '0px') toggleRightSidebar(); });
 
-    // 과거 세션 모달 (이름 변경 기능)
+    // 과거 세션 목록 및 이름 변경
     window.openSessionListModal = function() {
         if (!window.selectedCharId) return dAlert('선택된 캐릭터가 없습니다.');
         const sessList = JSON.parse(localStorage.getItem(`chat_sessions_${window.selectedCharId}`) || '[]');
@@ -1107,6 +1090,7 @@
     window.changePersona = function(pid) { localStorage.setItem('dreamer_current_persona_id', pid); };
     window.changeModel = function(modelId) { localStorage.setItem('dreamer_model', modelId); };
 
+    // ★ 모델 새로고침 버그 수정
     window.fetchModels = async function(btnEl) {
         const icon = btnEl.querySelector('i'); icon.classList.add('fa-spin');
         
