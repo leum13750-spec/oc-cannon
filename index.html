@@ -257,18 +257,18 @@
             <div id="tab-settings" class="tab-pane">
                 <div class="settings-profile">
                     <div class="form-group" style="width: 100%; text-align: left; background: rgba(216, 180, 254, 0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(216, 180, 254, 0.2);">
-                        <label style="color: var(--accent-color);"><i class="fas fa-sync-alt"></i> Supabase 클라우드 동기화 (기기 연동)</label>
+                        <label style="color: var(--accent-color);"><i class="fas fa-sync-alt"></i> Appwrite 클라우드 동기화 (기기 연동)</label>
                         <div style="display: flex; gap: 8px; margin-top: 12px;">
                             <button class="primary-btn" id="btn-cloud-backup" style="flex: 1; padding: 12px; margin-bottom: 0; font-size: 14px;"><i class="fas fa-cloud-upload-alt"></i> 서버에 백업</button>
                             <button class="action-btn-outline" id="btn-cloud-restore" style="flex: 1; padding: 12px; margin-bottom: 0; font-size: 14px; border-color: var(--accent-color); color: var(--accent-color);"><i class="fas fa-cloud-download-alt"></i> 기기로 불러오기</button>
                         </div>
-                        <div style="font-size:12px; color:gray; margin-top:10px; line-height: 1.4;">기기 변경 시 모든 데이터를 동기화합니다. 아래 Supabase Anon Key를 반드시 입력해주세요.</div>
+                        <div style="font-size:12px; color:gray; margin-top:10px; line-height: 1.4;">기기 변경 시 모든 데이터를 동기화합니다. 아래 설정에 Appwrite User ID를 반드시 입력해주세요.</div>
                     </div>
                     <hr style="width: 100%; border-color: var(--border-color); margin: 20px 0;">
                     
                     <div class="form-group" style="width: 100%; text-align: left;">
-                        <label>Supabase Anon Key (백업/동기화용) <span style="color:red">*</span></label>
-                        <input type="password" id="settings-supabase-key" placeholder="eyJhbGciOiJIUzI1..." style="width: 100%; padding: 14px; background: var(--bg-surface-light); border: none; border-radius: 12px; color: white; margin-top: 8px;">
+                        <label>Appwrite 연동용 User ID (백업/동기화용) <span style="color:red">*</span></label>
+                        <input type="password" id="settings-supabase-key" placeholder="개인 고유 식별자 입력" style="width: 100%; padding: 14px; background: var(--bg-surface-light); border: none; border-radius: 12px; color: white; margin-top: 8px;">
                     </div>
                     <div class="form-group" style="width: 100%; text-align: left;">
                         <label>닉네임</label>
@@ -465,7 +465,7 @@
     <div id="chat-log"></div>
     
     <div id="scene-selection-bar" style="display: none; padding: 10px 15px; background: #333; border-bottom: 1px solid #444; justify-content: space-between; align-items: center;">
-        <span style="color: white; font-size: 14px;">저장할 메시지를 선택하세요</span>
+        <span style="color: white; font-size: 14px;">저장할 메시지를 선택하세요<br><small style="color:gray;">두 개를 선택하면 그 사이 모두 선택됩니다.</small></span>
         <div style="display: flex; gap: 8px;">
             <button onclick="cancelSceneSave()" style="background: #666; border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">취소</button>
             <button onclick="confirmSceneSave()" style="background: var(--accent-color); border: none; color: black; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold;">저장</button>
@@ -492,7 +492,6 @@
         <button onclick="toggleRightSidebar()" style="background: none; border: none; color: #8e8e93; font-size: 20px; cursor: pointer;"><i class="fas fa-times"></i></button>
     </div>
     
-    <!-- 사이드바 간이 캐릭터 프로필 및 수정 영역 -->
     <div style="padding: 20px; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 12px;">
         <img id="sb-char-img" src="" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover; flex-shrink: 0;">
         <div style="flex: 1; overflow: hidden;">
@@ -505,7 +504,7 @@
     <div style="padding: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <h3 style="font-size: 16px; color: white;">AI 모델</h3>
-            <button onclick="fetchModels(event)" style="background: none; border: none; color: var(--accent-color); font-size: 14px; cursor: pointer;"><i class="fas fa-sync"></i></button>
+            <button onclick="fetchModels(this)" style="background: none; border: none; color: var(--accent-color); font-size: 14px; cursor: pointer;"><i class="fas fa-sync"></i></button>
         </div>
         <select id="chat-model-select" style="width: 100%; background: #252525; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; margin-bottom: 12px;" onchange="changeModel(this.value)">
             <option value="">모델 선택...</option>
@@ -541,7 +540,6 @@
 <div id="action-sheet-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: calc(var(--z-action)); opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;" onclick="closeActionSheet()"></div>
 
 <script>
-    // 전역 변수
     const defaultImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23666'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
     const defaultGenSettings = { temp: 0.65, rep: 1.00, freq: 1.00, pres: 1.00, topp: 0.99, topk: 49, maxt: 600, ctx: 8000 };
     window.currentSceneFolderId = null;
@@ -549,13 +547,11 @@
     const domCache = {};
     function $(id) { if (!domCache[id]) domCache[id] = document.getElementById(id); return domCache[id]; }
     
-    // 유틸리티 함수
+    // 알림, 프롬프트
     window.dAlert = async function(msg, title = '알림') {
         return new Promise(resolve => {
-            $('d-modal-title').innerText = title;
-            $('d-modal-msg').innerText = msg;
-            $('d-modal-input').style.display = 'none';
-            $('d-modal-cancel').style.display = 'none';
+            $('d-modal-title').innerText = title; $('d-modal-msg').innerText = msg;
+            $('d-modal-input').style.display = 'none'; $('d-modal-cancel').style.display = 'none';
             $('d-modal-overlay').classList.remove('hidden');
             const handler = () => { $('d-modal-overlay').classList.add('hidden'); $('d-modal-confirm').removeEventListener('click', handler); resolve(true); };
             $('d-modal-confirm').addEventListener('click', handler);
@@ -564,31 +560,24 @@
     
     window.dConfirm = async function(msg, title = '확인') {
         return new Promise(resolve => {
-            $('d-modal-title').innerText = title;
-            $('d-modal-msg').innerText = msg;
-            $('d-modal-input').style.display = 'none';
-            $('d-modal-cancel').style.display = 'flex';
+            $('d-modal-title').innerText = title; $('d-modal-msg').innerText = msg;
+            $('d-modal-input').style.display = 'none'; $('d-modal-cancel').style.display = 'flex';
             $('d-modal-overlay').classList.remove('hidden');
             const confirmHandler = () => { $('d-modal-overlay').classList.add('hidden'); $('d-modal-confirm').removeEventListener('click', confirmHandler); $('d-modal-cancel').removeEventListener('click', cancelHandler); resolve(true); };
             const cancelHandler = () => { $('d-modal-overlay').classList.add('hidden'); $('d-modal-confirm').removeEventListener('click', confirmHandler); $('d-modal-cancel').removeEventListener('click', cancelHandler); resolve(false); };
-            $('d-modal-confirm').addEventListener('click', confirmHandler);
-            $('d-modal-cancel').addEventListener('click', cancelHandler);
+            $('d-modal-confirm').addEventListener('click', confirmHandler); $('d-modal-cancel').addEventListener('click', cancelHandler);
         });
     };
     
     window.dPrompt = async function(msg, defaultValue = '', title = '입력') {
         return new Promise(resolve => {
-            $('d-modal-title').innerText = title;
-            $('d-modal-msg').innerText = msg;
-            $('d-modal-input').style.display = 'block';
-            $('d-modal-input').value = defaultValue;
-            $('d-modal-cancel').style.display = 'flex';
-            $('d-modal-overlay').classList.remove('hidden');
+            $('d-modal-title').innerText = title; $('d-modal-msg').innerText = msg;
+            $('d-modal-input').style.display = 'block'; $('d-modal-input').value = defaultValue;
+            $('d-modal-cancel').style.display = 'flex'; $('d-modal-overlay').classList.remove('hidden');
             const input = $('d-modal-input');
             const confirmHandler = () => { const value = input.value; $('d-modal-overlay').classList.add('hidden'); $('d-modal-confirm').removeEventListener('click', confirmHandler); $('d-modal-cancel').removeEventListener('click', cancelHandler); resolve(value); };
             const cancelHandler = () => { $('d-modal-overlay').classList.add('hidden'); $('d-modal-confirm').removeEventListener('click', confirmHandler); $('d-modal-cancel').removeEventListener('click', cancelHandler); resolve(null); };
-            $('d-modal-confirm').addEventListener('click', confirmHandler);
-            $('d-modal-cancel').addEventListener('click', cancelHandler);
+            $('d-modal-confirm').addEventListener('click', confirmHandler); $('d-modal-cancel').addEventListener('click', cancelHandler);
             setTimeout(() => input.focus(), 100);
         });
     };
@@ -599,46 +588,33 @@
         btn.addEventListener('click', function() {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-            this.classList.add('active');
-            $(`tab-${this.dataset.tab}`).classList.add('active');
+            this.classList.add('active'); $(`tab-${this.dataset.tab}`).classList.add('active');
             localStorage.setItem('dreamer_current_tab', this.dataset.tab);
         });
     });
     
-    // 로그인 및 아웃
+    // 로그인
     $('btn-login').onclick = async function() {
-        const id = $('login-id').value.trim();
-        const pw = $('login-pw').value.trim();
+        const id = $('login-id').value.trim(); const pw = $('login-pw').value.trim();
         if (!id || !pw) return await dAlert('아이디와 비밀번호를 입력해주세요.');
-        localStorage.setItem('dreamer_logged_in', 'true');
-        localStorage.setItem('dreamer_handle', id);
-        localStorage.setItem('dreamer_nickname', id);
-        $('login-screen').classList.add('hidden');
-        $('settings-handle').value = id;
-        $('settings-nickname').value = id;
+        localStorage.setItem('dreamer_logged_in', 'true'); localStorage.setItem('dreamer_handle', id); localStorage.setItem('dreamer_nickname', id);
+        $('login-screen').classList.add('hidden'); $('settings-handle').value = id; $('settings-nickname').value = id;
         if(id === 'ReschaRiley') checkAdminStatus();
-        await dAlert(`${id}님 환영합니다!`);
-        renderData();
+        await dAlert(`${id}님 환영합니다!`); renderData();
     };
     
     ['btn-logout', 'btn-settings-logout'].forEach(id => {
         $(id).onclick = async function() {
-            if (await dConfirm('로그아웃하시겠습니까?')) {
-                localStorage.removeItem('dreamer_logged_in');
-                localStorage.removeItem('dreamer_handle');
-                location.reload();
-            }
+            if (await dConfirm('로그아웃하시겠습니까?')) { localStorage.removeItem('dreamer_logged_in'); localStorage.removeItem('dreamer_handle'); location.reload(); }
         };
     });
     
-    // 모바일 터치 스와이프 최적화 (클릭과 분리)
+    // 스와이프 복구 및 버그 수정
     let isSwiping = false;
     function attachSwipeEvents(cardElement) {
         let startX = 0, currentX = 0, threshold = -60;
         cardElement.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            cardElement.style.transition = 'none';
-            isSwiping = false;
+            startX = e.touches[0].clientX; cardElement.style.transition = 'none'; isSwiping = false;
         }, {passive: true});
         cardElement.addEventListener('touchmove', (e) => {
             if (!startX) return;
@@ -659,8 +635,7 @@
     window.executeDelete = async function(id, name, type) {
         if (!await dConfirm(`'${name}'을(를) 삭제하시겠습니까?`)) return;
         const storageKeys = { characters: 'dreamer_characters', personas: 'dreamer_personas', scenes: 'dreamer_scenes' };
-        const storageKey = storageKeys[type];
-        if (!storageKey) return;
+        const storageKey = storageKeys[type]; if (!storageKey) return;
         
         let items = JSON.parse(localStorage.getItem(storageKey) || '[]');
         items = items.filter(item => item.id.toString() !== id.toString());
@@ -676,37 +651,25 @@
         reader.onload = function(event) {
             const img = new Image();
             img.onload = function() {
-                const canvas = document.createElement('canvas');
-                let width = img.width, height = img.height, maxSize = 400; 
-                if (width > height) { if (width > maxSize) { height *= maxSize / width; width = maxSize; } } 
-                else { if (height > maxSize) { width *= maxSize / height; height = maxSize; } }
-                canvas.width = width; canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
+                const canvas = document.createElement('canvas'); let width = img.width, height = img.height, maxSize = 400; 
+                if (width > height) { if (width > maxSize) { height *= maxSize / width; width = maxSize; } } else { if (height > maxSize) { width *= maxSize / height; height = maxSize; } }
+                canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
                 callback(canvas.toDataURL('image/jpeg', 0.8));
-            };
-            img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
+            }; img.src = event.target.result;
+        }; reader.readAsDataURL(file);
     }
     
-    $('edit-char-img-input').onchange = function(e) {
-        if(e.target.files[0]) compressImage(e.target.files[0], b64 => { window.tempCharImage = b64; $('edit-char-img-preview').innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; });
-    };
-    $('edit-persona-img-input').onchange = function(e) {
-        if(e.target.files[0]) compressImage(e.target.files[0], b64 => { window.tempPersonaImage = b64; $('edit-persona-img-preview').innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; });
-    };
+    $('edit-char-img-input').onchange = function(e) { if(e.target.files[0]) compressImage(e.target.files[0], b64 => { window.tempCharImage = b64; $('edit-char-img-preview').innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }); };
+    $('edit-persona-img-input').onchange = function(e) { if(e.target.files[0]) compressImage(e.target.files[0], b64 => { window.tempPersonaImage = b64; $('edit-persona-img-preview').innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }); };
     
     window.closeEditor = function(type) {
         const screenIdMap = { 'character': 'character-editor-screen', 'persona': 'persona-editor-screen', 'gen-settings': 'gen-settings-screen' };
-        const screen = $(screenIdMap[type] || `${type}-editor-screen`);
-        if (screen) screen.classList.add('hidden');
+        const screen = $(screenIdMap[type] || `${type}-editor-screen`); if (screen) screen.classList.add('hidden');
     };
     
-    // 캐릭터 수정
+    // 캐릭터 & 페르소나
     window.openCharEditor = function(id = null, data = null) {
-        window.editingCharId = id;
-        const screen = $('character-editor-screen');
+        window.editingCharId = id; const screen = $('character-editor-screen');
         if (data) {
             ['name', 'sub', 'greeting', 'profile', 'relation', 'story'].forEach(f => $(`edit-char-${f}`).value = data[f] || '');
             $('edit-char-language').value = data.language || 'English';
@@ -716,69 +679,37 @@
             $('char-editor-title').textContent = '캐릭터 수정';
         } else {
             ['name', 'sub', 'greeting', 'profile', 'relation', 'story'].forEach(f => $(`edit-char-${f}`).value = '');
-            $('edit-char-language').value = 'English';
-            window.tempCharImage = null;
-            $('edit-char-img-preview').innerHTML = '+ 사진 추가';
-            $('char-editor-title').textContent = '새 캐릭터 만들기';
+            $('edit-char-language').value = 'English'; window.tempCharImage = null; $('edit-char-img-preview').innerHTML = '+ 사진 추가'; $('char-editor-title').textContent = '새 캐릭터 만들기';
         }
         screen.classList.remove('hidden');
     };
     
     window.saveCharacter = function() {
-        const name = $('edit-char-name').value.trim();
-        const greeting = $('edit-char-greeting').value.trim();
+        const name = $('edit-char-name').value.trim(); const greeting = $('edit-char-greeting').value.trim();
         if (!name || !greeting) return dAlert('Name과 Greeting은 필수 항목입니다.');
-        
         let characters = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
-        const charData = {
-            name, sub: $('edit-char-sub').value.trim(), greeting, profile: $('edit-char-profile').value.trim(),
-            relation: $('edit-char-relation').value.trim(), story: $('edit-char-story').value.trim(),
-            language: $('edit-char-language').value, photoUrl: window.tempCharImage || defaultImg, date: new Date().toLocaleDateString()
-        };
-        
-        if (window.editingCharId) {
-            const index = characters.findIndex(c => c.id === window.editingCharId);
-            if (index !== -1) characters[index] = { ...characters[index], ...charData };
-        } else {
-            characters.push({ id: Date.now().toString(), ...charData });
-        }
-        
+        const charData = { name, sub: $('edit-char-sub').value.trim(), greeting, profile: $('edit-char-profile').value.trim(), relation: $('edit-char-relation').value.trim(), story: $('edit-char-story').value.trim(), language: $('edit-char-language').value, photoUrl: window.tempCharImage || defaultImg, date: new Date().toLocaleDateString() };
+        if (window.editingCharId) { const index = characters.findIndex(c => c.id === window.editingCharId); if (index !== -1) characters[index] = { ...characters[index], ...charData }; } 
+        else { characters.push({ id: Date.now().toString(), ...charData }); }
         localStorage.setItem('dreamer_characters', JSON.stringify(characters));
-        closeEditor('character');
-        renderData();
-        
+        closeEditor('character'); renderData();
         if (window.selectedCharId === window.editingCharId) {
-            $('sb-char-name').textContent = charData.name;
-            $('sb-char-sub').textContent = charData.sub;
-            $('sb-char-img').src = charData.photoUrl;
-            $('detail-name').textContent = charData.name;
-            $('detail-sub').textContent = charData.sub;
-            $('detail-img').src = charData.photoUrl;
+            $('sb-char-name').textContent = charData.name; $('sb-char-sub').textContent = charData.sub; $('sb-char-img').src = charData.photoUrl;
+            $('detail-name').textContent = charData.name; $('detail-sub').textContent = charData.sub; $('detail-img').src = charData.photoUrl;
         }
         dAlert(window.editingCharId ? '캐릭터가 수정되었습니다.' : '캐릭터가 생성되었습니다.');
     };
     
-    // 페르소나 수정
     window.openPersonaEditor = function(id = null, data = null) {
-        window.editingPersonaId = id;
-        const screen = $('persona-editor-screen');
+        window.editingPersonaId = id; const screen = $('persona-editor-screen');
         if (data) {
-            $('edit-persona-name').value = data.name || '';
-            $('edit-persona-appearance').value = data.appearance || '';
-            $('edit-persona-bg').value = data.background || '';
-            $('edit-persona-default').checked = data.isDefault || false;
+            $('edit-persona-name').value = data.name || ''; $('edit-persona-appearance').value = data.appearance || ''; $('edit-persona-bg').value = data.background || ''; $('edit-persona-default').checked = data.isDefault || false;
             window.tempPersonaImage = (data.photoUrl && !data.photoUrl.includes('<svg xmlns=')) ? data.photoUrl : null;
             if (window.tempPersonaImage) $('edit-persona-img-preview').innerHTML = `<img src="${window.tempPersonaImage}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
             else $('edit-persona-img-preview').innerHTML = '+ 사진 추가';
             $('persona-editor-title').textContent = '페르소나 수정';
         } else {
-            $('edit-persona-name').value = '';
-            $('edit-persona-appearance').value = '';
-            $('edit-persona-bg').value = '';
-            $('edit-persona-default').checked = false;
-            window.tempPersonaImage = null;
-            $('edit-persona-img-preview').innerHTML = '+ 사진 추가';
-            $('persona-editor-title').textContent = '새 페르소나 만들기';
+            $('edit-persona-name').value = ''; $('edit-persona-appearance').value = ''; $('edit-persona-bg').value = ''; $('edit-persona-default').checked = false; window.tempPersonaImage = null; $('edit-persona-img-preview').innerHTML = '+ 사진 추가'; $('persona-editor-title').textContent = '새 페르소나 만들기';
         }
         screen.classList.remove('hidden');
     };
@@ -786,57 +717,32 @@
     window.savePersona = function() {
         const name = $('edit-persona-name').value.trim();
         if (!name) return dAlert('페르소나 이름은 필수 항목입니다.');
-        
         let personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
         const isDefault = $('edit-persona-default').checked;
         if (isDefault) personas = personas.map(p => ({ ...p, isDefault: false })); 
-        
-        const pData = {
-            name, appearance: $('edit-persona-appearance').value.trim(),
-            background: $('edit-persona-bg').value.trim(), isDefault,
-            photoUrl: window.tempPersonaImage || defaultImg, date: new Date().toLocaleDateString()
-        };
-        
-        if (window.editingPersonaId) {
-            const index = personas.findIndex(p => p.id === window.editingPersonaId);
-            if (index !== -1) personas[index] = { ...personas[index], ...pData, photoUrl: window.tempPersonaImage || personas[index].photoUrl };
-        } else {
-            personas.push({ id: Date.now().toString(), ...pData });
-        }
-        
+        const pData = { name, appearance: $('edit-persona-appearance').value.trim(), background: $('edit-persona-bg').value.trim(), isDefault, photoUrl: window.tempPersonaImage || defaultImg, date: new Date().toLocaleDateString() };
+        if (window.editingPersonaId) { const index = personas.findIndex(p => p.id === window.editingPersonaId); if (index !== -1) personas[index] = { ...personas[index], ...pData, photoUrl: window.tempPersonaImage || personas[index].photoUrl }; } 
+        else { personas.push({ id: Date.now().toString(), ...pData }); }
         localStorage.setItem('dreamer_personas', JSON.stringify(personas));
-        closeEditor('persona');
-        renderData();
-        loadChatPersonas(); 
-        dAlert('저장되었습니다.');
+        closeEditor('persona'); renderData(); loadChatPersonas(); dAlert('저장되었습니다.');
     };
     
     // 리스트 렌더링
-    window.renderData = function() {
-        renderCharacters();
-        renderPersonas();
-    };
-    
+    window.renderData = function() { renderCharacters(); renderPersonas(); };
     function escHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     
     function renderCharacters() {
-        const container = $('character-list-container');
-        const characters = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
+        const container = $('character-list-container'); const characters = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
         if (characters.length === 0) return container.innerHTML = '<p class="empty-text">캐릭터가 없습니다.</p>';
-        
         container.innerHTML = '';
         characters.forEach(char => {
             const safeImg = (char.photoUrl && !char.photoUrl.includes('<svg xmlns=')) ? char.photoUrl : defaultImg;
-            const div = document.createElement('div');
-            div.className = 'swipe-container';
+            const div = document.createElement('div'); div.className = 'swipe-container';
             div.innerHTML = `
                 <div class="delete-btn-bg"><i class="fas fa-trash"></i></div>
                 <div class="list-card">
                     <img src="${safeImg}" class="char-img">
-                    <div class="list-info">
-                        <div class="list-title">${escHtml(char.name)}</div>
-                        <div class="list-sub">${escHtml(char.sub || char.greeting)}</div>
-                    </div>
+                    <div class="list-info"><div class="list-title">${escHtml(char.name)}</div><div class="list-sub">${escHtml(char.sub || char.greeting)}</div></div>
                     <button class="edit-btn"><i class="fas fa-edit"></i></button>
                 </div>
             `;
@@ -844,30 +750,23 @@
             div.querySelector('.edit-btn').onclick = e => { e.stopPropagation(); openCharEditor(char.id, char); };
             const card = div.querySelector('.list-card');
             card.onclick = () => { if(!isSwiping) openCharDetail(char.id); };
-            container.appendChild(div);
-            attachSwipeEvents(card);
+            container.appendChild(div); attachSwipeEvents(card);
         });
     }
     
     function renderPersonas() {
-        const container = $('persona-list-container');
-        const personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+        const container = $('persona-list-container'); const personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
         if (personas.length === 0) return container.innerHTML = '<p class="empty-text">페르소나가 없습니다.</p>';
-        
         container.innerHTML = '';
         [...personas].sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0)).forEach(p => {
             const safeImg = (p.photoUrl && !p.photoUrl.includes('<svg xmlns=')) ? p.photoUrl : defaultImg;
             const defTag = p.isDefault ? '<span style="color: var(--accent-color); font-size: 11px; font-weight: bold; border: 1px solid var(--accent-color); padding: 2px 4px; border-radius: 4px; margin-left: 6px; vertical-align: middle;">Default</span>' : '';
-            const div = document.createElement('div');
-            div.className = 'swipe-container';
+            const div = document.createElement('div'); div.className = 'swipe-container';
             div.innerHTML = `
                 <div class="delete-btn-bg"><i class="fas fa-trash"></i></div>
                 <div class="list-card">
                     <img src="${safeImg}" class="persona-img">
-                    <div class="list-info">
-                        <div class="list-title">${escHtml(p.name)}${defTag}</div>
-                        <div class="list-sub">${escHtml(p.appearance || p.background)}</div>
-                    </div>
+                    <div class="list-info"><div class="list-title">${escHtml(p.name)}${defTag}</div><div class="list-sub">${escHtml(p.appearance || p.background)}</div></div>
                     <button class="edit-btn"><i class="fas fa-edit"></i></button>
                 </div>
             `;
@@ -875,221 +774,101 @@
             div.querySelector('.edit-btn').onclick = e => { e.stopPropagation(); openPersonaEditor(p.id, p); };
             const card = div.querySelector('.list-card');
             card.onclick = () => { if(!isSwiping) openPersonaEditor(p.id, p); };
-            container.appendChild(div);
-            attachSwipeEvents(card);
+            container.appendChild(div); attachSwipeEvents(card);
         });
     }
     
-    // 캐릭터 상세 화면
+    // 캐릭터 상세 & 삭제
     window.openCharDetail = function(id) {
-        const char = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').find(c => c.id === id);
-        if (!char) return;
-        window.selectedCharId = id;
-        
+        const char = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').find(c => c.id === id); if (!char) return; window.selectedCharId = id;
         const safeImg = (char.photoUrl && !char.photoUrl.includes('<svg xmlns=')) ? char.photoUrl : defaultImg;
-        $('detail-img').src = safeImg;
-        $('detail-name').textContent = char.name;
-        $('detail-sub').textContent = char.sub || '';
-        $('detail-greeting-content').innerHTML = escHtml(char.greeting).replace(/\n/g, '<br>');
-        $('detail-profile-content').innerHTML = escHtml(char.profile).replace(/\n/g, '<br>');
-        $('detail-relation-content').innerHTML = escHtml(char.relation).replace(/\n/g, '<br>');
-        $('detail-story-content').innerHTML = escHtml(char.story).replace(/\n/g, '<br>');
-        
+        $('detail-img').src = safeImg; $('detail-name').textContent = char.name; $('detail-sub').textContent = char.sub || '';
+        $('detail-greeting-content').innerHTML = escHtml(char.greeting).replace(/\n/g, '<br>'); $('detail-profile-content').innerHTML = escHtml(char.profile).replace(/\n/g, '<br>');
+        $('detail-relation-content').innerHTML = escHtml(char.relation).replace(/\n/g, '<br>'); $('detail-story-content').innerHTML = escHtml(char.story).replace(/\n/g, '<br>');
         $('character-detail-screen').classList.remove('hidden');
     };
+    window.editCurrentCharacter = function() { const char = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').find(c => c.id === window.selectedCharId); if (char) openCharEditor(char.id, char); };
+    window.deleteCurrentCharacter = function() { const char = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').find(c => c.id === window.selectedCharId); if (char) { executeDelete(char.id, char.name, 'characters'); $('character-detail-screen').classList.add('hidden'); } };
     
-    window.editCurrentCharacter = function() {
-        const char = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').find(c => c.id === window.selectedCharId);
-        if (char) openCharEditor(char.id, char);
-    };
-    window.deleteCurrentCharacter = function() {
-        const char = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').find(c => c.id === window.selectedCharId);
-        if (char) { executeDelete(char.id, char.name, 'characters'); $('character-detail-screen').classList.add('hidden'); }
-    };
-    
-    // 장면(Scene) 관리
+    // 장면(Scene) 폴더/리스트
     window.renderScenes = function() {
-        const container = $('scene-list-container');
-        const scenes = JSON.parse(localStorage.getItem('dreamer_scenes') || '[]');
-        const folders = JSON.parse(localStorage.getItem('dreamer_scene_folders') || '[]');
-        const currentFolders = folders.filter(f => f.parentId === window.currentSceneFolderId);
-        const currentScenes = scenes.filter(s => s.folderId === window.currentSceneFolderId);
-        
+        const container = $('scene-list-container'); const scenes = JSON.parse(localStorage.getItem('dreamer_scenes') || '[]'); const folders = JSON.parse(localStorage.getItem('dreamer_scene_folders') || '[]');
+        const currentFolders = folders.filter(f => f.parentId === window.currentSceneFolderId); const currentScenes = scenes.filter(s => s.folderId === window.currentSceneFolderId);
         container.innerHTML = '';
-        if (window.currentSceneFolderId) {
-            const currFolder = folders.find(f => f.id === window.currentSceneFolderId);
-            if (currFolder) { $('current-folder-name').textContent = `> ${currFolder.name}`; $('current-folder-name').style.display = 'inline'; }
-        } else { $('current-folder-name').style.display = 'none'; }
+        if (window.currentSceneFolderId) { const currFolder = folders.find(f => f.id === window.currentSceneFolderId); if (currFolder) { $('current-folder-name').textContent = `> ${currFolder.name}`; $('current-folder-name').style.display = 'inline'; } } 
+        else { $('current-folder-name').style.display = 'none'; }
 
         if (currentFolders.length === 0 && currentScenes.length === 0) return container.innerHTML = '<p class="empty-text">저장된 장면이나 폴더가 없습니다.</p>';
         
         currentFolders.forEach(folder => {
-            const div = document.createElement('div');
-            div.className = 'swipe-container';
+            const div = document.createElement('div'); div.className = 'swipe-container';
             div.innerHTML = `
                 <div class="delete-btn-bg" style="background:#444;"><i class="fas fa-trash"></i></div>
-                <div class="list-card">
-                    <div style="width: 48px; height: 48px; background: #2a2a2a; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fas fa-folder" style="color: #fcc419; font-size: 20px;"></i></div>
-                    <div class="list-info"><div class="list-title">${escHtml(folder.name)}</div></div>
-                </div>
+                <div class="list-card"><div style="width: 48px; height: 48px; background: #2a2a2a; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fas fa-folder" style="color: #fcc419; font-size: 20px;"></i></div><div class="list-info"><div class="list-title">${escHtml(folder.name)}</div></div></div>
             `;
-            div.querySelector('.delete-btn-bg').onclick = async () => {
-                if (await dConfirm(`'${folder.name}' 폴더를 삭제할까요?`)) {
-                    let newFolders = folders.filter(f => f.id !== folder.id);
-                    let newScenes = scenes.filter(s => s.folderId !== folder.id);
-                    localStorage.setItem('dreamer_scene_folders', JSON.stringify(newFolders));
-                    localStorage.setItem('dreamer_scenes', JSON.stringify(newScenes));
-                    renderScenes();
-                }
-            };
-            const card = div.querySelector('.list-card');
-            card.onclick = () => { if(!isSwiping) openSceneFolder(folder.id); };
+            div.querySelector('.delete-btn-bg').onclick = async () => { if (await dConfirm(`'${folder.name}' 폴더를 삭제할까요?`)) { let newFolders = folders.filter(f => f.id !== folder.id); let newScenes = scenes.filter(s => s.folderId !== folder.id); localStorage.setItem('dreamer_scene_folders', JSON.stringify(newFolders)); localStorage.setItem('dreamer_scenes', JSON.stringify(newScenes)); renderScenes(); } };
+            const card = div.querySelector('.list-card'); card.onclick = () => { if(!isSwiping) openSceneFolder(folder.id); };
             container.appendChild(div); attachSwipeEvents(card);
         });
 
         currentScenes.forEach(scene => {
-            const div = document.createElement('div');
-            div.className = 'swipe-container';
+            const div = document.createElement('div'); div.className = 'swipe-container';
             div.innerHTML = `
                 <div class="delete-btn-bg"><i class="fas fa-trash"></i></div>
-                <div class="list-card">
-                    <div style="width: 48px; height: 48px; background: var(--bg-surface-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fas fa-film" style="color: var(--accent-color); font-size: 20px;"></i></div>
-                    <div class="list-info"><div class="list-title">${escHtml(scene.name)}</div><div class="list-sub">${escHtml(scene.charName)} • ${scene.history.length} 메시지</div></div>
-                </div>
+                <div class="list-card"><div style="width: 48px; height: 48px; background: var(--bg-surface-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fas fa-film" style="color: var(--accent-color); font-size: 20px;"></i></div><div class="list-info"><div class="list-title">${escHtml(scene.name)}</div><div class="list-sub">${escHtml(scene.charName)} • ${scene.history.length} 메시지</div></div></div>
             `;
             div.querySelector('.delete-btn-bg').onclick = () => executeDelete(scene.id, scene.name, 'scenes');
-            const card = div.querySelector('.list-card');
-            card.onclick = () => { if(!isSwiping) OpenChat(false, scene); };
+            const card = div.querySelector('.list-card'); card.onclick = () => { if(!isSwiping) OpenChat(false, scene); };
             container.appendChild(div); attachSwipeEvents(card);
         });
     };
-    
-    window.createSceneFolder = function() {
-        dPrompt('폴더 이름을 입력하세요:').then(name => {
-            if (!name) return;
-            let folders = JSON.parse(localStorage.getItem('dreamer_scene_folders') || '[]');
-            folders.push({ id: Date.now().toString(), name: name, parentId: window.currentSceneFolderId || null });
-            localStorage.setItem('dreamer_scene_folders', JSON.stringify(folders));
-            renderScenes();
-        });
-    };
+    window.createSceneFolder = function() { dPrompt('폴더 이름을 입력하세요:').then(name => { if (!name) return; let folders = JSON.parse(localStorage.getItem('dreamer_scene_folders') || '[]'); folders.push({ id: Date.now().toString(), name: name, parentId: window.currentSceneFolderId || null }); localStorage.setItem('dreamer_scene_folders', JSON.stringify(folders)); renderScenes(); }); };
     window.openSceneFolder = function(folderId) { window.currentSceneFolderId = folderId; renderScenes(); };
 
-    // API 및 설정 저장
-    $('btn-save-api').onclick = async function() {
-        localStorage.setItem('dreamer_api_url', $('api-url').value.trim());
-        localStorage.setItem('dreamer_api_key', $('api-key').value.trim());
-        localStorage.setItem('dreamer_global_prompt', $('api-global-prompt').value.trim());
-        await dAlert('API 설정이 저장되었습니다.');
-    };
-    $('btn-save-profile').onclick = async function() {
-        localStorage.setItem('dreamer_nickname', $('settings-nickname').value.trim());
-        localStorage.setItem('dreamer_supabase_key', $('settings-supabase-key').value.trim());
-        await dAlert('프로필 설정이 저장되었습니다.');
-    };
+    // API 저장 및 클라우드 연동 (Appwrite 표기 통일)
+    $('btn-save-api').onclick = async function() { localStorage.setItem('dreamer_api_url', $('api-url').value.trim()); localStorage.setItem('dreamer_api_key', $('api-key').value.trim()); localStorage.setItem('dreamer_global_prompt', $('api-global-prompt').value.trim()); await dAlert('API 설정이 저장되었습니다.'); };
+    $('btn-save-profile').onclick = async function() { localStorage.setItem('dreamer_nickname', $('settings-nickname').value.trim()); localStorage.setItem('dreamer_supabase_key', $('settings-supabase-key').value.trim()); await dAlert('프로필 설정이 저장되었습니다.'); };
 
-    // Appwrite
     let client, databases;
     const dbId = '66f8b7d1000c6a5e4f96', collId = '66f8b7d1000c6a5e4f966f8b7d1000385d5c2a8b5c0a1a4a3a2a1a0a9a8a7a6';
-    try {
-        if (typeof Appwrite !== 'undefined') {
-            client = new Appwrite.Client().setEndpoint('https://cloud.appwrite.io/v1').setProject('66f8b7d1000385d5c2a8');
-            databases = new Appwrite.Databases(client);
-        }
-    } catch (error) { console.warn('Appwrite SDK 로드 실패:', error); }
+    try { if (typeof Appwrite !== 'undefined') { client = new Appwrite.Client().setEndpoint('https://cloud.appwrite.io/v1').setProject('66f8b7d1000385d5c2a8'); databases = new Appwrite.Databases(client); } } catch (error) {}
 
     window.backupData = async function() {
         const backup = { characters: localStorage.getItem('dreamer_characters'), personas: localStorage.getItem('dreamer_personas'), scenes: localStorage.getItem('dreamer_scenes'), scene_folders: localStorage.getItem('dreamer_scene_folders') };
         try { if (databases && client) { await databases.createDocument(dbId, collId, 'ID', { userId: localStorage.getItem('dreamer_handle') || 'anon', backupData: JSON.stringify(backup) }); return dAlert('클라우드에 백업되었습니다.'); } } catch(e) {}
-        const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dreamer-backup.json`; a.click(); dAlert('로컬 파일로 백업되었습니다.');
+        const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dreamer-backup.json`; a.click(); dAlert('로컬 파일로 백업되었습니다.');
     };
     window.restoreData = async function() {
         const input = document.createElement('input'); input.type = 'file'; input.accept = '.json';
         input.onchange = e => {
             const reader = new FileReader();
-            reader.onload = event => {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    Object.keys(data).forEach(k => { if(data[k]) localStorage.setItem(`dreamer_${k}`, data[k]); });
-                    renderData(); dAlert('데이터가 복구되었습니다!');
-                } catch(err) { dAlert('잘못된 백업 파일입니다.'); }
-            }; reader.readAsText(e.target.files[0]);
+            reader.onload = event => { try { const data = JSON.parse(event.target.result); Object.keys(data).forEach(k => { if(data[k]) localStorage.setItem(`dreamer_${k}`, data[k]); }); renderData(); dAlert('데이터가 복구되었습니다!'); } catch(err) { dAlert('잘못된 백업 파일입니다.'); } };
+            reader.readAsText(e.target.files[0]);
         }; input.click();
     };
     $('btn-cloud-backup').onclick = backupData; $('btn-cloud-restore').onclick = restoreData;
 
-    // 사이드바 조작
+    // 사이드바 / 출력 관리 / 공지
     $('btn-open-sidebar').onclick = toggleSidebar; $('btn-close-sidebar').onclick = toggleSidebar; $('sidebar-overlay').onclick = toggleSidebar;
-    $('btn-go-home').onclick = () => {
-        toggleSidebar(); document.querySelector('.tab-btn[data-tab="character"]').click();
-        $('real-chat-screen').style.display = 'none'; $('character-detail-screen').classList.add('hidden');
-        localStorage.removeItem('dreamer_current_screen'); localStorage.removeItem('dreamer_chat_char_id');
-    };
+    $('btn-go-home').onclick = () => { toggleSidebar(); document.querySelector('.tab-btn[data-tab="character"]').click(); $('real-chat-screen').style.display = 'none'; $('character-detail-screen').classList.add('hidden'); localStorage.removeItem('dreamer_current_screen'); localStorage.removeItem('dreamer_chat_char_id'); };
     $('btn-open-chat-history').onclick = () => { toggleSidebar(); openSessionListModal(); };
+    $('btn-open-gen-settings').onclick = () => { toggleSidebar(); const settings = JSON.parse(localStorage.getItem('dreamer_gen_settings') || '{}'); Object.keys(defaultGenSettings).forEach(key => { const value = settings[key] || defaultGenSettings[key]; $(`gen-${key}`).value = value; if($(`val-${key}`)) $(`val-${key}`).textContent = value; }); $('gen-settings-screen').classList.remove('hidden'); };
+    window.updateGenVal = function(key, value) { $(`val-${key}`).textContent = value; const settings = JSON.parse(localStorage.getItem('dreamer_gen_settings') || '{}'); settings[key] = parseFloat(value); localStorage.setItem('dreamer_gen_settings', JSON.stringify(settings)); $('gen-saved-indicator').style.opacity = '1'; setTimeout(() => $('gen-saved-indicator').style.opacity = '0', 1500); };
+    window.resetGenSettings = function() { localStorage.setItem('dreamer_gen_settings', JSON.stringify(defaultGenSettings)); Object.keys(defaultGenSettings).forEach(key => { $(`gen-${key}`).value = defaultGenSettings[key]; if($(`val-${key}`)) $(`val-${key}`).textContent = defaultGenSettings[key]; }); $('gen-saved-indicator').style.opacity = '1'; setTimeout(() => $('gen-saved-indicator').style.opacity = '0', 1500); };
 
-    // 출력 관리
-    $('btn-open-gen-settings').onclick = () => {
-        toggleSidebar();
-        const settings = JSON.parse(localStorage.getItem('dreamer_gen_settings') || '{}');
-        Object.keys(defaultGenSettings).forEach(key => { const value = settings[key] || defaultGenSettings[key]; $(`gen-${key}`).value = value; if($(`val-${key}`)) $(`val-${key}`).textContent = value; });
-        $('gen-settings-screen').classList.remove('hidden');
-    };
-    window.updateGenVal = function(key, value) {
-        $(`val-${key}`).textContent = value;
-        const settings = JSON.parse(localStorage.getItem('dreamer_gen_settings') || '{}'); settings[key] = parseFloat(value);
-        localStorage.setItem('dreamer_gen_settings', JSON.stringify(settings));
-        $('gen-saved-indicator').style.opacity = '1'; setTimeout(() => $('gen-saved-indicator').style.opacity = '0', 1500);
-    };
-    window.resetGenSettings = function() {
-        localStorage.setItem('dreamer_gen_settings', JSON.stringify(defaultGenSettings));
-        Object.keys(defaultGenSettings).forEach(key => { $(`gen-${key}`).value = defaultGenSettings[key]; if($(`val-${key}`)) $(`val-${key}`).textContent = defaultGenSettings[key]; });
-        $('gen-saved-indicator').style.opacity = '1'; setTimeout(() => $('gen-saved-indicator').style.opacity = '0', 1500);
-    };
-
-    // 관리자 공지
-    function checkAdminStatus() {
-        const savedHandle = localStorage.getItem('dreamer_handle');
-        if (savedHandle === 'ReschaRiley') { $('btn-admin-panel').style.display = 'block'; if($('btn-edit-notice')) $('btn-edit-notice').style.display = 'block'; }
-    }
-    window.fetchGlobalNotice = async function() {
-        try {
-            if (databases && client) {
-                const res = await databases.listDocuments(dbId, 'notices', [Appwrite.Query.orderDesc('$createdAt'), Appwrite.Query.limit(1)]);
-                if (res.documents.length > 0) {
-                    const notice = res.documents[0];
-                    localStorage.setItem('dreamer_global_notice', JSON.stringify({ title: notice.title, content: notice.content }));
-                    $('main-notice-title').innerText = notice.title; $('main-notice-sub').innerText = notice.content.substring(0, 50) + '...';
-                }
-            }
-        } catch (error) {}
-    };
-    window.openNoticeScreen = function() {
-        const notice = JSON.parse(localStorage.getItem('dreamer_global_notice') || '{"title":"유저 가이드","content":"앱 사용법을 안내합니다."}');
-        $('notice-read-title').innerText = notice.title; $('notice-read-content').innerText = notice.content; $('notice-screen').classList.remove('hidden');
-    };
-    window.openNoticeEditScreen = function() {
-        const notice = JSON.parse(localStorage.getItem('dreamer_global_notice') || '{"title":"","content":""}');
-        $('notice-edit-title').value = notice.title; $('notice-edit-content').value = notice.content; $('notice-edit-screen').classList.remove('hidden');
-    };
-    window.executeNoticeUpload = async function() {
-        const title = $('notice-edit-title').value.trim(); const content = $('notice-edit-content').value.trim();
-        if (!title || !content) return dAlert('제목과 내용을 모두 입력해주세요.');
-        try {
-            if (databases && client) { await databases.createDocument(dbId, 'notices', 'unique()', { title, content }); await dAlert('클라우드 공지가 모든 유저에게 배포되었습니다.'); }
-            else throw new Error("No SDK");
-        } catch (e) { await dAlert('로컬 전용으로 공지가 저장되었습니다.'); }
-        localStorage.setItem('dreamer_global_notice', JSON.stringify({ title, content }));
-        $('notice-edit-screen').classList.add('hidden'); $('main-notice-title').innerText = title; $('main-notice-sub').innerText = content.substring(0, 50) + '...';
-    };
+    function checkAdminStatus() { const savedHandle = localStorage.getItem('dreamer_handle'); if (savedHandle === 'ReschaRiley') { $('btn-admin-panel').style.display = 'block'; if($('btn-edit-notice')) $('btn-edit-notice').style.display = 'block'; } }
+    window.fetchGlobalNotice = async function() { try { if (databases && client) { const res = await databases.listDocuments(dbId, 'notices', [Appwrite.Query.orderDesc('$createdAt'), Appwrite.Query.limit(1)]); if (res.documents.length > 0) { const notice = res.documents[0]; localStorage.setItem('dreamer_global_notice', JSON.stringify({ title: notice.title, content: notice.content })); $('main-notice-title').innerText = notice.title; $('main-notice-sub').innerText = notice.content.substring(0, 50) + '...'; } } } catch (error) {} };
+    window.openNoticeScreen = function() { const notice = JSON.parse(localStorage.getItem('dreamer_global_notice') || '{"title":"유저 가이드","content":"앱 사용법을 안내합니다."}'); $('notice-read-title').innerText = notice.title; $('notice-read-content').innerText = notice.content; $('notice-screen').classList.remove('hidden'); };
+    window.openNoticeEditScreen = function() { const notice = JSON.parse(localStorage.getItem('dreamer_global_notice') || '{"title":"","content":""}'); $('notice-edit-title').value = notice.title; $('notice-edit-content').value = notice.content; $('notice-edit-screen').classList.remove('hidden'); };
+    window.executeNoticeUpload = async function() { const title = $('notice-edit-title').value.trim(); const content = $('notice-edit-content').value.trim(); if (!title || !content) return dAlert('제목과 내용을 모두 입력해주세요.'); try { if (databases && client) { await databases.createDocument(dbId, 'notices', 'unique()', { title, content }); await dAlert('클라우드에 공지가 배포되었습니다.'); } else { throw new Error("No SDK"); } } catch (e) { await dAlert('로컬 전용으로 공지가 저장되었습니다.'); } localStorage.setItem('dreamer_global_notice', JSON.stringify({ title, content })); $('notice-edit-screen').classList.add('hidden'); $('main-notice-title').innerText = title; $('main-notice-sub').innerText = content.substring(0, 50) + '...'; };
     window.openAdminPanel = function() { $('admin-screen').classList.remove('hidden'); };
 
-    // ★ 채팅 시스템 ★
+    // ★ 채팅 시스템 로직 ★
     window.currentChatHistory = [];
     window.isGenerating = false;
     window.isSceneSelectionMode = false;
+    window.firstSelectedMsgIndex = null; // 다중 선택 앵커
     
-    // 채팅 상태 로컬 저장 (방어코드)
     function saveCurrentChatToLocal() {
         if(window.selectedCharId && window.currentChatHistory.length > 0) {
             localStorage.setItem(`dreamer_current_chat_${window.selectedCharId}`, JSON.stringify(window.currentChatHistory));
@@ -1097,7 +876,6 @@
     }
     window.addEventListener('beforeunload', saveCurrentChatToLocal);
     
-    // 새 채팅 시작
     window.startNewChat = function() {
         if (!window.selectedCharId) return;
         const currentChat = JSON.parse(localStorage.getItem(`dreamer_current_chat_${window.selectedCharId}`) || '[]');
@@ -1113,7 +891,6 @@
     window.OpenChat = function(isNew = false, readOnlyData = null) {
         $('character-detail-screen').classList.add('hidden');
         $('real-chat-screen').style.display = 'flex';
-        
         localStorage.setItem('dreamer_current_screen', 'chat');
         localStorage.setItem('dreamer_chat_char_id', window.selectedCharId);
         
@@ -1126,7 +903,7 @@
             $('sb-char-img').src = safeImg; $('sb-char-name').textContent = char.name; $('sb-char-sub').textContent = char.sub || '';
         }
 
-        if (readOnlyData) { // 장면 열람 등
+        if (readOnlyData) {
             $('chat-footer').style.display = 'none';
             window.currentChatHistory = readOnlyData.history || [];
             $('chat-header-name').innerText = readOnlyData.charName || "저장된 장면";
@@ -1152,20 +929,30 @@
     };
     
     function renderChatLog() {
-        const logBox = $('chat-log');
-        logBox.innerHTML = '';
+        const logBox = $('chat-log'); logBox.innerHTML = '';
         window.currentChatHistory.forEach((msg, index) => {
             const block = document.createElement('div');
             block.className = `msg-block ${msg.pinned ? 'pinned-msg' : ''}`;
             
-            // 장면 선택 모드 로직 연동
+            // 장면 선택 모드 (Shift-Click 스타일 다중 선택 로직 적용)
             if (window.isSceneSelectionMode) {
                 if (window.selectedSceneIds.has(msg.id)) block.classList.add('scene-selected');
                 block.onclick = (e) => {
                     e.stopPropagation();
-                    if (window.selectedSceneIds.has(msg.id)) window.selectedSceneIds.delete(msg.id);
-                    else window.selectedSceneIds.add(msg.id);
-                    renderChatLog(); // 토글 후 리렌더링
+                    if (window.firstSelectedMsgIndex === null) {
+                        // 첫 클릭
+                        window.selectedSceneIds.add(msg.id);
+                        window.firstSelectedMsgIndex = index;
+                    } else {
+                        // 두 번째 클릭 시 사이 구간 묶어서 선택 처리
+                        const start = Math.min(window.firstSelectedMsgIndex, index);
+                        const end = Math.max(window.firstSelectedMsgIndex, index);
+                        for (let i = start; i <= end; i++) {
+                            window.selectedSceneIds.add(window.currentChatHistory[i].id);
+                        }
+                        window.firstSelectedMsgIndex = null; // 초기화
+                    }
+                    renderChatLog();
                 };
             } else {
                 block.onclick = (e) => { e.stopPropagation(); openActionSheet(index); };
@@ -1178,29 +965,25 @@
         logBox.scrollTop = logBox.scrollHeight;
     }
     
-    // LLM 통신 로직 및 에러 핸들링 강화
+    // API 통신 
     window.sendChatMessage = async function() {
         if (window.isGenerating) return;
-        const input = $('chat-input');
-        const text = input.value.trim();
-        if (!text) return;
+        const input = $('chat-input'); const text = input.value.trim(); if (!text) return;
         
         window.currentChatHistory.push({ id: Date.now(), role: 'user', content: text });
-        saveCurrentChatToLocal();
-        input.value = ''; input.style.height = 'auto'; 
-        renderChatLog();
+        saveCurrentChatToLocal(); input.value = ''; input.style.height = 'auto'; renderChatLog();
         
-        window.isGenerating = true;
-        const loadingId = Date.now() + 1;
+        window.isGenerating = true; const loadingId = Date.now() + 1;
         window.currentChatHistory.push({ id: loadingId, role: 'char', name: $('chat-header-name').innerText, content: "..." });
         renderChatLog();
 
         try {
-            const apiUrl = localStorage.getItem('dreamer_api_url');
-            const apiKey = localStorage.getItem('dreamer_api_key');
-            const model = localStorage.getItem('dreamer_model');
+            let apiUrl = localStorage.getItem('dreamer_api_url') || '';
+            const apiKey = localStorage.getItem('dreamer_api_key') || '';
+            const model = localStorage.getItem('dreamer_model') || '';
 
             if (apiUrl && apiKey && model) {
+                apiUrl = apiUrl.trim();
                 const baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
                 const endpoint = baseUrl.endsWith('/v1') ? baseUrl + '/chat/completions' : baseUrl + '/v1/chat/completions';
                 
@@ -1229,43 +1012,28 @@
                 const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                    body: JSON.stringify({
-                        model: model,
-                        messages: messages,
-                        temperature: genSet.temp || defSet.temp,
-                        top_p: genSet.topp || defSet.topp,
-                        presence_penalty: genSet.pres || defSet.pres,
-                        frequency_penalty: genSet.freq || defSet.freq,
-                        max_tokens: genSet.maxt || defSet.maxt
-                    })
+                    body: JSON.stringify({ model: model, messages: messages, temperature: genSet.temp || defSet.temp, top_p: genSet.topp || defSet.topp, presence_penalty: genSet.pres || defSet.pres, frequency_penalty: genSet.freq || defSet.freq, max_tokens: genSet.maxt || defSet.maxt })
                 });
 
                 if (!response.ok) {
                     const errData = await response.json().catch(()=>({}));
                     throw new Error(errData.error?.message || `HTTP ${response.status}`);
                 }
-
-                const data = await response.json();
-                const replyText = data.choices[0].message.content;
-
-                const targetMsg = window.currentChatHistory.find(m => m.id === loadingId);
-                if (targetMsg) targetMsg.content = replyText;
+                const data = await response.json(); const replyText = data.choices[0].message.content;
+                const targetMsg = window.currentChatHistory.find(m => m.id === loadingId); if (targetMsg) targetMsg.content = replyText;
 
             } else {
                 const targetMsg = window.currentChatHistory.find(m => m.id === loadingId);
-                if (targetMsg) targetMsg.content = "(API 또는 모델 설정이 완료되지 않았습니다. API 탭과 우측 채팅 설정에서 확인해주세요.)";
+                if (targetMsg) targetMsg.content = "(API 통신 정보가 누락되었습니다. API 탭과 우측 톱니바퀴에서 URL, Key, 모델을 확인하세요.)";
             }
         } catch (error) {
             console.error(error);
             const targetMsg = window.currentChatHistory.find(m => m.id === loadingId);
             let errMsg = error.message;
-            if(errMsg.includes('Failed to fetch') || errMsg.includes('Load failed')) errMsg = "CORS 정책 차단 또는 인터넷 연결 오류 (프록시 URL 사용 권장)";
+            if(errMsg.includes('Failed to fetch') || errMsg.includes('Load failed')) errMsg = "CORS 정책 차단 또는 URL 오류 (프록시 서버 주소를 사용하세요.)";
             if (targetMsg) targetMsg.content = `(통신 오류: ${errMsg})`;
         }
-
-        saveCurrentChatToLocal();
-        renderChatLog();
-        window.isGenerating = false;
+        saveCurrentChatToLocal(); renderChatLog(); window.isGenerating = false;
     };
 
     window.sendFeedbackOOC = async function() {
@@ -1275,16 +1043,11 @@
         saveCurrentChatToLocal(); renderChatLog();
     };
 
-    $('chat-input').addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); sendChatMessage(); }
-    });
-    document.addEventListener('input', e => {
-        if (e.target.classList.contains('auto-resize-textarea')) {
-            e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-        }
-    });
+    $('chat-input').addEventListener('keydown', function(e) { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); sendChatMessage(); } });
+    document.addEventListener('input', e => { if (e.target.classList.contains('auto-resize-textarea')) { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; } });
+    $('chat-log').addEventListener('click', function() { const sidebar = $('sidebar-right'); if (sidebar.style.right === '0px') toggleRightSidebar(); });
 
-    // 과거 세션 모달 (이름 변경 기능 추가)
+    // 모달 (과거 세션 기록 수정 기능)
     window.openSessionListModal = function() {
         if (!window.selectedCharId) return dAlert('선택된 캐릭터가 없습니다.');
         const sessList = JSON.parse(localStorage.getItem(`chat_sessions_${window.selectedCharId}`) || '[]');
@@ -1303,69 +1066,73 @@
                     <button class="edit-session-btn" style="background:var(--bg-surface-light); border:1px solid #444; border-radius:8px; padding:8px 12px; color:var(--text-secondary);"><i class="fas fa-edit"></i></button>
                 </div>
             `;
-            // 채팅 이어가기
             div.onclick = () => {
                 $('session-list-modal').classList.add('hidden');
                 localStorage.setItem(`dreamer_current_chat_${window.selectedCharId}`, JSON.stringify(s.history));
                 OpenChat(false); 
             };
-            // 이름 수정
             div.querySelector('.edit-session-btn').onclick = async (e) => {
                 e.stopPropagation();
                 const newName = await dPrompt('과거 기록의 새로운 이름을 입력하세요:', s.name);
-                if(newName && newName.trim()) {
-                    s.name = newName.trim();
-                    localStorage.setItem(`chat_sessions_${window.selectedCharId}`, JSON.stringify(sessList));
-                    window.openSessionListModal(); // 리렌더링
-                }
+                if(newName && newName.trim()) { s.name = newName.trim(); localStorage.setItem(`chat_sessions_${window.selectedCharId}`, JSON.stringify(sessList)); window.openSessionListModal(); }
             };
             box.appendChild(div);
         });
         $('session-list-modal').classList.remove('hidden');
     };
 
-    // 우측 사이드바 제어
     window.toggleRightSidebar = () => {
-        const sidebar = $('sidebar-right');
-        const overlay = $('right-sidebar-overlay');
-        if (sidebar.style.right !== '0px') {
-            sidebar.style.right = '0px';
-            overlay.style.opacity = '1'; overlay.style.visibility = 'visible';
-            loadChatPersonas(); 
-        } else {
-            sidebar.style.right = '-300px';
-            overlay.style.opacity = '0'; overlay.style.visibility = 'hidden';
-        }
+        const sidebar = $('sidebar-right'); const overlay = $('right-sidebar-overlay');
+        if (sidebar.style.right !== '0px') { sidebar.style.right = '0px'; overlay.style.opacity = '1'; overlay.style.visibility = 'visible'; loadChatPersonas(); } 
+        else { sidebar.style.right = '-300px'; overlay.style.opacity = '0'; overlay.style.visibility = 'hidden'; }
     };
     
     window.loadChatPersonas = function() {
-        const selectEl = $('chat-persona-select');
-        const pList = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
-        selectEl.innerHTML = '<option value="">페르소나 선택...</option>';
-        pList.forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p.id; opt.textContent = p.name;
-            selectEl.appendChild(opt);
-        });
-        const currPersona = localStorage.getItem('dreamer_current_persona_id');
-        if(currPersona) selectEl.value = currPersona;
+        const selectEl = $('chat-persona-select'); const pList = JSON.parse(localStorage.getItem('dreamer_personas') || '[]'); selectEl.innerHTML = '<option value="">페르소나 선택...</option>';
+        pList.forEach(p => { const opt = document.createElement('option'); opt.value = p.id; opt.textContent = p.name; selectEl.appendChild(opt); });
+        const currPersona = localStorage.getItem('dreamer_current_persona_id'); if(currPersona) selectEl.value = currPersona;
     };
+
     window.changePersona = function(pid) { localStorage.setItem('dreamer_current_persona_id', pid); };
     window.changeModel = function(modelId) { localStorage.setItem('dreamer_model', modelId); };
 
-    // 장면(Scene) 저장 - 메시지 선택 로직 완비
-    window.startSceneSelection = () => { 
-        toggleRightSidebar(); 
-        window.isSceneSelectionMode = true;
-        window.selectedSceneIds = new Set(); 
-        $('scene-selection-bar').style.display = 'flex'; 
-        renderChatLog(); // 테두리 선택 모드를 켜기 위해 재렌더링
+    // 버튼 인자를 제대로 받도록 수정된 fetchModels
+    window.fetchModels = async function(btn) {
+        const icon = btn.querySelector('i');
+        icon.classList.add('fa-spin');
+        
+        let apiUrl = localStorage.getItem('dreamer_api_url') || '';
+        const apiKey = localStorage.getItem('dreamer_api_key') || '';
+        if (!apiUrl || !apiKey) { icon.classList.remove('fa-spin'); return dAlert('API 탭에서 API URL과 Key를 먼저 설정해주세요.'); }
+        
+        try {
+            apiUrl = apiUrl.trim();
+            const baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+            const fetchUrl = baseUrl.endsWith('/v1') ? baseUrl + '/models' : baseUrl + '/v1/models';
+            
+            const res = await fetch(fetchUrl, { headers: { 'Authorization': `Bearer ${apiKey}` } });
+            if(!res.ok) throw new Error("API 요청 실패");
+            
+            const data = await res.json();
+            const select = $('chat-model-select');
+            select.innerHTML = '<option value="">모델 선택...</option>';
+            
+            if (data && data.data && Array.isArray(data.data)) {
+                data.data.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.textContent = m.id; select.appendChild(opt); });
+                const savedModel = localStorage.getItem('dreamer_model'); if (savedModel) select.value = savedModel;
+                dAlert('모델 목록을 성공적으로 불러왔습니다.');
+            } else { throw new Error("데이터 형식이 맞지 않습니다."); }
+        } catch (err) {
+            console.error(err);
+            if(err.message.includes('Failed to fetch') || err.message.includes('Load failed')) dAlert('통신에 실패했습니다. (CORS 문제이거나 프록시 URL이 필요할 수 있습니다.)');
+            else dAlert('모델을 불러오는데 실패했습니다. URL과 Key를 확인하세요.\n오류: ' + err.message);
+        }
+        icon.classList.remove('fa-spin');
     };
-    window.cancelSceneSave = () => { 
-        window.isSceneSelectionMode = false;
-        $('scene-selection-bar').style.display = 'none'; 
-        renderChatLog();
-    };
+    
+    // 장면(Scene) 저장 선택
+    window.startSceneSelection = () => { toggleRightSidebar(); window.isSceneSelectionMode = true; window.selectedSceneIds = new Set(); window.firstSelectedMsgIndex = null; $('scene-selection-bar').style.display = 'flex'; renderChatLog(); };
+    window.cancelSceneSave = () => { window.isSceneSelectionMode = false; window.firstSelectedMsgIndex = null; $('scene-selection-bar').style.display = 'none'; renderChatLog(); };
     window.confirmSceneSave = async () => {
         if (window.selectedSceneIds.size === 0) return await dAlert('저장할 메시지를 하나 이상 터치하여 선택해주세요.');
         const name = await dPrompt("저장할 장면의 이름을 정해주세요:");
@@ -1377,37 +1144,23 @@
         cancelSceneSave(); renderScenes(); dAlert('선택한 메시지들이 장면으로 성공적으로 저장되었습니다.');
     };
 
-    // 액션 시트
     window.openActionSheet = idx => { window.selectedMsgIndex = idx; $('action-sheet').style.bottom = '20px'; $('action-sheet-overlay').style.opacity = '1'; $('action-sheet-overlay').style.visibility = 'visible'; };
     window.closeActionSheet = () => { $('action-sheet').style.bottom = '-400px'; $('action-sheet-overlay').style.opacity = '0'; $('action-sheet-overlay').style.visibility = 'hidden'; };
     window.doCopyMessage = () => { navigator.clipboard.writeText(window.currentChatHistory[window.selectedMsgIndex].content); closeActionSheet(); dAlert('복사되었습니다.'); };
     
-    // 초기 로딩
+    // 초기 로딩 (새로고침 시 마지막 화면 복구 포함)
     window.addEventListener('DOMContentLoaded', () => {
-        checkAdminStatus();
-        renderData();
-        fetchGlobalNotice();
-
+        checkAdminStatus(); renderData(); fetchGlobalNotice();
         const notice = JSON.parse(localStorage.getItem('dreamer_global_notice') || '{"title":"유저 가이드","content":"탭하여 공지사항을 확인하세요."}');
         $('main-notice-title').innerText = notice.title; $('main-notice-sub').innerText = notice.content.substring(0, 50) + '...';
 
-        const keys = [
-            {id: 'api-url', key: 'dreamer_api_url', def: 'https://api.totalgpt.ai/v1'},
-            {id: 'api-key', key: 'dreamer_api_key', def: ''},
-            {id: 'api-global-prompt', key: 'dreamer_global_prompt', def: ''},
-            {id: 'settings-nickname', key: 'dreamer_nickname', def: ''},
-            {id: 'settings-handle', key: 'dreamer_handle', def: ''},
-            {id: 'settings-supabase-key', key: 'dreamer_supabase_key', def: ''}
-        ];
+        const keys = [{id: 'api-url', key: 'dreamer_api_url', def: 'https://api.totalgpt.ai/v1'}, {id: 'api-key', key: 'dreamer_api_key', def: ''}, {id: 'api-global-prompt', key: 'dreamer_global_prompt', def: ''}, {id: 'settings-nickname', key: 'dreamer_nickname', def: ''}, {id: 'settings-handle', key: 'dreamer_handle', def: ''}, {id: 'settings-supabase-key', key: 'dreamer_supabase_key', def: ''}];
         keys.forEach(k => { const val = localStorage.getItem(k.key); if($(k.id)) $(k.id).value = (val !== null ? val : k.def); });
 
         const currentScreen = localStorage.getItem('dreamer_current_screen');
         if (currentScreen === 'chat') {
             const savedCharId = localStorage.getItem('dreamer_chat_char_id');
-            if (savedCharId) {
-                window.selectedCharId = savedCharId;
-                OpenChat(false); // 새로고침 전의 화면 복구
-            }
+            if (savedCharId) { window.selectedCharId = savedCharId; OpenChat(false); }
         } else {
             const savedTab = localStorage.getItem('dreamer_current_tab');
             if (savedTab) { const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`); if (tabBtn) tabBtn.click(); }
