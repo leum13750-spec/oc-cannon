@@ -18,7 +18,9 @@
         if (localStorage.getItem('dreamer_logged_in') === 'true') {
             document.addEventListener('DOMContentLoaded', function() {
                 const loginScreen = document.getElementById('login-screen');
+                const regScreen = document.getElementById('register-screen');
                 if (loginScreen) loginScreen.style.display = 'none';
+                if (regScreen) regScreen.style.display = 'none';
             });
         }
     </script>
@@ -101,7 +103,8 @@
         .login-container .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
         .input-group input { width: 100%; padding: 16px; margin-bottom: 16px; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; color: white; }
         .primary-btn { width: 100%; padding: 16px; background: var(--text-primary); color: black; border: none; border-radius: 30px; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 24px; }
-        .login-links { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+        .login-links { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); }
+        .login-links .link { cursor: pointer; color: var(--accent-color); font-weight: bold; }
         
         .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg-surface); z-index: var(--z-sidebar); transition: left 0.3s; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
         .sidebar.open { left: 0; }
@@ -166,14 +169,15 @@
             </div>
             <button class="primary-btn" id="btn-login">로그인</button>
             <div class="login-links">
-                <span class="link" onclick="openRegisterScreen()">가입하기</span>
+                <!-- 확실하게 JS 함수와 연결된 버튼 -->
+                <span class="link" onclick="window.openRegisterScreen()">가입하기</span>
                 <span class="link" onclick="dAlert('로컬 환경이므로 임의의 비밀번호로 로그인이 가능합니다. 아이디를 기억해주세요.')">비밀번호 찾기</span>
             </div>
         </div>
     </div>
 
-    <!-- 회원가입 화면 (새로 추가) -->
-    <div id="register-screen" class="screen-overlay hidden" style="z-index: calc(var(--z-overlay) + 1);">
+    <!-- 회원가입 화면 -->
+    <div id="register-screen" class="screen-overlay hidden" style="z-index: var(--z-overlay);">
         <div class="login-container">
             <h1 class="logo">dreamer.ai</h1>
             <p class="subtitle">새 계정 만들기</p>
@@ -184,7 +188,7 @@
             </div>
             <button class="primary-btn" id="btn-register">가입 완료 및 시작</button>
             <div class="login-links">
-                <span class="link" onclick="document.getElementById('register-screen').classList.add('hidden');">돌아가기</span>
+                <span class="link" onclick="window.closeRegisterScreen()" style="width: 100%; text-align: center;">로그인 화면으로 돌아가기</span>
             </div>
         </div>
     </div>
@@ -557,9 +561,16 @@
 <div id="action-sheet-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: calc(var(--z-action)); opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;" onclick="closeActionSheet()"></div>
 
 <script>
-    function openRegisterScreen() {
+    // JS와 연동되는 가입 화면 함수
+    window.openRegisterScreen = function() {
+        $('login-screen').classList.add('hidden');
         $('register-screen').classList.remove('hidden');
-    }
+    };
+
+    window.closeRegisterScreen = function() {
+        $('register-screen').classList.add('hidden');
+        $('login-screen').classList.remove('hidden');
+    };
 
     $('btn-register').onclick = async function() {
         const id = $('reg-id').value.trim(); 
@@ -635,7 +646,44 @@
         });
     });
     
-    // 삭제 모듈
+    $('btn-login').onclick = async function() {
+        const id = $('login-id').value.trim(); const pw = $('login-pw').value.trim();
+        if (!id || !pw) return await dAlert('아이디와 비밀번호를 입력해주세요.');
+        localStorage.setItem('dreamer_logged_in', 'true'); localStorage.setItem('dreamer_handle', id); localStorage.setItem('dreamer_nickname', id);
+        $('login-screen').classList.add('hidden'); $('settings-handle').value = id; $('settings-nickname').value = id;
+        if(id === 'ReschaRiley') checkAdminStatus();
+        await dAlert(`${id}님 환영합니다!`); renderData();
+    };
+    
+    ['btn-logout', 'btn-settings-logout'].forEach(id => {
+        $(id).onclick = async function() {
+            if (await dConfirm('로그아웃하시겠습니까?')) { localStorage.removeItem('dreamer_logged_in'); localStorage.removeItem('dreamer_handle'); location.reload(); }
+        };
+    });
+    
+    // 모바일 터치 스와이프 최적화
+    let isSwiping = false;
+    function attachSwipeEvents(cardElement) {
+        let startX = 0, currentX = 0, threshold = -60;
+        cardElement.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX; cardElement.style.transition = 'none'; isSwiping = false;
+        }, {passive: true});
+        cardElement.addEventListener('touchmove', (e) => {
+            if (!startX) return;
+            currentX = e.touches[0].clientX - startX;
+            if (Math.abs(currentX) > 10) isSwiping = true;
+            if (currentX < 0 && currentX > -100) cardElement.style.transform = `translateX(${currentX}px)`;
+        }, {passive: true});
+        cardElement.addEventListener('touchend', () => {
+            if (!startX) return;
+            cardElement.style.transition = 'transform 0.3s ease';
+            if (currentX < threshold) cardElement.style.transform = `translateX(-80px)`;
+            else cardElement.style.transform = `translateX(0px)`;
+            startX = 0; currentX = 0;
+            setTimeout(() => { isSwiping = false; }, 50);
+        });
+    }
+    
     window.executeDelete = async function(id, name, type) {
         if (!await dConfirm(`'${name}'을(를) 삭제하시겠습니까?`)) return;
         const storageKeys = { characters: 'dreamer_characters', personas: 'dreamer_personas', scenes: 'dreamer_scenes' };
@@ -650,7 +698,6 @@
         await dAlert('삭제되었습니다.');
     };
     
-    // 이미지 압축 모듈
     function compressImage(file, callback) {
         const reader = new FileReader();
         reader.onload = function(event) {
@@ -672,7 +719,6 @@
         const screen = $(screenIdMap[type] || `${type}-editor-screen`); if (screen) screen.classList.add('hidden');
     };
     
-    // 캐릭터 편집
     window.openCharEditor = function(id = null, data = null) {
         window.editingCharId = id; const screen = $('character-editor-screen');
         if (data) {
@@ -705,7 +751,6 @@
         dAlert(window.editingCharId ? '캐릭터가 수정되었습니다.' : '캐릭터가 생성되었습니다.');
     };
     
-    // 페르소나 편집
     window.openPersonaEditor = function(id = null, data = null) {
         window.editingPersonaId = id; const screen = $('persona-editor-screen');
         if (data) {
@@ -733,7 +778,6 @@
         closeEditor('persona'); renderData(); loadChatPersonas(); dAlert('저장되었습니다.');
     };
     
-    // 렌더링 로직 
     window.renderData = function() { renderCharacters(); renderPersonas(); };
     function escHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     
@@ -852,7 +896,6 @@
     $('btn-save-api').onclick = async function() { localStorage.setItem('dreamer_api_url', $('api-url').value.trim()); localStorage.setItem('dreamer_api_key', $('api-key').value.trim()); localStorage.setItem('dreamer_global_prompt', $('api-global-prompt').value.trim()); await dAlert('API 설정이 저장되었습니다.'); };
     $('btn-save-profile').onclick = async function() { localStorage.setItem('dreamer_nickname', $('settings-nickname').value.trim()); localStorage.setItem('dreamer_supabase_key', $('settings-supabase-key').value.trim()); await dAlert('프로필 설정이 저장되었습니다.'); };
 
-    // Appwrite 설정
     let client, databases;
     const dbId = '66f8b7d1000c6a5e4f96', collId = '66f8b7d1000c6a5e4f966f8b7d1000385d5c2a8b5c0a1a4a3a2a1a0a9a8a7a6';
     try { if (typeof Appwrite !== 'undefined') { client = new Appwrite.Client().setEndpoint('https://cloud.appwrite.io/v1').setProject('66f8b7d1000385d5c2a8'); databases = new Appwrite.Databases(client); } } catch (error) {}
@@ -1061,6 +1104,7 @@
     document.addEventListener('input', e => { if (e.target.classList.contains('auto-resize-textarea')) { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; } });
     $('chat-log').addEventListener('click', function() { const sidebar = $('sidebar-right'); if (sidebar.style.right === '0px') toggleRightSidebar(); });
 
+    // 과거 세션 모달 (이름 변경 기능)
     window.openSessionListModal = function() {
         if (!window.selectedCharId) return dAlert('선택된 캐릭터가 없습니다.');
         const sessList = JSON.parse(localStorage.getItem(`chat_sessions_${window.selectedCharId}`) || '[]');
