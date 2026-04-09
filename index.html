@@ -77,9 +77,8 @@
         
         .empty-text { color: var(--text-secondary); font-size: 14px; text-align: center; margin-top: 20px; }
         
-        .swipe-container { position: relative; width: 100%; overflow: hidden; border-radius: 16px; margin-bottom: 12px; background: var(--bg-surface); }
-        .delete-btn-bg { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; background-color: var(--danger-color); color: white; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; z-index: 1; }
-        .list-card { display: flex; align-items: center; gap: 14px; background: var(--bg-surface); padding: 14px 16px; border-radius: 16px; position: relative; cursor: pointer; z-index: 2; width: 100%; transition: transform 0.3s ease; }
+        /* 스와이프 관련 불필요한 코드 제거된 리스트 카드 스타일 */
+        .list-card { display: flex; align-items: center; gap: 14px; background: var(--bg-surface); padding: 14px 16px; border-radius: 16px; position: relative; cursor: pointer; width: 100%; }
         .char-img, .persona-img { width: 48px !important; height: 48px !important; min-width: 48px; min-height: 48px; max-width: 48px; max-height: 48px; object-fit: cover; flex-shrink: 0; background: var(--bg-surface-light); }
         .char-img { border-radius: 12px; }
         .persona-img { border-radius: 50%; }
@@ -786,32 +785,6 @@
             const en = $('btn-edit-notice'); if (en) en.style.display = 'block';
         }
     }
-
-    function attachCardSwipeEvents(cardElement) {
-        let startX = 0, currentX = 0, threshold = -60;
-        
-        cardElement.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            cardElement.style.transition = 'none';
-        }, {passive: true});
-        
-        cardElement.addEventListener('touchmove', (e) => {
-            currentX = e.touches[0].clientX - startX;
-            if (currentX < 0 && currentX > -100) {
-                cardElement.style.transform = `translateX(${currentX}px)`;
-            }
-        }, {passive: true});
-        
-        cardElement.addEventListener('touchend', () => {
-            cardElement.style.transition = 'transform 0.3s ease';
-            if (currentX < threshold) {
-                cardElement.style.transform = `translateX(-80px)`;
-            } else {
-                cardElement.style.transform = `translateX(0px)`;
-            }
-            currentX = 0;
-        });
-    }
     
     // 삭제 기능
     window.executeDelete = async function(id, name, type) {
@@ -869,8 +842,9 @@
             $('edit-char-language').value = data.language || 'English';
             window.tempCharImage = data.photoUrl || null;
             if (data.photoUrl) {
+                const safeImg = data.photoUrl.replace(/"/g, '&quot;');
                 const preview = $('edit-char-img-preview');
-                preview.innerHTML = `<img src="${data.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                preview.innerHTML = `<img src="${safeImg}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
             }
             title.textContent = '캐릭터 수정';
         } else {
@@ -946,8 +920,9 @@
             $('edit-persona-default').checked = data.isDefault || false;
             window.tempPersonaImage = data.photoUrl || null;
             if (data.photoUrl) {
+                const safeImg = data.photoUrl.replace(/"/g, '&quot;');
                 const preview = $('edit-persona-img-preview');
-                preview.innerHTML = `<img src="${data.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                preview.innerHTML = `<img src="${safeImg}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
             }
             title.textContent = '페르소나 수정';
         } else {
@@ -1036,9 +1011,10 @@
         characters.forEach(char => {
             const wrapper = document.createElement('div');
             wrapper.style.cssText = 'margin-bottom:12px;';
+            const safeImg = (char.photoUrl || defaultImg).replace(/"/g, '&quot;');
             wrapper.innerHTML = `
                 <div class="list-card">
-                    <img src="${char.photoUrl || defaultImg}" class="char-img" style="width:48px;height:48px;min-width:48px;max-width:48px;min-height:48px;max-height:48px;object-fit:cover;border-radius:12px;flex-shrink:0;">
+                    <img src="${safeImg}" class="char-img">
                     <div class="list-info">
                         <div class="list-title">${escHtml(char.name)}</div>
                         <div class="list-sub">${escHtml(char.sub || char.greeting || '')}</div>
@@ -1070,9 +1046,10 @@
             const wrapper = document.createElement('div');
             wrapper.style.cssText = 'margin-bottom:12px;';
             const starIcon = persona.isDefault ? '<i class="fas fa-star" style="color: #fcc419; margin-left:4px;"></i>' : '';
+            const safeImg = (persona.photoUrl || defaultImg).replace(/"/g, '&quot;');
             wrapper.innerHTML = `
                 <div class="list-card">
-                    <img src="${persona.photoUrl || defaultImg}" class="persona-img" style="width:48px;height:48px;min-width:48px;max-width:48px;min-height:48px;max-height:48px;object-fit:cover;border-radius:50%;flex-shrink:0;">
+                    <img src="${safeImg}" class="persona-img">
                     <div class="list-info">
                         <div class="list-title">${escHtml(persona.name)}${starIcon}</div>
                         <div class="list-sub">${escHtml(persona.appearance || persona.background || '설명 없음')}</div>
@@ -1304,10 +1281,11 @@
         const char = JSON.parse(localStorage.getItem('dreamer_characters') || '[]').find(c => c.id === window.selectedCharId);
         const charName = char ? char.name : '캐릭터';
         const charImg = char && char.photoUrl && !char.photoUrl.includes('<svg xmlns=') ? char.photoUrl : defaultImg;
+        const safeCharImg = charImg.replace(/"/g, '&quot;');
 
         $('chat-header-name').innerText = charName;
         $('chat-header-sub').innerText = char ? `@${localStorage.getItem('dreamer_handle') || ''}` : '';
-        $('chat-header-avatar').src = charImg;
+        $('chat-header-avatar').src = charImg; // 브라우저가 property로 설정할때는 안전함
 
         if (char) { $('sb-char-img').src = charImg; $('sb-char-name').textContent = char.name; $('sb-char-sub').textContent = char.sub || ''; }
 
@@ -1539,16 +1517,6 @@
         }
     };
     
-    // 모델 관리
-    function attachSwipeEvents(el, threshold, leftSwipe, callback) {
-        let startX = 0;
-        el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
-        el.addEventListener('touchend', e => {
-            const dx = e.changedTouches[0].clientX - startX;
-            if (leftSwipe ? dx < threshold : dx > -threshold) callback();
-        }, { passive: true });
-    }
-
     window.fetchModels = async function(btn) {
         let apiUrl = localStorage.getItem('dreamer_api_url') || '';
         const apiKey = localStorage.getItem('dreamer_api_key') || '';
@@ -1763,14 +1731,14 @@
         $('session-list-modal').classList.remove('hidden');
     };
     
-    // 이미지 압축
+    // 이미지 압축 (최신 webp 방식, 투명도 보존, 용량 최적화)
     function compressImage(file, callback) {
         const reader = new FileReader();
         reader.onload = function(event) {
             const img = new Image();
             img.onload = function() {
                 const canvas = document.createElement('canvas');
-                let width = img.width, height = img.height, maxSize = 400;
+                let width = img.width, height = img.height, maxSize = 256; // 400 -> 256으로 최적화
                 
                 if (width > height) {
                     if (width > maxSize) {
@@ -1789,7 +1757,8 @@
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                // jpeg 대신 webp 사용하여 투명도 유지 및 압축률 개선
+                const compressedBase64 = canvas.toDataURL('image/webp', 0.8);
                 callback(compressedBase64);
             };
             img.src = event.target.result;
@@ -2219,9 +2188,4 @@
 
 </body>
 </html>
-
-
-
-
-
-
+```
