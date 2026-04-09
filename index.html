@@ -80,7 +80,7 @@
         .swipe-container { position: relative; width: 100%; overflow: hidden; border-radius: 16px; margin-bottom: 12px; background: var(--bg-surface); }
         .delete-btn-bg { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; background-color: var(--danger-color); color: white; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; z-index: 1; }
         .list-card { display: flex; align-items: center; gap: 14px; background: var(--bg-surface); padding: 14px 16px; border-radius: 16px; position: relative; cursor: pointer; z-index: 2; width: 100%; transition: transform 0.3s ease; }
-        .char-img, .persona-img { width: 48px; height: 48px; min-width: 48px; min-height: 48px; object-fit: cover; flex-shrink: 0; background: var(--bg-surface-light); }
+        .char-img, .persona-img { width: 48px !important; height: 48px !important; min-width: 48px; min-height: 48px; max-width: 48px; max-height: 48px; object-fit: cover; flex-shrink: 0; background: var(--bg-surface-light); }
         .char-img { border-radius: 12px; }
         .persona-img { border-radius: 50%; }
         .list-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding-right: 36px; }
@@ -598,6 +598,16 @@
         <select id="chat-persona-select" style="width:100%;background:#252525;border:1px solid #444;color:white;padding:12px;border-radius:8px;margin-bottom:20px;" onchange="changePersona(this.value)">
             <option value="">페르소나 선택...</option>
         </select>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #333;margin-bottom:8px;">
+            <div>
+                <div style="color:white;font-size:14px;font-weight:600;">🇰🇷 한국어 강화</div>
+                <div style="color:gray;font-size:11px;margin-top:2px;">자연스러운 한국어 출력 유도</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:44px;height:24px;">
+                <input type="checkbox" id="korean-enhance-toggle" onchange="changeKoreanEnhance(this.checked)" style="opacity:0;width:0;height:0;">
+                <span id="korean-enhance-slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#444;border-radius:24px;transition:0.2s;"></span>
+            </label>
+        </div>
         <hr style="border-color:#333;margin-bottom:16px;">
         <button class="ca-action-btn" onclick="startSceneSelection()"><i class="fas fa-film"></i> 장면 저장하기</button>
         <button class="ca-action-btn" onclick="startNewChat()"><i class="fas fa-plus-circle"></i> 새 채팅 시작</button>
@@ -1304,6 +1314,10 @@
         }
         // 저장된 페르소나 복원
         loadChatPersonas();
+        // 한국어 강화 토글 복원
+        const _ke = localStorage.getItem('dreamer_korean_enhance') === 'true';
+        const _keToggle = $('korean-enhance-toggle'); if (_keToggle) _keToggle.checked = _ke;
+        const _keSlider = $('korean-enhance-slider'); if (_keSlider) _keSlider.style.background = _ke ? 'var(--accent-color)' : '#444';
 
         if (readOnlyData) {
             $('chat-footer').style.display = 'none';
@@ -1422,6 +1436,7 @@
                 const pId = localStorage.getItem('dreamer_current_persona_id'); const personas = JSON.parse(localStorage.getItem('dreamer_personas')||'[]');
                 const persona = personas.find(p=>p.id===pId)||personas.find(p=>p.isDefault)||null;
                 let sys = gp;
+                const _kep2 = getKoreanEnhancePrompt(); if (_kep2) sys = _kep2 + (sys ? '\n' + sys : '');
                 if (persona) sys += `\n[User Persona: ${persona.name}. Appearance: ${persona.appearance}. Background: ${persona.background}]`;
                 if (char) sys += `\n[Character Info]\nName: ${char.name}\nProfile: ${char.profile}\nRelation: ${char.relation}\nStory: ${char.story}`;
                 const messages = []; if (sys.trim()) messages.push({role:'system',content:sys.trim()});
@@ -1466,6 +1481,7 @@
             const persona = personas.find(p=>p.id===pId)||personas.find(p=>p.isDefault)||null;
             const gp = localStorage.getItem('dreamer_global_prompt')||'';
             let sys = gp;
+            const _kep = getKoreanEnhancePrompt(); if (_kep) sys = _kep + (sys ? '\n' + sys : '');
             if (persona) sys += `\n[User Persona: ${persona.name}. Appearance: ${persona.appearance||''}. Background: ${persona.background||''}]`;
             if (char) sys += `\n[Character Info]\nName: ${char.name}\nProfile: ${char.profile||''}\nRelation: ${char.relation||''}\nStory: ${char.story||''}`;
             const messages = []; if (sys.trim()) messages.push({role:'system',content:sys.trim()});
@@ -1551,6 +1567,17 @@
     
     window.changeModel = function(modelValue) {
         localStorage.setItem('dreamer_model', modelValue);
+    };
+
+    window.changeKoreanEnhance = function(checked) {
+        localStorage.setItem('dreamer_korean_enhance', checked ? 'true' : 'false');
+        const slider = $('korean-enhance-slider');
+        if (slider) slider.style.background = checked ? 'var(--accent-color)' : '#444';
+    };
+
+    window.getKoreanEnhancePrompt = function() {
+        if (localStorage.getItem('dreamer_korean_enhance') !== 'true') return '';
+        return '[언어 지침] 반드시 한국어로만 답변하세요. 번역투나 어색한 표현 없이 자연스럽고 유려한 한국어로 서술하세요. 한국 문학 작가처럼 감성적이고 세련된 문체를 사용하고, 불필요한 영어 단어를 혼용하지 마세요. 모든 묘사와 대사를 한국어 소설 스타일로 작성하세요.';
     };
     
     window.changePersona = function(personaId) {
