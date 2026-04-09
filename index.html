@@ -633,7 +633,7 @@
 
 <script>
     // 전역 변수 및 상수
-    const defaultImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="%23666"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+    const defaultImg = 'data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22 viewBox=%220 0 24 24%22 fill=%22%23666%22%3E%3Cpath d=%22M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z%22/%3E%3C/svg%3E';
     const SUPABASE_URL = 'https://your-project.supabase.co';
     const defaultGenSettings = { temp: 0.65, rep: 1.00, freq: 1.00, pres: 1.00, topp: 0.99, topk: 49, maxt: 600, ctx: 8000 };
     
@@ -818,7 +818,7 @@
         const input = await dPrompt(`삭제하려면 "${name}" 을(를) 정확히 입력하세요:`, '');
         if (!input || input.trim() !== name.trim()) {
             if (input !== '') await dAlert('이름이 일치하지 않습니다. 삭제가 취소되었습니다.');
-            return;
+            return false;
         }
         const storageKeys = {
             characters: 'dreamer_characters',
@@ -840,6 +840,7 @@
         if (renderFunctions[type]) renderFunctions[type]();
         
         await dAlert('삭제되었습니다.');
+        return true;
     };
     
     // 에디터 관리
@@ -1037,7 +1038,7 @@
             wrapper.style.cssText = 'margin-bottom:12px;';
             wrapper.innerHTML = `
                 <div class="list-card">
-                    <img src="${char.photoUrl || defaultImg}" class="char-img">
+                    <img src="${char.photoUrl || defaultImg}" class="char-img" style="width:48px;height:48px;min-width:48px;max-width:48px;min-height:48px;max-height:48px;object-fit:cover;border-radius:12px;flex-shrink:0;">
                     <div class="list-info">
                         <div class="list-title">${escHtml(char.name)}</div>
                         <div class="list-sub">${escHtml(char.sub || char.greeting || '')}</div>
@@ -1071,7 +1072,7 @@
             const starIcon = persona.isDefault ? '<i class="fas fa-star" style="color: #fcc419; margin-left:4px;"></i>' : '';
             wrapper.innerHTML = `
                 <div class="list-card">
-                    <img src="${persona.photoUrl || defaultImg}" class="persona-img">
+                    <img src="${persona.photoUrl || defaultImg}" class="persona-img" style="width:48px;height:48px;min-width:48px;max-width:48px;min-height:48px;max-height:48px;object-fit:cover;border-radius:50%;flex-shrink:0;">
                     <div class="list-info">
                         <div class="list-title">${escHtml(persona.name)}${starIcon}</div>
                         <div class="list-sub">${escHtml(persona.appearance || persona.background || '설명 없음')}</div>
@@ -1119,8 +1120,8 @@
         const personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
         const persona = personas.find(p => p.id === window.editingPersonaId);
         if (!persona) return;
-        await executeDelete(persona.id, persona.name, 'personas');
-        closeEditor('persona');
+        const ok = await executeDelete(persona.id, persona.name, 'personas');
+        if (ok) closeEditor('persona');
     };
 
     window.editCurrentCharacter = function() {
@@ -1131,13 +1132,13 @@
         }
     };
     
-    window.deleteCurrentCharacter = function() {
+    window.deleteCurrentCharacter = async function() {
         if (window.selectedCharId) {
             const characters = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
             const char = characters.find(c => c.id === window.selectedCharId);
             if (char) {
-                executeDelete(window.selectedCharId, char.name, 'characters');
-                $('character-detail-screen').classList.add('hidden');
+                const ok = await executeDelete(window.selectedCharId, char.name, 'characters');
+                if (ok) $('character-detail-screen').classList.add('hidden');
             }
         }
     };
@@ -1445,7 +1446,11 @@
                 let sys = gp;
                 const _kep2 = getKoreanEnhancePrompt(); if (_kep2) sys = _kep2 + (sys ? '\n' + sys : '');
                 if (persona) sys += `\n[User Persona: ${persona.name}. Appearance: ${persona.appearance}. Background: ${persona.background}]`;
-                if (char) sys += `\n[Character Info]\nName: ${char.name}\nProfile: ${char.profile}\nRelation: ${char.relation}\nStory: ${char.story}`;
+                if (char) {
+                    sys += `\n[Character Info]\nName: ${char.name}\nProfile: ${char.profile}\nRelation: ${char.relation}\nStory: ${char.story}`;
+                    if (char.language === 'Korean') sys += '\n[Instruction] Always respond ONLY in Korean (한국어). Never use English words.';
+                    else if (char.language === 'English') sys += '\n[Instruction] Always respond in English only.';
+                }
                 const messages = []; if (sys.trim()) messages.push({role:'system',content:sys.trim()});
                 historyUpToHere.forEach(m => { if (m.isOOC) messages.push({role:'user',content:m.content}); else messages.push({role:m.role==='char'?'assistant':'user',content:m.content}); });
                 const gs = JSON.parse(localStorage.getItem('dreamer_gen_settings')||'{}'), ds = defaultGenSettings;
@@ -1490,7 +1495,11 @@
             let sys = gp;
             const _kep = getKoreanEnhancePrompt(); if (_kep) sys = _kep + (sys ? '\n' + sys : '');
             if (persona) sys += `\n[User Persona: ${persona.name}. Appearance: ${persona.appearance||''}. Background: ${persona.background||''}]`;
-            if (char) sys += `\n[Character Info]\nName: ${char.name}\nProfile: ${char.profile||''}\nRelation: ${char.relation||''}\nStory: ${char.story||''}`;
+            if (char) {
+                sys += `\n[Character Info]\nName: ${char.name}\nProfile: ${char.profile||''}\nRelation: ${char.relation||''}\nStory: ${char.story||''}`;
+                if (char.language === 'Korean') sys += '\n[Instruction] Always respond ONLY in Korean (한국어). Never use English words.';
+                else if (char.language === 'English') sys += '\n[Instruction] Always respond in English only.';
+            }
             const messages = []; if (sys.trim()) messages.push({role:'system',content:sys.trim()});
             window.currentChatHistory.forEach(msg => {
                 if (msg.id===loadingId||msg.content==='__loading__') return;
@@ -1584,7 +1593,7 @@
 
     window.getKoreanEnhancePrompt = function() {
         if (localStorage.getItem('dreamer_korean_enhance') !== 'true') return '';
-        return '[언어 지침] 반드시 한국어로만 답변하세요. 번역투나 어색한 표현 없이 자연스럽고 유려한 한국어로 서술하세요. 한국 문학 작가처럼 감성적이고 세련된 문체를 사용하고, 불필요한 영어 단어를 혼용하지 마세요. 모든 묘사와 대사를 한국어 소설 스타일로 작성하세요.';
+        return '[언어 지침] 반드시 한국어로만 답변하세요. 절대 영어 단어를 섞지 마세요. 실제 한국인이 일상에서 쓰는 살아있는 언어로 서술하세요 — 자연스러운 구어체, 줄임말, 감탄사, 욕설, 속어도 캐릭터 성격에 맞으면 자유롭게 사용하세요. 번역체나 직역체 표현을 절대 쓰지 마세요. 한국 웹소설/채팅 문체를 참고해 생동감 있고 몰입감 있게 쓰세요.';
     };
     
     window.changePersona = function(personaId) {
