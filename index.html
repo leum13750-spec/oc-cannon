@@ -80,7 +80,7 @@
         .swipe-container { position: relative; width: 100%; overflow: hidden; border-radius: 16px; margin-bottom: 12px; background: var(--bg-surface); }
         .delete-btn-bg { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; background-color: var(--danger-color); color: white; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; z-index: 1; }
         .list-card { display: flex; align-items: center; gap: 14px; background: var(--bg-surface); padding: 14px 16px; border-radius: 16px; position: relative; cursor: pointer; z-index: 2; width: 100%; transition: transform 0.3s ease; }
-        .char-img, .persona-img { width: 48px; height: 48px; object-fit: cover; flex-shrink: 0; background: var(--bg-surface-light); }
+        .char-img, .persona-img { width: 48px; height: 48px; min-width: 48px; min-height: 48px; object-fit: cover; flex-shrink: 0; background: var(--bg-surface-light); }
         .char-img { border-radius: 12px; }
         .persona-img { border-radius: 50%; }
         .list-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding-right: 36px; }
@@ -130,8 +130,9 @@
         
         .msg-block { display: flex; flex-direction: column; width: 100%; cursor: pointer; padding: 12px 16px; border-radius: 12px; transition: background 0.2s, border 0.2s; margin-bottom: 8px; position: relative; }
         .msg-block:active { background: #1a1a1a; }
+        .msg-block.scene-selected { border-left: 3px solid var(--accent-color) !important; background: rgba(216,180,254,0.08) !important; }
         .msg-header { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .msg-content { font-size: 14px; line-height: 1.6; color: #e0e0e0; word-break: break-word; }
+        .msg-content { font-size: 13px; line-height: 1.6; color: #e0e0e0; word-break: break-word; }
         .msg-separator { border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-top: 16px; width: 100%; }
         .msg-block:last-child .msg-separator { display: none; }
         .pinned-msg { border-left: 3px solid #fcc419; background: rgba(252, 196, 25, 0.05); }
@@ -1029,6 +1030,8 @@
             const delBtn = swipeContainer.querySelector('.delete-btn-bg');
             delBtn.addEventListener('click', () => executeDelete(char.id, char.name, 'characters'));
             const card = swipeContainer.querySelector('.list-card');
+            const img = card.querySelector('.char-img');
+            if (img) img.onerror = function() { this.onerror=null; this.src=defaultImg; };
             card.addEventListener('click', () => openCharDetail(char.id));
             swipeContainer.querySelector('.edit-btn').addEventListener('click', e => { e.stopPropagation(); openCharEditor(char.id, char); });
             container.appendChild(swipeContainer);
@@ -1148,18 +1151,20 @@
             swipeContainer.innerHTML = `
                 <div class="delete-btn-bg"><i class="fas fa-trash"></i></div>
                 <div class="list-card">
-                    <div style="width: 48px; height: 48px; background: var(--bg-surface-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="width: 48px; height: 48px; background: var(--bg-surface-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; flex-shrink: 0;">
                         <i class="fas fa-film" style="color: var(--accent-color); font-size: 20px;"></i>
                     </div>
                     <div class="list-info">
                         <div class="list-title">${escHtml(scene.name)}</div>
                         <div class="list-sub">${escHtml(scene.charName)} • ${scene.history.length} 메시지 • ${escHtml(scene.date)}</div>
                     </div>
+                    <button class="edit-btn" data-scene-id="${scene.id}"><i class="fas fa-edit"></i></button>
                 </div>
             `;
             swipeContainer.querySelector('.delete-btn-bg').addEventListener('click', () => executeDelete(scene.id, scene.name, 'scenes'));
             const card = swipeContainer.querySelector('.list-card');
             card.addEventListener('click', () => openSceneDetail(scene.id));
+            swipeContainer.querySelector('.edit-btn').addEventListener('click', e => { e.stopPropagation(); renameScene(scene.id); });
             container.appendChild(swipeContainer);
             attachSwipeEvents(card);
         });
@@ -1169,8 +1174,18 @@
         const scenes = JSON.parse(localStorage.getItem('dreamer_scenes') || '[]');
         const scene = scenes.find(s => s.id === id);
         if (!scene) return;
-        
         OpenChat(false, scene);
+    };
+
+    window.renameScene = async function(id) {
+        const scenes = JSON.parse(localStorage.getItem('dreamer_scenes') || '[]');
+        const scene = scenes.find(s => s.id === id);
+        if (!scene) return;
+        const newName = await dPrompt('새 장면 이름을 입력하세요:', scene.name);
+        if (!newName || newName.trim() === '') return;
+        scene.name = newName.trim();
+        localStorage.setItem('dreamer_scenes', JSON.stringify(scenes));
+        renderScenes();
     };
     
     window.createSceneFolder = function() {
@@ -1276,6 +1291,18 @@
 
         if (char) { $('sb-char-img').src = charImg; $('sb-char-name').textContent = char.name; $('sb-char-sub').textContent = char.sub || ''; }
 
+        // 저장된 모델 목록 복원
+        const savedModelList = JSON.parse(localStorage.getItem('dreamer_model_list') || '[]');
+        if (savedModelList.length > 0) {
+            const modelSel = $('chat-model-select');
+            modelSel.innerHTML = '<option value="">모델 선택...</option>';
+            savedModelList.forEach(mId => { const o = document.createElement('option'); o.value = mId; o.textContent = mId; modelSel.appendChild(o); });
+            const savedModel = localStorage.getItem('dreamer_model');
+            if (savedModel) modelSel.value = savedModel;
+        }
+        // 저장된 페르소나 복원
+        loadChatPersonas();
+
         if (readOnlyData) {
             $('chat-footer').style.display = 'none';
             window.currentChatHistory = readOnlyData.history || [];
@@ -1312,40 +1339,41 @@
 
             if (msg.isOOC) {
                 const oDiv = document.createElement('div');
-                oDiv.style.cssText = 'text-align:center;padding:4px 16px;';
+                oDiv.style.cssText = 'text-align:center;padding:4px 16px;margin-bottom:8px;';
                 oDiv.innerHTML = `<span style="font-size:11px;color:#555;background:#1a1a1a;padding:4px 10px;border-radius:8px;">[OOC] ${escHtml(msg.content.replace('[System Directive: ','').replace(']',''))}</span>`;
                 log.appendChild(oDiv); return;
             }
 
-            const group = document.createElement('div');
-            group.className = `msg-group ${isChar ? 'char-group' : 'user-group'}`;
+            const block = document.createElement('div');
+            block.className = 'msg-block';
+            if (msg.pinned) block.classList.add('pinned-msg');
+            if (window.isSceneSelectionMode && window.selectedSceneIds && window.selectedSceneIds.has(msg.id)) block.classList.add('scene-selected');
+            block.classList.add(isChar ? 'role-char' : 'role-user');
 
-            const senderEl = document.createElement('div'); senderEl.className = 'msg-sender';
-            if (isChar) { senderEl.textContent = msg.name || '캐릭터'; }
-            else { const pId = localStorage.getItem('dreamer_current_persona_id'); const ps = JSON.parse(localStorage.getItem('dreamer_personas')||'[]'); const p = ps.find(x=>x.id===pId)||ps.find(x=>x.isDefault)||null; senderEl.textContent = p ? p.name : (localStorage.getItem('dreamer_nickname')||localStorage.getItem('dreamer_handle')||'나'); }
-            group.appendChild(senderEl);
+            const pId = localStorage.getItem('dreamer_current_persona_id');
+            const ps = JSON.parse(localStorage.getItem('dreamer_personas')||'[]');
+            const p = ps.find(x=>x.id===pId)||ps.find(x=>x.isDefault)||null;
+            const senderName = isChar ? (msg.name||'캐릭터') : (p ? p.name : (localStorage.getItem('dreamer_nickname')||localStorage.getItem('dreamer_handle')||'나'));
+            const pinIcon = msg.pinned ? ' <i class="fas fa-thumbtack pinned-icon"></i>' : '';
+            const contentHtml = isLoading
+                ? '<div class="typing-dots"><span></span><span></span><span></span></div>'
+                : renderMarkdown(msg.content);
 
-            const bubble = document.createElement('div');
-            bubble.className = `msg-bubble${msg.pinned?' pinned-msg':''}${window.isSceneSelectionMode&&window.selectedSceneIds&&window.selectedSceneIds.has(msg.id)?' scene-selected':''}`;
-
-            if (msg.pinned) { const pr = document.createElement('div'); pr.className='pin-row'; pr.innerHTML='<i class="fas fa-thumbtack" style="font-size:10px;"></i> 고정됨'; bubble.appendChild(pr); }
-
-            const textEl = document.createElement('div'); textEl.className = 'msg-text';
-            if (isLoading) { textEl.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>'; }
-            else { textEl.innerHTML = renderMarkdown(msg.content); }
-            bubble.appendChild(textEl);
+            block.innerHTML = `<div class="msg-header">${escHtml(senderName)}${pinIcon}</div><div class="msg-content">${contentHtml}</div><div class="msg-separator"></div>`;
 
             if (window.isSceneSelectionMode) {
-                bubble.onclick = e => { e.stopPropagation(); if (window.firstSelectedMsgIndex === null) { window.selectedSceneIds.add(msg.id); window.firstSelectedMsgIndex = idx; } else { const s=Math.min(window.firstSelectedMsgIndex,idx),en=Math.max(window.firstSelectedMsgIndex,idx); for(let i=s;i<=en;i++) window.selectedSceneIds.add(window.currentChatHistory[i].id); window.firstSelectedMsgIndex=null; } renderChatLog(); };
+                block.addEventListener('click', () => {
+                    if (window.firstSelectedMsgIndex === null) { window.selectedSceneIds.add(msg.id); window.firstSelectedMsgIndex = idx; }
+                    else { const s=Math.min(window.firstSelectedMsgIndex,idx),en=Math.max(window.firstSelectedMsgIndex,idx); for(let i=s;i<=en;i++) window.selectedSceneIds.add(window.currentChatHistory[i].id); window.firstSelectedMsgIndex=null; }
+                    renderChatLog();
+                });
             } else {
-                bubble.onclick = e => { e.stopPropagation(); openActionSheet(idx); };
+                block.addEventListener('click', () => openActionSheet(idx));
             }
-            group.appendChild(bubble);
 
             if (isChar && !isLoading && !window.isSceneSelectionMode) {
                 const vd = window.msgVersions[msg.id]; const total = vd ? vd.versions.length : 1; const cur = vd ? vd.current : 0;
-                const footer = document.createElement('div'); footer.className = 'msg-footer';
-                const pager = document.createElement('div'); pager.className = 'msg-pager';
+                const pager = document.createElement('div'); pager.className = 'msg-pager'; pager.style.marginTop = '6px';
                 const prevBtn = document.createElement('button'); prevBtn.className = 'pager-btn'; prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>'; if (cur <= 0) prevBtn.disabled = true;
                 prevBtn.onclick = e => { e.stopPropagation(); navigateVersion(msg.id, idx, -1); };
                 const countEl = document.createElement('span'); countEl.className = 'pager-count'; countEl.textContent = `${cur+1} / ${total}`;
@@ -1354,11 +1382,10 @@
                 else { nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>'; }
                 nextBtn.onclick = e => { e.stopPropagation(); if (cur >= total-1) regenerateMessage(msg.id, idx); else navigateVersion(msg.id, idx, +1); };
                 pager.appendChild(prevBtn); pager.appendChild(countEl); pager.appendChild(nextBtn);
-                footer.appendChild(pager); group.appendChild(footer);
+                block.insertBefore(pager, block.querySelector('.msg-separator'));
             }
 
-            log.appendChild(group);
-            if (!window.isSceneSelectionMode) attachSwipeEvents(bubble, -60, true, () => { window.selectedMsgIndex=idx; doBranchMessage(); });
+            log.appendChild(block);
         });
         log.scrollTop = log.scrollHeight;
     }
@@ -1379,7 +1406,8 @@
         try {
             const apiUrl = localStorage.getItem('dreamer_api_url')||'', apiKey = localStorage.getItem('dreamer_api_key')||'', model = localStorage.getItem('dreamer_model')||'';
             if (apiUrl && apiKey && model) {
-                const base = apiUrl.trim().replace(/\/$/,''); const ep = (base.endsWith('/v1')?base:base+'/v1')+'/chat/completions';
+                const cleanUrl = apiUrl.trim().replace(/\/+$/, '').replace(/\/chat\/completions$/, '');
+                const ep = (cleanUrl.endsWith('/v1') ? cleanUrl : cleanUrl + '/v1') + '/chat/completions';
                 const char = JSON.parse(localStorage.getItem('dreamer_characters')||'[]').find(c=>c.id===window.selectedCharId);
                 const gp = localStorage.getItem('dreamer_global_prompt')||'';
                 const pId = localStorage.getItem('dreamer_current_persona_id'); const personas = JSON.parse(localStorage.getItem('dreamer_personas')||'[]');
@@ -1419,8 +1447,9 @@
             const apiKey = localStorage.getItem('dreamer_api_key')||'', model = localStorage.getItem('dreamer_model')||'';
             if (!apiUrl||!apiKey) throw new Error('API 탭에서 API URL과 Key를 먼저 저장해주세요.');
             if (!model) throw new Error('우측 사이드바에서 AI 모델을 먼저 선택해주세요.');
-            apiUrl = apiUrl.trim().replace(/\/$/,'');
-            const endpoint = (apiUrl.endsWith('/v1')?apiUrl:apiUrl+'/v1')+'/chat/completions';
+            apiUrl = apiUrl.trim().replace(/\/+$/, '').replace(/\/chat\/completions$/, '');
+            const base = apiUrl.endsWith('/v1') ? apiUrl : apiUrl + '/v1';
+            const endpoint = base + '/chat/completions';
             const char = JSON.parse(localStorage.getItem('dreamer_characters')||'[]').find(c=>c.id===window.selectedCharId);
             const pId = localStorage.getItem('dreamer_current_persona_id');
             const personas = JSON.parse(localStorage.getItem('dreamer_personas')||'[]');
@@ -1487,17 +1516,19 @@
         if (icon) icon.classList.add('fa-spin');
 
         try {
-            apiUrl = apiUrl.trim().replace(/\/$/, '');
+            apiUrl = apiUrl.trim().replace(/\/+$/, '').replace(/\/chat\/completions$/, '');
             const fetchUrl = (apiUrl.endsWith('/v1') ? apiUrl : apiUrl + '/v1') + '/models';
             const res = await fetch(fetchUrl, { headers: { 'Authorization': `Bearer ${apiKey}` } });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
+            const models = (data.data || []).map(m => m.id).sort((a, b) => a.localeCompare(b));
+            localStorage.setItem('dreamer_model_list', JSON.stringify(models));
             const select = $('chat-model-select');
             select.innerHTML = '<option value="">모델 선택...</option>';
-            (data.data || []).sort((a, b) => a.id.localeCompare(b.id)).forEach(m => {
+            models.forEach(mId => {
                 const opt = document.createElement('option');
-                opt.value = m.id;
-                opt.textContent = m.id;
+                opt.value = mId;
+                opt.textContent = mId;
                 select.appendChild(opt);
             });
             const saved = localStorage.getItem('dreamer_model');
@@ -1520,13 +1551,14 @@
         const selectEl = $('chat-persona-select');
         const pList = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
         selectEl.innerHTML = '<option value="">페르소나 선택...</option>';
-        
         pList.forEach(p => {
             const opt = document.createElement('option');
             opt.value = p.id;
             opt.textContent = p.name;
             selectEl.appendChild(opt);
         });
+        const savedPersona = localStorage.getItem('dreamer_current_persona_id');
+        if (savedPersona) selectEl.value = savedPersona;
     };
     
     // 액션 시트
