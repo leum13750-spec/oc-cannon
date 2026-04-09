@@ -170,7 +170,9 @@
         .msg-footer{margin-top:7px;display:flex;align-items:center;gap:8px;}
         .char-group .msg-footer{justify-content:flex-start;}
         .user-group .msg-footer{justify-content:flex-end;}
-        .msg-pager{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:3px 6px;}
+        .msg-pager{display:flex;align-items:center;gap:2px;padding:3px 0;}
+        .msg-options-btn{background:none;border:none;color:rgba(255,255,255,0.3);font-size:16px;cursor:pointer;padding:0 4px;margin-left:auto;line-height:1;flex-shrink:0;letter-spacing:1px;}
+        .msg-options-btn:active{color:white;}
         .pager-btn{background:none;border:none;color:rgba(255,255,255,0.4);font-size:12px;cursor:pointer;padding:2px 5px;line-height:1;transition:color 0.1s;}
         .pager-btn:active{color:white;}
         .pager-btn:disabled{opacity:0.18;cursor:default;}
@@ -1355,11 +1357,15 @@
             const p = ps.find(x=>x.id===pId)||ps.find(x=>x.isDefault)||null;
             const senderName = isChar ? (msg.name||'캐릭터') : (p ? p.name : (localStorage.getItem('dreamer_nickname')||localStorage.getItem('dreamer_handle')||'나'));
             const pinIcon = msg.pinned ? ' <i class="fas fa-thumbtack pinned-icon"></i>' : '';
+            const prevOrig = window.loadingOriginals && window.loadingOriginals[msg.id];
             const contentHtml = isLoading
-                ? '<div class="typing-dots"><span></span><span></span><span></span></div>'
+                ? (prevOrig
+                    ? `${renderMarkdown(prevOrig)}<div style="margin-top:10px;display:flex;align-items:center;gap:6px;"><div class="typing-dots"><span></span><span></span><span></span></div><span style="font-size:11px;color:rgba(255,255,255,0.3);">생성 중...</span></div>`
+                    : '<div class="typing-dots"><span></span><span></span><span></span></div>')
                 : renderMarkdown(msg.content);
+            const optsBtnHtml = !window.isSceneSelectionMode ? '<button class="msg-options-btn">⋮</button>' : '';
 
-            block.innerHTML = `<div class="msg-header">${escHtml(senderName)}${pinIcon}</div><div class="msg-content">${contentHtml}</div><div class="msg-separator"></div>`;
+            block.innerHTML = `<div class="msg-header">${escHtml(senderName)}${pinIcon}${optsBtnHtml}</div><div class="msg-content">${contentHtml}</div><div class="msg-separator"></div>`;
 
             if (window.isSceneSelectionMode) {
                 block.addEventListener('click', () => {
@@ -1368,7 +1374,8 @@
                     renderChatLog();
                 });
             } else {
-                block.addEventListener('click', () => openActionSheet(idx));
+                const optsBtn = block.querySelector('.msg-options-btn');
+                if (optsBtn) optsBtn.addEventListener('click', e => { e.stopPropagation(); openActionSheet(idx); });
             }
 
             if (isChar && !isLoading && !window.isSceneSelectionMode) {
@@ -1401,6 +1408,8 @@
         if (window.isGenerating) return;
         const historyUpToHere = window.currentChatHistory.slice(0, idx);
         const original = window.currentChatHistory[idx].content;
+        if (!window.loadingOriginals) window.loadingOriginals = {};
+        window.loadingOriginals[msgId] = original;
         window.currentChatHistory[idx].content = '__loading__'; window.isGenerating = true; renderChatLog();
         let replyText = '(재생성 실패)';
         try {
@@ -1427,6 +1436,7 @@
         window.msgVersions[msgId].versions.push(replyText);
         window.msgVersions[msgId].current = window.msgVersions[msgId].versions.length-1;
         window.currentChatHistory[idx].content = replyText;
+        if (window.loadingOriginals) delete window.loadingOriginals[msgId];
         window.isGenerating = false; saveCurrentChatToLocal(); renderChatLog();
     }
     
