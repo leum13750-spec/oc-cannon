@@ -467,6 +467,9 @@
             <input type="checkbox" id="edit-persona-default" style="width: auto; margin: 0;">
             <label for="edit-persona-default" style="margin: 0; cursor: pointer; font-size: 14px;">기본값으로 고정</label>
         </div>
+        <div id="persona-delete-row" style="display:none; margin-top:32px; text-align:center;">
+            <button class="action-btn-outline" style="background:var(--danger-color);border:1px solid var(--danger-color);color:white;" onclick="deleteCurrentPersona()"><i class="fas fa-trash"></i> 삭제</button>
+        </div>
      </div>
 </div>
 
@@ -812,7 +815,11 @@
     
     // 삭제 기능
     window.executeDelete = async function(id, name, type) {
-        if (!await dConfirm(`'${name}'을(를) 삭제하시겠습니까?`)) return;
+        const input = await dPrompt(`삭제하려면 "${name}" 을(를) 정확히 입력하세요:`, '');
+        if (!input || input.trim() !== name.trim()) {
+            if (input !== '') await dAlert('이름이 일치하지 않습니다. 삭제가 취소되었습니다.');
+            return;
+        }
         const storageKeys = {
             characters: 'dreamer_characters',
             personas: 'dreamer_personas',
@@ -953,6 +960,8 @@
         }
         
         updateCharCount('edit-persona-name', 25);
+        const delRow = $('persona-delete-row');
+        if (delRow) delRow.style.display = id ? 'block' : 'none';
         screen.classList.remove('hidden');
     };
     
@@ -1024,12 +1033,9 @@
         
         container.innerHTML = '';
         characters.forEach(char => {
-            const swipeContainer = document.createElement('div');
-            swipeContainer.className = 'swipe-container';
-            swipeContainer.innerHTML = `
-                <div class="delete-btn-bg">
-                    <i class="fas fa-trash"></i>
-                </div>
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'margin-bottom:12px;';
+            wrapper.innerHTML = `
                 <div class="list-card">
                     <img src="${char.photoUrl || defaultImg}" class="char-img">
                     <div class="list-info">
@@ -1039,15 +1045,12 @@
                     <button class="edit-btn"><i class="fas fa-edit"></i></button>
                 </div>
             `;
-            const delBtn = swipeContainer.querySelector('.delete-btn-bg');
-            delBtn.addEventListener('click', () => executeDelete(char.id, char.name, 'characters'));
-            const card = swipeContainer.querySelector('.list-card');
+            const card = wrapper.querySelector('.list-card');
             const img = card.querySelector('.char-img');
             if (img) img.onerror = function() { this.onerror=null; this.src=defaultImg; };
             card.addEventListener('click', () => openCharDetail(char.id));
-            swipeContainer.querySelector('.edit-btn').addEventListener('click', e => { e.stopPropagation(); openCharEditor(char.id, char); });
-            container.appendChild(swipeContainer);
-            attachCardSwipeEvents(card);
+            wrapper.querySelector('.edit-btn').addEventListener('click', e => { e.stopPropagation(); openCharEditor(char.id, char); });
+            container.appendChild(wrapper);
         });
     }
     
@@ -1063,13 +1066,10 @@
         container.innerHTML = '';
         const sorted = [...personas].sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0));
         sorted.forEach(persona => {
-            const swipeContainer = document.createElement('div');
-            swipeContainer.className = 'swipe-container';
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'margin-bottom:12px;';
             const starIcon = persona.isDefault ? '<i class="fas fa-star" style="color: #fcc419; margin-left:4px;"></i>' : '';
-            swipeContainer.innerHTML = `
-                <div class="delete-btn-bg">
-                    <i class="fas fa-trash"></i>
-                </div>
+            wrapper.innerHTML = `
                 <div class="list-card">
                     <img src="${persona.photoUrl || defaultImg}" class="persona-img">
                     <div class="list-info">
@@ -1079,12 +1079,10 @@
                     <button class="edit-btn"><i class="fas fa-edit"></i></button>
                 </div>
             `;
-            swipeContainer.querySelector('.delete-btn-bg').addEventListener('click', () => executeDelete(persona.id, persona.name, 'personas'));
-            const card = swipeContainer.querySelector('.list-card');
+            const card = wrapper.querySelector('.list-card');
             card.addEventListener('click', () => openPersonaDetail(persona.id));
-            swipeContainer.querySelector('.edit-btn').addEventListener('click', e => { e.stopPropagation(); openPersonaEditor(persona.id, persona); });
-            container.appendChild(swipeContainer);
-            attachCardSwipeEvents(card);
+            wrapper.querySelector('.edit-btn').addEventListener('click', e => { e.stopPropagation(); openPersonaEditor(persona.id, persona); });
+            container.appendChild(wrapper);
         });
     }
     
@@ -1117,6 +1115,14 @@
         if (screen) screen.classList.remove('hidden');
     };
     
+    window.deleteCurrentPersona = async function() {
+        const personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
+        const persona = personas.find(p => p.id === window.editingPersonaId);
+        if (!persona) return;
+        await executeDelete(persona.id, persona.name, 'personas');
+        closeEditor('persona');
+    };
+
     window.editCurrentCharacter = function() {
         const characters = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
         const char = characters.find(c => c.id === window.selectedCharId);
@@ -1158,27 +1164,28 @@
         
         container.innerHTML = '';
         scenes.forEach(scene => {
-            const swipeContainer = document.createElement('div');
-            swipeContainer.className = 'swipe-container';
-            swipeContainer.innerHTML = `
-                <div class="delete-btn-bg"><i class="fas fa-trash"></i></div>
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'margin-bottom:12px;';
+            wrapper.innerHTML = `
                 <div class="list-card">
-                    <div style="width: 48px; height: 48px; background: var(--bg-surface-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; flex-shrink: 0;">
-                        <i class="fas fa-film" style="color: var(--accent-color); font-size: 20px;"></i>
+                    <div style="width:48px;height:48px;background:var(--bg-surface-light);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fas fa-film" style="color:var(--accent-color);font-size:20px;"></i>
                     </div>
                     <div class="list-info">
                         <div class="list-title">${escHtml(scene.name)}</div>
                         <div class="list-sub">${escHtml(scene.charName)} • ${scene.history.length} 메시지 • ${escHtml(scene.date)}</div>
                     </div>
-                    <button class="edit-btn" data-scene-id="${scene.id}"><i class="fas fa-edit"></i></button>
+                    <div style="display:flex;gap:4px;flex-shrink:0;">
+                        <button class="scene-rename-btn" style="background:none;border:none;color:var(--text-secondary);font-size:15px;cursor:pointer;padding:6px;"><i class="fas fa-edit"></i></button>
+                        <button class="scene-delete-btn" style="background:none;border:none;color:var(--danger-color);font-size:15px;cursor:pointer;padding:6px;"><i class="fas fa-trash"></i></button>
+                    </div>
                 </div>
             `;
-            swipeContainer.querySelector('.delete-btn-bg').addEventListener('click', () => executeDelete(scene.id, scene.name, 'scenes'));
-            const card = swipeContainer.querySelector('.list-card');
+            const card = wrapper.querySelector('.list-card');
             card.addEventListener('click', () => openSceneDetail(scene.id));
-            swipeContainer.querySelector('.edit-btn').addEventListener('click', e => { e.stopPropagation(); renameScene(scene.id); });
-            container.appendChild(swipeContainer);
-            attachSwipeEvents(card);
+            wrapper.querySelector('.scene-rename-btn').addEventListener('click', e => { e.stopPropagation(); renameScene(scene.id); });
+            wrapper.querySelector('.scene-delete-btn').addEventListener('click', e => { e.stopPropagation(); executeDelete(scene.id, scene.name, 'scenes'); });
+            container.appendChild(wrapper);
         });
     };
     
