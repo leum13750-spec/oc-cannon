@@ -77,7 +77,6 @@
         
         .empty-text { color: var(--text-secondary); font-size: 14px; text-align: center; margin-top: 20px; }
         
-        /* 스와이프 관련 불필요한 코드 제거된 리스트 카드 스타일 */
         .list-card { display: flex; align-items: center; gap: 14px; background: var(--bg-surface); padding: 14px 16px; border-radius: 16px; position: relative; cursor: pointer; width: 100%; }
         .char-img, .persona-img { width: 48px !important; height: 48px !important; min-width: 48px; min-height: 48px; max-width: 48px; max-height: 48px; object-fit: cover; flex-shrink: 0; background: var(--bg-surface-light); }
         .char-img { border-radius: 12px; }
@@ -137,7 +136,6 @@
         .pinned-msg { border-left: 3px solid #fcc419; background: rgba(252, 196, 25, 0.05); }
         .pinned-icon { color: #fcc419; font-size: 12px; }
         
-        /* ── 채팅 화면 — character.ai 스타일 ── */
         button:disabled{opacity:0.5;cursor:not-allowed!important;}
         #real-chat-screen{display:none;flex-direction:column;background:var(--chat-bg);z-index:var(--z-chat);position:fixed;top:0;left:0;width:100%;height:100%;}
         #chat-header{display:flex;align-items:center;gap:12px;padding:0 16px;height:60px;padding-top:env(safe-area-inset-top);background:rgba(12,12,12,0.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;}
@@ -362,7 +360,6 @@
 
     <button class="bug-report-btn" onclick="dAlert('버그 리포트는 공식 채널을 이용해주세요.')"><i class="fas fa-bug"></i></button>
 
-<!-- 모달창 및 에디터 UI -->
 <div id="edit-message-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: var(--z-alert); align-items: center; justify-content: center; padding: 20px; flex-direction: column;">
     <div style="width: 100%; max-width: 500px; background: #1c1c1e; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 24px; border: 1px solid #333;">
         <textarea id="edit-message-textarea" class="auto-resize-textarea" style="width: 100%; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.5; resize: none; outline: none; min-height: 100px; max-height: 50vh; overflow-y: auto; font-family: inherit;"></textarea>
@@ -771,7 +768,7 @@
             if (await dConfirm('로그아웃하시겠습니까?')) {
                 localStorage.removeItem('dreamer_logged_in');
                 localStorage.removeItem('dreamer_handle');
-                localStorage.removeItem('dreamer_nickname'); // 닉네임도 제거
+                localStorage.removeItem('dreamer_nickname'); 
                 location.reload();
             }
         };
@@ -1125,8 +1122,6 @@
         const personas = JSON.parse(localStorage.getItem('dreamer_personas') || '[]');
         const persona = personas.find(p => p.id === id);
         if (!persona) return;
-        
-        // 페르소나 상세 화면이 없으므로 편집 모드로 열기
         openPersonaEditor(id, persona);
     };
     
@@ -1250,7 +1245,6 @@
     window.isGenerating = false;
     window.isSceneSelectionMode = false;
     window.firstSelectedMsgIndex = null;
-    window.msgVersions = {};
 
     function saveCurrentChatToLocal() {
         if (window.selectedCharId && window.currentChatHistory.length > 0)
@@ -1267,7 +1261,6 @@
             localStorage.setItem(`chat_sessions_${window.selectedCharId}`, JSON.stringify(ss));
         }
         localStorage.removeItem(`dreamer_current_chat_${window.selectedCharId}`);
-        window.msgVersions = {};
         toggleRightSidebar();
         OpenChat(true);
     };
@@ -1285,7 +1278,7 @@
 
         $('chat-header-name').innerText = charName;
         $('chat-header-sub').innerText = char ? `@${localStorage.getItem('dreamer_handle') || ''}` : '';
-        $('chat-header-avatar').src = charImg; // 브라우저가 property로 설정할때는 안전함
+        $('chat-header-avatar').src = charImg;
 
         if (char) { $('sb-char-img').src = charImg; $('sb-char-name').textContent = char.name; $('sb-char-sub').textContent = char.sub || ''; }
 
@@ -1312,10 +1305,13 @@
         } else {
             $('chat-footer').style.display = 'block';
             const saved = localStorage.getItem(`dreamer_current_chat_${window.selectedCharId}`);
-            if (saved && !isNew) { window.currentChatHistory = JSON.parse(saved); }
-            else { window.currentChatHistory = [{ id: Date.now(), role: 'char', name: charName, content: char ? char.greeting : '*미소지으며* 반가워요.', pinned: false }]; saveCurrentChatToLocal(); }
+            if (saved && !isNew) { 
+                window.currentChatHistory = JSON.parse(saved); 
+            } else { 
+                window.currentChatHistory = [{ id: Date.now(), role: 'char', name: charName, content: char ? char.greeting : '*미소지으며* 반가워요.', pinned: false }]; 
+                saveCurrentChatToLocal(); 
+            }
         }
-        window.msgVersions = {};
         renderChatLog();
     };
 
@@ -1358,6 +1354,7 @@
             const senderName = isChar ? (msg.name||'캐릭터') : (p ? p.name : (localStorage.getItem('dreamer_nickname')||localStorage.getItem('dreamer_handle')||'나'));
             const pinIcon = msg.pinned ? ' <i class="fas fa-thumbtack pinned-icon"></i>' : '';
             const prevOrig = window.loadingOriginals && window.loadingOriginals[msg.id];
+            
             const contentHtml = isLoading
                 ? (prevOrig
                     ? `${renderMarkdown(prevOrig)}<div style="margin-top:10px;display:flex;align-items:center;gap:6px;"><div class="typing-dots"><span></span><span></span><span></span></div><span style="font-size:11px;color:rgba(255,255,255,0.3);">생성 중...</span></div>`
@@ -1378,16 +1375,22 @@
                 if (optsBtn) optsBtn.addEventListener('click', e => { e.stopPropagation(); openActionSheet(idx); });
             }
 
+            // 버전 넘기기 (이전 답변 보기) 기능
             if (isChar && !isLoading && !window.isSceneSelectionMode) {
-                const vd = window.msgVersions[msg.id]; const total = vd ? vd.versions.length : 1; const cur = vd ? vd.current : 0;
+                const total = msg.versions ? msg.versions.length : 1; 
+                const cur = msg.currentVersion !== undefined ? msg.currentVersion : 0;
+                
                 const pager = document.createElement('div'); pager.className = 'msg-pager'; pager.style.marginTop = '6px';
                 const prevBtn = document.createElement('button'); prevBtn.className = 'pager-btn'; prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>'; if (cur <= 0) prevBtn.disabled = true;
-                prevBtn.onclick = e => { e.stopPropagation(); navigateVersion(msg.id, idx, -1); };
+                prevBtn.onclick = e => { e.stopPropagation(); navigateVersion(idx, -1); };
+                
                 const countEl = document.createElement('span'); countEl.className = 'pager-count'; countEl.textContent = `${cur+1} / ${total}`;
+                
                 const nextBtn = document.createElement('button'); nextBtn.className = 'pager-btn';
                 if (cur >= total-1) { nextBtn.innerHTML = '<i class="fas fa-redo" style="font-size:10px;"></i>'; nextBtn.title = '재생성'; }
                 else { nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>'; }
-                nextBtn.onclick = e => { e.stopPropagation(); if (cur >= total-1) regenerateMessage(msg.id, idx); else navigateVersion(msg.id, idx, +1); };
+                nextBtn.onclick = e => { e.stopPropagation(); if (cur >= total-1) regenerateMessage(msg.id, idx); else navigateVersion(idx, +1); };
+                
                 pager.appendChild(prevBtn); pager.appendChild(countEl); pager.appendChild(nextBtn);
                 block.insertBefore(pager, block.querySelector('.msg-separator'));
             }
@@ -1397,20 +1400,36 @@
         log.scrollTop = log.scrollHeight;
     }
 
-    function navigateVersion(msgId, idx, dir) {
-        const vd = window.msgVersions[msgId]; if (!vd) return;
-        const next = vd.current + dir; if (next < 0 || next >= vd.versions.length) return;
-        vd.current = next; window.currentChatHistory[idx].content = vd.versions[next];
-        saveCurrentChatToLocal(); renderChatLog();
+    // 버전 넘기기
+    function navigateVersion(idx, dir) {
+        const msgObj = window.currentChatHistory[idx];
+        if (!msgObj || !msgObj.versions) return;
+        const next = msgObj.currentVersion + dir; 
+        if (next < 0 || next >= msgObj.versions.length) return;
+        msgObj.currentVersion = next; 
+        msgObj.content = msgObj.versions[next];
+        saveCurrentChatToLocal(); 
+        renderChatLog();
     }
 
     async function regenerateMessage(msgId, idx) {
         if (window.isGenerating) return;
         const historyUpToHere = window.currentChatHistory.slice(0, idx);
         const original = window.currentChatHistory[idx].content;
+        
         if (!window.loadingOriginals) window.loadingOriginals = {};
         window.loadingOriginals[msgId] = original;
-        window.currentChatHistory[idx].content = '__loading__'; window.isGenerating = true; renderChatLog();
+        
+        // 버전 초기화 작업 (구버전 호환)
+        if (!window.currentChatHistory[idx].versions) {
+            window.currentChatHistory[idx].versions = [original];
+            window.currentChatHistory[idx].currentVersion = 0;
+        }
+        
+        window.currentChatHistory[idx].content = '__loading__'; 
+        window.isGenerating = true; 
+        renderChatLog();
+        
         let replyText = '(재생성 실패)';
         try {
             const apiUrl = localStorage.getItem('dreamer_api_url')||'', apiKey = localStorage.getItem('dreamer_api_key')||'', model = localStorage.getItem('dreamer_model')||'';
@@ -1432,17 +1451,36 @@
                 const messages = []; if (sys.trim()) messages.push({role:'system',content:sys.trim()});
                 historyUpToHere.forEach(m => { if (m.isOOC) messages.push({role:'user',content:m.content}); else messages.push({role:m.role==='char'?'assistant':'user',content:m.content}); });
                 const gs = JSON.parse(localStorage.getItem('dreamer_gen_settings')||'{}'), ds = defaultGenSettings;
-                const resp = await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},body:JSON.stringify({model,messages,temperature:gs.temp||ds.temp,top_p:gs.topp||ds.topp,presence_penalty:gs.pres||ds.pres,frequency_penalty:gs.freq||ds.freq,max_tokens:gs.maxt||ds.maxt})});
-                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                
+                const resp = await fetch(ep,{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+                    body:JSON.stringify({
+                        model,
+                        messages,
+                        temperature: Number(gs.temp||ds.temp),
+                        top_p: Number(gs.topp||ds.topp),
+                        presence_penalty: Number(gs.pres||ds.pres),
+                        frequency_penalty: Number(gs.freq||ds.freq),
+                        max_tokens: Math.floor(Number(gs.maxt||ds.maxt))
+                    })
+                });
+                if (!resp.ok) {
+                    const e=await resp.json().catch(()=>({}));
+                    throw new Error(e.error?.message||`HTTP ${resp.status}`);
+                }
                 const data = await resp.json(); replyText = data.choices[0].message.content;
             } else { replyText = '(API 설정 누락)'; }
         } catch(err) { replyText = `(오류: ${err.message})`; }
-        if (!window.msgVersions[msgId]) window.msgVersions[msgId] = {versions:[original],current:0};
-        window.msgVersions[msgId].versions.push(replyText);
-        window.msgVersions[msgId].current = window.msgVersions[msgId].versions.length-1;
-        window.currentChatHistory[idx].content = replyText;
+        
+        const msgObj = window.currentChatHistory[idx];
+        msgObj.versions.push(replyText);
+        msgObj.currentVersion = msgObj.versions.length - 1;
+        msgObj.content = replyText;
         if (window.loadingOriginals) delete window.loadingOriginals[msgId];
-        window.isGenerating = false; saveCurrentChatToLocal(); renderChatLog();
+        window.isGenerating = false; 
+        saveCurrentChatToLocal(); 
+        renderChatLog();
     }
     
     window.sendChatMessage = async function(skipInput = false) {
@@ -1485,13 +1523,33 @@
                 else messages.push({role:msg.role==='char'?'assistant':'user',content:msg.content});
             });
             const g = JSON.parse(localStorage.getItem('dreamer_gen_settings')||'{}'), d = defaultGenSettings;
-            const res = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},body:JSON.stringify({model,messages,temperature:g.temp??d.temp,top_p:g.topp??d.topp,presence_penalty:g.pres??d.pres,frequency_penalty:g.freq??d.freq,max_tokens:g.maxt??d.maxt})});
+            
+            const res = await fetch(endpoint,{
+                method:'POST',
+                headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+                body:JSON.stringify({
+                    model,
+                    messages,
+                    temperature: Number(g.temp??d.temp),
+                    top_p: Number(g.topp??d.topp),
+                    presence_penalty: Number(g.pres??d.pres),
+                    frequency_penalty: Number(g.freq??d.freq),
+                    max_tokens: Math.floor(Number(g.maxt??d.maxt))
+                })
+            });
             if (!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${res.status}`);}
             const data = await res.json(); replyText = data.choices[0].message.content;
         } catch(err) { replyText = `(오류: ${err.message})`; }
+        
         const target = window.currentChatHistory.find(m=>m.id===loadingId);
-        if (target) target.content = replyText;
-        window.isGenerating = false; saveCurrentChatToLocal(); renderChatLog();
+        if (target) {
+            target.content = replyText;
+            target.versions = [replyText];
+            target.currentVersion = 0;
+        }
+        window.isGenerating = false; 
+        saveCurrentChatToLocal(); 
+        renderChatLog();
     };
 
     window.sendFeedbackOOC = async function() {
@@ -1731,14 +1789,14 @@
         $('session-list-modal').classList.remove('hidden');
     };
     
-    // 이미지 압축 (최신 webp 방식, 투명도 보존, 용량 최적화)
+    // 이미지 압축
     function compressImage(file, callback) {
         const reader = new FileReader();
         reader.onload = function(event) {
             const img = new Image();
             img.onload = function() {
                 const canvas = document.createElement('canvas');
-                let width = img.width, height = img.height, maxSize = 256; // 400 -> 256으로 최적화
+                let width = img.width, height = img.height, maxSize = 256;
                 
                 if (width > height) {
                     if (width > maxSize) {
@@ -1757,7 +1815,6 @@
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // jpeg 대신 webp 사용하여 투명도 유지 및 압축률 개선
                 const compressedBase64 = canvas.toDataURL('image/webp', 0.8);
                 callback(compressedBase64);
             };
@@ -1810,7 +1867,6 @@
     document.querySelector('#gen-settings-screen .close-editor-btn').onclick = () => {
         $('gen-settings-screen').classList.add('hidden');
     };
-    
     
     // Appwrite 클라이언트 설정 (에러 방지)
     let client, databases;
@@ -1877,7 +1933,6 @@
         } catch (error) {
             console.error('백업 실패:', error);
             
-            // Appwrite 실패 시 로컬 다운로드로 fallback
             const _fbChars = JSON.parse(localStorage.getItem('dreamer_characters') || '[]');
             const _fbChats = {};
             _fbChars.forEach(c => { const h = localStorage.getItem(`dreamer_current_chat_${c.id}`); if (h) _fbChats[c.id] = h; });
@@ -1905,7 +1960,6 @@
     // Appwrite 복구 기능
     window.restoreData = async function() {
         try {
-            // Appwrite에서 최신 백업 가져오기 (SDK가 있을 경우만)
             if (databases && client && typeof Appwrite !== 'undefined') {
                 try {
                     const response = await databases.listDocuments(
@@ -1944,7 +1998,6 @@
         } catch (error) {
             console.error('복구 실패:', error);
             
-            // Appwrite 실패 시 파일 선택으로 fallback
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '.json';
@@ -2188,4 +2241,3 @@
 
 </body>
 </html>
-```
